@@ -35,7 +35,7 @@ Add URL patterns
 
 ### Documentation
 
-View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/index.html
+View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/index.html .
 
 
 ### Acknowledgements
