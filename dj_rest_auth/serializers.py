@@ -191,19 +191,12 @@ class PasswordResetSerializer(serializers.Serializer):
         self.reset_form.save(**opts)
 
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
+class PasswordResetConfirmTokenVerifySerializer(serializers.Serializer):
     """
-    Serializer for requesting a password reset e-mail.
+    Serializer for verifying a password reset confirm token.
     """
-    new_password1 = serializers.CharField(max_length=128)
-    new_password2 = serializers.CharField(max_length=128)
     uid = serializers.CharField()
     token = serializers.CharField()
-
-    set_password_form_class = SetPasswordForm
-
-    def custom_validation(self, attrs):
-        pass
 
     def validate(self, attrs):
         self._errors = {}
@@ -217,6 +210,26 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
         if not default_token_generator.check_token(self.user, attrs['token']):
             raise ValidationError({'token': ['Invalid value']})
+
+        return attrs
+
+
+class PasswordResetConfirmSerializer(PasswordResetConfirmTokenVerifySerializer):
+    """
+    Serializer for requesting a password reset e-mail.
+    """
+    new_password1 = serializers.CharField(max_length=128)
+    new_password2 = serializers.CharField(max_length=128)
+
+    set_password_form_class = SetPasswordForm
+
+    def custom_validation(self, attrs):
+        pass
+
+    def validate(self, attrs):
+        self._errors = {}
+
+        super(PasswordResetConfirmSerializer, self).validate(attrs)
 
         self.custom_validation(attrs)
         # Construct SetPasswordForm instance
