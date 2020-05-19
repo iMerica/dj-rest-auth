@@ -1,3 +1,4 @@
+from dj_rest_auth.serializers import PasswordResetConfirmTokenVerifySerializer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login as django_login
@@ -229,6 +230,26 @@ class PasswordResetView(GenericAPIView):
             {"detail": _("Password reset e-mail has been sent.")},
             status=status.HTTP_200_OK
         )
+
+
+class PasswordResetConfirmTokenVerifyView(GenericAPIView):
+    """
+    Verifies a password reset confirm token.
+
+    Accepts the following POST parameters: uid, token
+    Returns the success/fail message.
+    """
+    serializer_class = PasswordResetConfirmTokenVerifySerializer
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        # Create a serializer with request.data
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        return Response({}, status=status.HTTP_200_OK)
 
 
 class PasswordResetConfirmView(GenericAPIView):
