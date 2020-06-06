@@ -202,6 +202,8 @@ class RegisterSerializer(serializers.Serializer):
         elif data['password1'] != data['password2']:
             raise serializers.ValidationError(_("The two password fields didn't match."))
 
+        return data
+
     def custom_signup(self, request, user):
         pass
 
