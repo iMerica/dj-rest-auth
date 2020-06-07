@@ -9,8 +9,14 @@ except ImportError:
     from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
-from allauth.account.forms import default_token_generator
-from allauth.account.utils import url_str_to_user_pk
+try:
+    from allauth.account.forms import default_token_generator 
+    from allauth.account.utils import url_str_to_user_pk
+    decoder = url_str_to_user_pk
+except ImportError:
+    from django.contrib.auth.tokens import default_token_generator 
+    from django.utils.http import urlsafe_base64_decode as uid_decoder
+    decoder = uid_decoder
 
 from .models import TokenModel
 
