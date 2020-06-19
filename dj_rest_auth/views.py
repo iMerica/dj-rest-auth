@@ -26,6 +26,24 @@ sensitive_post_parameters_m = method_decorator(
     )
 )
 
+def store_jwt_cookie(access_token, response):
+    cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
+    cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
+    cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
+    cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+    from rest_framework_simplejwt.settings import api_settings as jwt_settings
+    if cookie_name:
+        from datetime import datetime
+        expiration = (datetime.utcnow() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+        response.set_cookie(
+            cookie_name,
+            access_token,
+            expires=expiration,
+            secure=cookie_secure,
+            httponly=cookie_httponly,
+            samesite=cookie_samesite
+        )
+    return response
 
 class LoginView(GenericAPIView):
     """
@@ -85,22 +103,7 @@ class LoginView(GenericAPIView):
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
         if getattr(settings, 'REST_USE_JWT', False):
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
-            from rest_framework_simplejwt.settings import api_settings as jwt_settings
-            if cookie_name:
-                from datetime import datetime
-                expiration = (datetime.utcnow() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-                response.set_cookie(
-                    cookie_name,
-                    self.access_token,
-                    expires=expiration,
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite
-                )
+            response = store_jwt_cookie(self.access_token, response)
         return response
 
     def post(self, request, *args, **kwargs):
@@ -284,3 +287,23 @@ class PasswordChangeView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({"detail": _("New password has been saved.")})
+
+try:
+    from rest_framework_simplejwt.views import TokenRefreshView as SimpleJWTRefreshView
+    class TokenRefreshView(SimpleJWTRefreshView):
+        """
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid. The new access token is stored in a
+        httpOnly cookie.
+        """
+        permission_classes = (AllowAny,)
+        throttle_scope = 'dj_rest_auth'
+
+        def post(self, request, *args, **kwargs):
+            # Try to refresh token, will raise InvalidToken exception on failure
+            response = super(TokenRefreshView, self).post(request, *args, **kwargs)
+            # If we have a valid response store access token in cookie
+            return store_jwt_cookie(response.data["access"], response)
+
+except ImportError:
+    pass

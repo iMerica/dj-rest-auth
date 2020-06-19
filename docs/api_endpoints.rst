@@ -64,8 +64,25 @@ Registration
     .. note:: If you set account email verification as mandatory, you have to add the VerifyEmailView with the used `name`.
         You need to import the view: ``from dj_rest_auth.registration.views import VerifyEmailView``. Then add the url with the corresponding name:
         ``path('dj-rest-auth/account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent')`` to the urlpatterns list.
-        
 
+JSON Web Token
+--------------
+
+.. note:: These endpoints are only available if REST_USE_JWT is set to True
+
+- /dj-rest-auth/token/verify/ (POST)
+
+    - token
+
+    Verifies token validity
+
+- /dj-rest-auth/token/refresh/ (POST)
+
+    - refresh
+
+    Given a valid refresh token, returns a new access token
+
+    .. note:: If JWT_AUTH_COOKIE is set, the access token will be stored in the cookie.
 
 Social Media Authentication
 ---------------------------

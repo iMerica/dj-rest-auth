@@ -536,7 +536,22 @@ class APIBasicTests(TestsMixin, TestCase):
         self.post(self.login_url, data=payload, status_code=status.HTTP_200_OK)
         self.get(self.logout_url, status_code=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    @override_settings(REST_USE_JWT=True)
+
+@override_settings(REST_USE_JWT=True)
+@override_settings(ROOT_URLCONF="tests.urls")
+class JWTBasicTests(TestsMixin, TestCase):
+    """
+    Tests for Simple-JWT integration
+    Override REST_USE_JWT with tests.urls so that
+    token verify and refresh urls are available
+    """
+    USERNAME = 'person'
+    PASS = 'person'
+    EMAIL = "person1@world.com"
+
+    def setUp(self):
+        self.init()
+
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     def test_login_jwt_sets_cookie(self):
         payload = {
@@ -547,7 +562,6 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.login_url, data=payload, status_code=200)
         self.assertTrue('jwt-auth' in resp.cookies.keys())
 
-    @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     def test_logout_jwt_deletes_cookie(self):
         payload = {
@@ -559,7 +573,6 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.logout_url, status=200)
         self.assertEqual('', resp.cookies.get('jwt-auth').value)
 
-    @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(REST_FRAMEWORK=dict(
         DEFAULT_AUTHENTICATION_CLASSES=[
@@ -578,7 +591,6 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
 
-    @override_settings(REST_USE_JWT=True)
     def test_blacklisting_not_installed(self):
         settings.INSTALLED_APPS.remove('rest_framework_simplejwt.token_blacklist')
         payload = {
@@ -594,7 +606,6 @@ class APIBasicTests(TestsMixin, TestCase):
                          "Neither cookies or blacklist are enabled, so the token has not been deleted server side. "
                          "Please make sure the token is deleted client side.")
 
-    @override_settings(REST_USE_JWT=True)
     def test_blacklisting(self):
         payload = {
             "username": self.USERNAME,
@@ -620,7 +631,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(resp.status_code, 500)
 
 
-    @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE=None)
     @override_settings(REST_FRAMEWORK=dict(
         DEFAULT_AUTHENTICATION_CLASSES=[
@@ -645,7 +655,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEquals(claims['email'], 'person1@world.com')
 
 
-    @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(REST_FRAMEWORK=dict(
         DEFAULT_AUTHENTICATION_CLASSES=[
@@ -671,7 +680,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEquals(resp.status_code, 200)
 
 
-    @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=False)
     @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=False)
@@ -683,7 +691,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_wo_csrf_enforcement(self): 
+    def test_wo_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
             "username": self.USERNAME,
@@ -691,7 +699,7 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
+
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
@@ -724,7 +732,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_wo_login_csrf_enforcement(self): 
+    def test_csrf_wo_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
             "username": self.USERNAME,
@@ -732,10 +740,10 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
+
         response = client.get(reverse("getcsrf"))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
@@ -777,7 +785,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_w_login_csrf_enforcement(self): 
+    def test_csrf_w_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
             "username": self.USERNAME,
@@ -785,10 +793,10 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
+
         response = client.get(reverse("getcsrf"))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         #fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
@@ -799,7 +807,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH JWT AUTH HEADER does not make sense 
+        ## TEST WITH JWT AUTH HEADER does not make sense
 
         ## TEST WITH COOKIES
         resp = client.get('/protected-view/')
@@ -825,7 +833,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_w_login_csrf_enforcement_2(self): 
+    def test_csrf_w_login_csrf_enforcement_2(self):
         from .mixins import APIClient
         payload = {
             "username": self.USERNAME,
@@ -833,10 +841,10 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
+
         response = client.get(reverse("getcsrf"))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         #fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
@@ -847,7 +855,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH JWT AUTH HEADER does not make sense 
+        ## TEST WITH JWT AUTH HEADER does not make sense
 
         ## TEST WITH COOKIES
         resp = client.get('/protected-view/')
@@ -860,3 +868,48 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
+
+    @override_settings(JWT_AUTH_COOKIE='jwt-auth')
+    @override_settings(REST_SESSION_LOGIN=False)
+    @override_settings(REST_FRAMEWORK=dict(
+        DEFAULT_AUTHENTICATION_CLASSES=[
+            'dj_rest_auth.utils.JWTCookieAuthentication'
+        ]
+    ))
+    def test_refresh_jwt(self):
+        # GIVEN
+        payload = {
+            "username": self.USERNAME,
+            "password": self.PASS
+        }
+
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        refresh_jwt_url = reverse('token_refresh')
+
+        # WHEN -> login
+        resp = self.post(self.login_url, data=payload, status_code=200)
+
+        # THEN
+        self.assertEqual(['jwt-auth'], list(resp.cookies.keys()))
+        self.assertEqual(resp.status_code, 200)
+        refresh_token = resp.data["refresh_token"]
+        access_token = resp.data["access_token"]
+        self.assertTrue(len(refresh_token) > 0)
+        self.assertTrue(len(access_token) > 0)
+
+        # WHEN -> refresh
+        resp = self.post(refresh_jwt_url, data={"refresh": refresh_token})
+
+        # THEN
+        self.assertEqual(resp.status_code, 200)
+        new_access_token = resp.data["access"]
+        self.assertTrue(len(new_access_token) > 0)
+        self.assertNotEqual(access_token, new_access_token)
+        self.assertIn('jwt-auth', resp.cookies)
+
+        # WHEN -> refresh with invalid token
+        resp = self.post(refresh_jwt_url, {"refresh": 'bad_token'})
+
+        # THEN
+        self.assertEquals(resp.status_code, 401)
+        self.assertNotIn('jwt-auth', resp.cookies)

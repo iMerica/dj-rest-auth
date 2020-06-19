@@ -19,9 +19,8 @@ urlpatterns = [
 ]
 
 if getattr(settings, 'REST_USE_JWT', False):
-    from rest_framework_simplejwt.views import (
-        TokenRefreshView, TokenVerifyView,
-    )
+    from rest_framework_simplejwt.views import (TokenVerifyView,)
+    from dj_rest_auth.views import (TokenRefreshView)
 
     urlpatterns += [
         url(r'^token/verify/$', TokenVerifyView.as_view(), name='token_verify'),

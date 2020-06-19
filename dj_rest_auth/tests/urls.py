@@ -90,3 +90,11 @@ urlpatterns += [
     url(r'^accounts/', include('allauth.socialaccount.urls')),
     url(r'^getcsrf/', get_csrf_cookie, name='getcsrf'),
 ]
+
+from rest_framework_simplejwt.views import (TokenVerifyView,)
+from dj_rest_auth.views import (TokenRefreshView)
+
+urlpatterns += [
+    url(r'^token/verify/$', TokenVerifyView.as_view(), name='token_verify'),
+    url(r'^token/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
+]
