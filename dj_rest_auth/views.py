@@ -9,6 +9,7 @@ from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -273,6 +274,7 @@ class PasswordChangeView(GenericAPIView):
     """
     serializer_class = PasswordChangeSerializer
     permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     throttle_scope = 'dj_rest_auth'
 
     @sensitive_post_parameters_m
