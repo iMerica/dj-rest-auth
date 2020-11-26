@@ -26,7 +26,7 @@ class TestUserDetailsSerializer(TestCase):
         )
 
     @override_settings(ACCOUNT_USERNAME_VALIDATORS=validator_path)
-    def test_validate_username_with_all_auth(self):
+    def test_validate_username_with_all_auth_failure(self):
         serializer = UserDetailsSerializer(
             self.user, data={"username": "TestUsername"}, partial=True
         )
@@ -39,6 +39,14 @@ class TestUserDetailsSerializer(TestCase):
                 ]
             },
         )
+
+    @override_settings(ACCOUNT_USERNAME_VALIDATORS=validator_path)
+    def test_validate_username_with_all_auth_success(self):
+        serializer = UserDetailsSerializer(
+            self.user, data={"username": "test_username"}, partial=True
+        )
+        self.assertEqual(True, serializer.is_valid())
+        self.assertEqual(serializer.validated_data, {"username": "test_username"})
 
     @modify_settings(INSTALLED_APPS={"remove": ["allauth", "allauth.account"]})
     @override_settings(ACCOUNT_USERNAME_VALIDATORS=validator_path)
