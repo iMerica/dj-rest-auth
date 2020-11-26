@@ -150,13 +150,12 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     """
 
     def validate_username(self, username):
-        try:
-            from allauth.account.adapter import get_adapter
-        except ImportError:
+        if 'allauth.account' not in settings.INSTALLED_APPS:
             # We don't need to call the all-auth
             # username validator unless its installed
             return username
 
+        from allauth.account.adapter import get_adapter
         username = get_adapter().clean_username(username)
         return username
 
