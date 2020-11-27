@@ -5,10 +5,12 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode as uid_decoder
 from django.utils.module_loading import import_string
+
 try:
     from django.utils.translation import gettext_lazy as _
 except ImportError:
     from django.utils.translation import ugettext_lazy as _
+
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
@@ -146,6 +148,17 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     """
     User model w/o password
     """
+
+    def validate_username(self, username):
+        if 'allauth.account' not in settings.INSTALLED_APPS:
+            # We don't need to call the all-auth
+            # username validator unless its installed
+            return username
+
+        from allauth.account.adapter import get_adapter
+        username = get_adapter().clean_username(username)
+        return username
+
     class Meta:
         model = UserModel
         fields = ('pk', UserModel.USERNAME_FIELD, UserModel.EMAIL_FIELD, 'first_name', 'last_name')
