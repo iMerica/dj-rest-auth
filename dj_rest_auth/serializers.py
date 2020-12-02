@@ -160,9 +160,19 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         return username
 
     class Meta:
+        extra_fields = []
+        # see https://github.com/jazzband/dj-rest-auth/issues/181
+        # UserModel.XYZ causing attribute error while importing other
+        # classes from `serializers.py`. So, we need to check whether the auth model has
+        # the attribute or not
+        if hasattr(UserModel, "USERNAME_FIELD"):
+            extra_fields.append(UserModel.USERNAME_FIELD)
+        if hasattr(UserModel, "EMAIL_FIELD"):
+            extra_fields.append(UserModel.EMAIL_FIELD)
+
         model = UserModel
-        fields = ('pk', UserModel.USERNAME_FIELD, UserModel.EMAIL_FIELD, 'first_name', 'last_name')
-        read_only_fields = ('email', )
+        fields = ('pk', *extra_fields, 'first_name', 'last_name')
+        read_only_fields = ('email',)
 
 
 class JWTSerializer(serializers.Serializer):
