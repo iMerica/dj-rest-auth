@@ -246,8 +246,8 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     """
     Serializer for confirming a password reset attempt.
     """
-    new_password1 = serializers.CharField(max_length=128)
-    new_password2 = serializers.CharField(max_length=128)
+    new_password1 = serializers.CharField(max_length=128, style={'input_type': 'password'})
+    new_password2 = serializers.CharField(max_length=128, style={'input_type': 'password'})
     uid = serializers.CharField()
     token = serializers.CharField()
 
@@ -284,9 +284,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class PasswordChangeSerializer(serializers.Serializer):
-    old_password = serializers.CharField(max_length=128)
-    new_password1 = serializers.CharField(max_length=128)
-    new_password2 = serializers.CharField(max_length=128)
+    old_password = serializers.CharField(max_length=128, style={'input_type': 'password'})
+    new_password1 = serializers.CharField(max_length=128, style={'input_type': 'password'})
+    new_password2 = serializers.CharField(max_length=128, style={'input_type': 'password'})
 
     set_password_form_class = SetPasswordForm
 
