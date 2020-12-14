@@ -34,11 +34,11 @@ setup(
         'with_social': ['django-allauth>=0.40.0,<0.43.0'],
     },
     tests_require=[
-        'unittest-xml-reporting>=3.0.2',
-        'responses>=0.5.0',
-        'django-allauth==0.40.0',
-        'djangorestframework-simplejwt>=4.4.0 ',
         'coveralls>=1.11.1'
+        'django-allauth==0.42.0',
+        'djangorestframework-simplejwt==4.6.0',
+        'responses==0.12.1',
+        'unittest-xml-reporting==3.0.4',
     ],
     test_suite='runtests.runtests',
     include_package_data=True,
