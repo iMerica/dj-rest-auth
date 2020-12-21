@@ -1,7 +1,7 @@
 # Dj-Rest-Auth
 [![GitHub Actions](https://github.com/jazzband/django-pipeline/workflows/Test/badge.svg)](https://github.com/jazzband/django-pipeline/actions)
 [![Jazzband](https://jazzband.co/static/img/badge.svg)](https://jazzband.co/)
-[![Coverage Status](https://codecov.io/gh/jazzband/django-pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/jazzband/django-pipeline)
+[![Coverage Status](https://codecov.io/gh/jazzband/dj-rest-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/jazzband/dj-rest-auth)
 
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
 with SPAs (e.g React, Vue, Angular), and Mobile applications. 
