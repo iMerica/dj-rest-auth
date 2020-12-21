@@ -1,5 +1,5 @@
 # Dj-Rest-Auth
-[![GitHub Actions](https://github.com/jazzband/django-pipeline/workflows/Test/badge.svg)](https://github.com/jazzband/django-pipeline/actions)
+[![GitHub Actions](https://github.com/jazzband/dj-rest-auth/workflows/Test/badge.svg)](https://github.com/jazzband/dj-rest-auth/actions)
 [![Jazzband](https://jazzband.co/static/img/badge.svg)](https://jazzband.co/)
 [![Coverage Status](https://codecov.io/gh/jazzband/dj-rest-auth/branch/master/graph/badge.svg)](https://codecov.io/gh/jazzband/dj-rest-auth)
 
