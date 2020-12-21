@@ -46,7 +46,7 @@ JWT_AUTH_COOKIE = 'jwt-auth'
 
 ### Testing
 
-Testing us done using [`tox`](https://pypi.org/project/tox/), which
+Testing is done using [`tox`](https://pypi.org/project/tox/), which
 will run the tests against all supported combinations of python and django.
 
 Install tox, either globally or within a virtualenv, and then simply run `tox`
