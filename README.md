@@ -1,7 +1,7 @@
 # Dj-Rest-Auth
-[![<iMerica>](https://circleci.com/gh/jazzband/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/jazzband/dj-rest-auth)
+[![GitHub Actions](https://github.com/jazzband/django-pipeline/workflows/Test/badge.svg)](https://github.com/jazzband/django-pipeline/actions)
 [![Jazzband](https://jazzband.co/static/img/badge.svg)](https://jazzband.co/)
-[![Coverage Status](https://coveralls.io/repos/github/jazzband/dj-rest-auth/badge.svg?branch=master)](https://coveralls.io/github/jazzband/dj-rest-auth?branch=master)
+[![Coverage Status](https://codecov.io/gh/jazzband/django-pipeline/branch/master/graph/badge.svg)](https://codecov.io/gh/jazzband/django-pipeline)
 
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
 with SPAs (e.g React, Vue, Angular), and Mobile applications. 
@@ -46,14 +46,7 @@ JWT_AUTH_COOKIE = 'jwt-auth'
 
 ### Testing
 
-To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
-The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
-which runs the tests against all supported Django installs. To run the test coverage 
-within a virtualenv, run `coverage run ./runtests.py` from the repository directory then run `coverage report`.
-
-#### Tox
-
-Testing may also be done using [`tox`](https://pypi.org/project/tox/), which
+Testing us done using [`tox`](https://pypi.org/project/tox/), which
 will run the tests against all supported combinations of python and django.
 
 Install tox, either globally or within a virtualenv, and then simply run `tox`

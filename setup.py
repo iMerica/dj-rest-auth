@@ -10,13 +10,10 @@ long_description = f.read().strip()
 f.close()
 
 
-about = {}
-with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
-    exec(f.read(), about)
-
 setup(
     name='dj-rest-auth',
-    version=about['__version__'],
+    use_scm_version={"version_scheme": "post-release"},
+    setup_requires=["setuptools_scm"],
     author='iMerica',
     author_email='imichael@pm.me',
     url='http://github.com/jazzband/dj-rest-auth',
@@ -33,14 +30,6 @@ setup(
     extras_require={
         'with_social': ['django-allauth>=0.40.0,<0.43.0'],
     },
-    tests_require=[
-        'coveralls>=1.11.1'
-        'django-allauth==0.42.0',
-        'djangorestframework-simplejwt==4.6.0',
-        'responses==0.12.1',
-        'unittest-xml-reporting==3.0.4',
-    ],
-    test_suite='runtests.runtests',
     include_package_data=True,
     python_requires='>=3.5',
     classifiers=[

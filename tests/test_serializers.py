@@ -15,7 +15,7 @@ def validate_is_lower(username: str):
 
 
 custom_username_validators = [validate_is_lower]
-validator_path = "dj_rest_auth.tests.test_serializers.custom_username_validators"
+validator_path = "tests.test_serializers.custom_username_validators"
 
 
 class TestUserDetailsSerializer(TestCase):
