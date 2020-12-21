@@ -9,9 +9,9 @@ Welcome to dj-rest-auth's documentation!
 
 .. note:: dj-rest-auth version 1.0.0 now uses Django Simple JWT.
 
-
-.. image:: https://circleci.com/gh/jazzband/dj-rest-auth.svg?style=svg
-    :target: https://circleci.com/gh/jazzband/dj-rest-auth
+.. image:: https://github.com/jazzband/dj-rest-auth/workflows/Test/badge.svg
+   :target: https://github.com/jazzband/dj-rest-auth/actions
+   :alt: GitHub Actions
 
 Contents
 --------
