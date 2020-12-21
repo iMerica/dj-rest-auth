@@ -1,12 +1,11 @@
 import logging
 import os
-import sys
 
 PROJECT_ROOT = os.path.abspath(os.path.split(os.path.split(__file__)[0])[0])
 
 
 logging.disable(logging.CRITICAL)
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'tests.urls'
 STATIC_URL = '/static/'
 STATIC_ROOT = '%s/staticserve' % PROJECT_ROOT
 STATICFILES_DIRS = (
@@ -19,7 +18,6 @@ MEDIA_ROOT = os.path.join(PROJECT_ROOT, '%s' % UPLOADS_DIR_NAME)
 IS_DEV = False
 IS_STAGING = False
 IS_PROD = False
-IS_TEST = 'test' in sys.argv or 'test_coverage' in sys.argv
 
 DATABASES = {
     'default': {
