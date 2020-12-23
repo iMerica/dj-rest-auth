@@ -16,7 +16,7 @@ from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.views import LoginView
 from django.conf import settings
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import status
 from rest_framework.exceptions import NotFound, MethodNotAllowed
