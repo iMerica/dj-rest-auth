@@ -31,11 +31,11 @@ setup(
         'djangorestframework>=3.7.0',
     ],
     extras_require={
-        'with_social': ['django-allauth>=0.40.0,<0.43.0'],
+        'with_social': ['django-allauth>=0.40.0,<0.45.0'],
     },
     tests_require=[
-        'coveralls>=1.11.1'
-        'django-allauth==0.42.0',
+        'coveralls>=1.11.1',
+        'django-allauth==0.44.0',
         'djangorestframework-simplejwt==4.6.0',
         'responses==0.12.1',
         'unittest-xml-reporting==3.0.4',
