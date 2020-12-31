@@ -32,7 +32,7 @@ FAQ
         from django.contrib.auth.models import User
 
         class UserProfile(models.Model):
-            user = models.OneToOneField(User)
+            user = models.OneToOneField(User, related_name='userprofile')
             # custom fields for user
             company_name = models.CharField(max_length=100)
 
@@ -42,25 +42,31 @@ FAQ
 
         from rest_framework import serializers
         from dj_rest_auth.serializers import UserDetailsSerializer
+        
+        class UserProfileSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = UserProfile
+                fields = ('company_name',)
 
         class UserSerializer(UserDetailsSerializer):
 
-            company_name = serializers.CharField(source="userprofile.company_name")
+            profile = UserProfileSerializer(source="userprofile")
 
             class Meta(UserDetailsSerializer.Meta):
-                fields = UserDetailsSerializer.Meta.fields + ('company_name',)
+                fields = UserDetailsSerializer.Meta.fields + ('profile',)
 
             def update(self, instance, validated_data):
-                profile_data = validated_data.pop('userprofile', {})
-                company_name = profile_data.get('company_name')
-
-                instance = super(UserSerializer, self).update(instance, validated_data)
-
-                # get and update user profile
-                profile = instance.userprofile
-                if profile_data and company_name:
-                    profile.company_name = company_name
-                    profile.save()
+                userprofile_serializer = self.fields['profile']
+                userprofile_instance = instance.userprofile
+                userprofile_data = validated_data.pop('userprofile', {})
+                
+                # to access the 'company_name' field in here
+                # company_name = userprofile_data.get('company_name')
+                
+                # update the userprofile fields
+                userprofile_serializer.update(userprofile_instance, userprofile_data) 
+                
+                instance = super().update(instance, validated_data)
                 return instance
 
     And setup USER_DETAILS_SERIALIZER in django settings:
