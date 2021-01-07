@@ -6,13 +6,12 @@ from rest_framework import serializers
 
 try:
     from allauth.account import app_settings as allauth_settings
-    from allauth.utils import (email_address_exists,
-                               get_username_max_length)
     from allauth.account.adapter import get_adapter
     from allauth.account.utils import setup_user_email
     from allauth.socialaccount.helpers import complete_social_login
     from allauth.socialaccount.models import SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
+    from allauth.utils import email_address_exists, get_username_max_length
 except ImportError:
     raise ImportError("allauth needs to be added to INSTALLED_APPS.")
 
@@ -35,6 +34,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 class SocialLoginSerializer(serializers.Serializer):
     access_token = serializers.CharField(required=False, allow_blank=True)
     code = serializers.CharField(required=False, allow_blank=True)
+    id_token = serializers.CharField(required=False, allow_blank=True)
 
     def _get_request(self):
         request = self.context.get('request')
@@ -76,13 +76,18 @@ class SocialLoginSerializer(serializers.Serializer):
         # More info on code vs access_token
         # http://stackoverflow.com/questions/8666316/facebook-oauth-2-0-code-and-token
 
+        access_token = attrs.get('access_token')
+        code = attrs.get('code')
         # Case 1: We received the access_token
-        if attrs.get('access_token'):
-            access_token = attrs.get('access_token')
+        if access_token:
             tokens_to_parse = {'access_token': access_token}
+            # For sign in with apple
+            id_token = attrs.get('id_token')
+            if id_token:
+                tokens_to_parse['id_token'] = id_token
 
         # Case 2: We received the authorization code
-        elif attrs.get('code'):
+        elif code:
             self.callback_url = getattr(view, 'callback_url', None)
             self.client_class = getattr(view, 'client_class', None)
 
@@ -94,8 +99,6 @@ class SocialLoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     _("Define client_class in view")
                 )
-
-            code = attrs.get('code')
 
             provider = adapter.get_provider()
             scope = provider.get_scope(request)
