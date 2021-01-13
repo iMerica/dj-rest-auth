@@ -184,11 +184,34 @@ class LogoutView(APIView):
             from rest_framework_simplejwt.tokens import RefreshToken
 
             cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            if cookie_name:
-                response.delete_cookie(cookie_name)
             refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+            refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
+            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
+            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+
+            if cookie_name:
+                response.set_cookie(
+                    cookie_name,
+                    # self.access_token,
+                    max_age=0,
+                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
+                    secure=cookie_secure,
+                    httponly=cookie_httponly,
+                    samesite=cookie_samesite
+                )
+
             if refresh_cookie_name:
-                response.delete_cookie(refresh_cookie_name)
+                response.set_cookie(
+                    refresh_cookie_name,
+                    # self.refresh_token,
+                    max_age=0,
+                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
+                    secure=cookie_secure,
+                    httponly=cookie_httponly,
+                    samesite=cookie_samesite,
+                    path=refresh_cookie_path
+                )
 
             if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
@@ -211,7 +234,7 @@ class LogoutView(APIView):
                         response.data = {"detail": _("An error has occurred.")}
                         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-            else:
+            elif not cookie_name:
                 message = _(
                     "Neither cookies or blacklist are enabled, so the token "
                     "has not been deleted server side. Please make sure the token is deleted client side."
