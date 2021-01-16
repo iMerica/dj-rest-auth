@@ -81,6 +81,7 @@ class SocialLoginSerializer(serializers.Serializer):
         # Case 1: We received the access_token
         if access_token:
             tokens_to_parse = {'access_token': access_token}
+            token = access_token
             # For sign in with apple
             id_token = attrs.get('id_token')
             if id_token:
