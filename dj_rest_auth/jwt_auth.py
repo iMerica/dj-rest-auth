@@ -13,22 +13,42 @@ def get_refresh_view():
     class RefreshViewWithCookieSupport(TokenRefreshView):
         def post(self, request, *args, **kwargs):
             response = super().post(request, *args, **kwargs)
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            if cookie_name and response.status_code == 200 and 'access' in response.data:
+
+            if response.status_code == 200:
+            
+                cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
+                refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+                rotate_refresh_tokens = getattr(jwt_settings, 'ROTATE_REFRESH_TOKENS', False)
+                
                 cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
                 cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
                 cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
-                token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-                response.set_cookie(
-                    cookie_name,
-                    response.data['access'],
-                    expires=token_expiration,
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite,
-                )
 
-                response.data['access_token_expiration'] = token_expiration
+                if cookie_name and 'access' in response.data:
+                    token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+                    response.set_cookie(
+                        cookie_name,
+                        response.data['access'],
+                        expires=token_expiration,
+                        secure=cookie_secure,
+                        httponly=cookie_httponly,
+                        samesite=cookie_samesite,
+                    )
+                    response.data['access_token_expiration'] = token_expiration
+
+                if rotate_refresh_tokens and refresh_cookie_name and 'refresh' in response.data:
+                    refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+                    refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+                    response.set_cookie(
+                        refresh_cookie_name,
+                        response.data['refresh'],
+                        expires=refresh_token_expiration,
+                        secure=cookie_secure,
+                        httponly=cookie_httponly,
+                        samesite=cookie_samesite,
+                        path=refresh_cookie_path
+                    )
+                    response.data['refresh_token_expiration'] = refresh_token_expiration
             return response
     return RefreshViewWithCookieSupport
 
