@@ -13,17 +13,23 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .app_settings import (JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
-                           PasswordChangeSerializer,
-                           PasswordResetConfirmSerializer,
-                           PasswordResetSerializer, TokenSerializer,
-                           UserDetailsSerializer, create_token)
+from .app_settings import (
+    JWTSerializer,
+    JWTSerializerWithExpiration,
+    LoginSerializer,
+    PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetSerializer,
+    TokenSerializer,
+    UserDetailsSerializer,
+    create_token,
+)
 from .models import TokenModel
 from .utils import jwt_encode
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
-        'password', 'old_password', 'new_password1', 'new_password2'
+        "password", "old_password", "new_password1", "new_password2"
     )
 )
 
@@ -35,13 +41,14 @@ class LoginView(GenericAPIView):
     Calls Django Auth login method to register User ID
     in Django session framework
 
-    Accept the following POST parameters: username, password
+    Accept the following POST parameters: email, password
     Return the REST Framework Token Object's key.
     """
+
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
     token_model = TokenModel
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = "dj_rest_auth"
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -51,9 +58,9 @@ class LoginView(GenericAPIView):
         django_login(self.request, self.user)
 
     def get_response_serializer(self):
-        if getattr(settings, 'REST_USE_JWT', False):
+        if getattr(settings, "REST_USE_JWT", False):
 
-            if getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False):
+            if getattr(settings, "JWT_AUTH_RETURN_EXPIRATION", False):
                 response_serializer = JWTSerializerWithExpiration
             else:
                 response_serializer = JWTSerializer
@@ -63,15 +70,14 @@ class LoginView(GenericAPIView):
         return response_serializer
 
     def login(self):
-        self.user = self.serializer.validated_data['user']
+        self.user = self.serializer.validated_data["user"]
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if getattr(settings, "REST_USE_JWT", False):
             self.access_token, self.refresh_token = jwt_encode(self.user)
         else:
-            self.token = create_token(self.token_model, self.user,
-                                      self.serializer)
+            self.token = create_token(self.token_model, self.user, self.serializer)
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if getattr(settings, "REST_SESSION_LOGIN", True):
             self.process_login()
 
     def get_response(self):
@@ -79,36 +85,44 @@ class LoginView(GenericAPIView):
 
         access_token_expiration = None
         refresh_token_expiration = None
-        if getattr(settings, 'REST_USE_JWT', False):
+        if getattr(settings, "REST_USE_JWT", False):
             from rest_framework_simplejwt.settings import api_settings as jwt_settings
-            access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-            refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
-            return_expiration_times = getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False)
+
+            access_token_expiration = (
+                timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME
+            )
+            refresh_token_expiration = (
+                timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME
+            )
+            return_expiration_times = getattr(
+                settings, "JWT_AUTH_RETURN_EXPIRATION", False
+            )
 
             data = {
-                'user': self.user,
-                'access_token': self.access_token,
-                'refresh_token': self.refresh_token
+                "access_token": self.access_token,
+                "refresh_token": self.refresh_token,
             }
 
             if return_expiration_times:
-                data['access_token_expiration'] = access_token_expiration
-                data['refresh_token_expiration'] = refresh_token_expiration
+                data["access_token_expiration"] = access_token_expiration
+                data["refresh_token_expiration"] = refresh_token_expiration
 
-            serializer = serializer_class(instance=data,
-                                          context=self.get_serializer_context())
+            serializer = serializer_class(
+                instance=data, context=self.get_serializer_context()
+            )
         else:
-            serializer = serializer_class(instance=self.token,
-                                          context=self.get_serializer_context())
+            serializer = serializer_class(
+                instance=self.token, context=self.get_serializer_context()
+            )
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
-        if getattr(settings, 'REST_USE_JWT', False):
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-            refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
-            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+        if getattr(settings, "REST_USE_JWT", False):
+            cookie_name = getattr(settings, "JWT_AUTH_COOKIE", None)
+            refresh_cookie_name = getattr(settings, "JWT_AUTH_REFRESH_COOKIE", None)
+            refresh_cookie_path = getattr(settings, "JWT_AUTH_REFRESH_COOKIE_PATH", "/")
+            cookie_secure = getattr(settings, "JWT_AUTH_SECURE", False)
+            cookie_httponly = getattr(settings, "JWT_AUTH_HTTPONLY", True)
+            cookie_samesite = getattr(settings, "JWT_AUTH_SAMESITE", "Lax")
 
             if cookie_name:
                 response.set_cookie(
@@ -117,7 +131,7 @@ class LoginView(GenericAPIView):
                     expires=access_token_expiration,
                     secure=cookie_secure,
                     httponly=cookie_httponly,
-                    samesite=cookie_samesite
+                    samesite=cookie_samesite,
                 )
 
             if refresh_cookie_name:
@@ -128,7 +142,7 @@ class LoginView(GenericAPIView):
                     secure=cookie_secure,
                     httponly=cookie_httponly,
                     samesite=cookie_samesite,
-                    path=refresh_cookie_path
+                    path=refresh_cookie_path,
                 )
         return response
 
@@ -148,11 +162,12 @@ class LogoutView(APIView):
 
     Accepts/Returns nothing.
     """
+
     permission_classes = (AllowAny,)
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = "dj_rest_auth"
 
     def get(self, request, *args, **kwargs):
-        if getattr(settings, 'ACCOUNT_LOGOUT_ON_GET', False):
+        if getattr(settings, "ACCOUNT_LOGOUT_ON_GET", False):
             response = self.logout(request)
         else:
             response = self.http_method_not_allowed(request, *args, **kwargs)
@@ -168,37 +183,34 @@ class LogoutView(APIView):
         except (AttributeError, ObjectDoesNotExist):
             pass
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if getattr(settings, "REST_SESSION_LOGIN", True):
             django_logout(request)
 
-        response = Response(
-            {"detail": _("Successfully logged out.")},
-            status=status.HTTP_200_OK
-        )
+        response = Response({"message": _("로그아웃 성공.")}, status=status.HTTP_200_OK)
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if getattr(settings, "REST_USE_JWT", False):
             # NOTE: this import occurs here rather than at the top level
             # because JWT support is optional, and if `REST_USE_JWT` isn't
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken
 
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-            refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
-            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+            cookie_name = getattr(settings, "JWT_AUTH_COOKIE", None)
+            refresh_cookie_name = getattr(settings, "JWT_AUTH_REFRESH_COOKIE", None)
+            refresh_cookie_path = getattr(settings, "JWT_AUTH_REFRESH_COOKIE_PATH", "/")
+            cookie_secure = getattr(settings, "JWT_AUTH_SECURE", False)
+            cookie_httponly = getattr(settings, "JWT_AUTH_HTTPONLY", True)
+            cookie_samesite = getattr(settings, "JWT_AUTH_SAMESITE", "Lax")
 
             if cookie_name:
                 response.set_cookie(
                     cookie_name,
                     # self.access_token,
                     max_age=0,
-                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
+                    expires="Thu, 01 Jan 1970 00:00:00 GMT",
                     secure=cookie_secure,
                     httponly=cookie_httponly,
-                    samesite=cookie_samesite
+                    samesite=cookie_samesite,
                 )
 
             if refresh_cookie_name:
@@ -206,40 +218,45 @@ class LogoutView(APIView):
                     refresh_cookie_name,
                     # self.refresh_token,
                     max_age=0,
-                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
+                    expires="Thu, 01 Jan 1970 00:00:00 GMT",
                     secure=cookie_secure,
                     httponly=cookie_httponly,
                     samesite=cookie_samesite,
-                    path=refresh_cookie_path
+                    path=refresh_cookie_path,
                 )
 
-            if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+            if "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
                 try:
-                    token = RefreshToken(request.data['refresh'])
+                    token = RefreshToken(request.data["refresh"])
                     token.blacklist()
                 except KeyError:
-                    response.data = {"detail": _("Refresh token was not included in request data.")}
-                    response.status_code =status.HTTP_401_UNAUTHORIZED
+                    response.data = {
+                        "message": _("Refresh token이 request data에 포함되어 있지 않습니다.")
+                    }
+                    response.status_code = status.HTTP_401_UNAUTHORIZED
                 except (TokenError, AttributeError, TypeError) as error:
-                    if hasattr(error, 'args'):
-                        if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
-                            response.data = {"detail": _(error.args[0])}
+                    if hasattr(error, "args"):
+                        if (
+                            "토큰이 블랙리스트 처리되었습니다." in error.args
+                            or "토큰이 유효하지 않거나 만료되었습니다." in error.args
+                        ):
+                            response.data = {"message": _(error.args[0])}
                             response.status_code = status.HTTP_401_UNAUTHORIZED
                         else:
-                            response.data = {"detail": _("An error has occurred.")}
+                            response.data = {"message": _("서버 내부 오류.")}
                             response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
                     else:
-                        response.data = {"detail": _("An error has occurred.")}
+                        response.data = {"message": _("서버 내부 오류.")}
                         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             elif not cookie_name:
                 message = _(
-                    "Neither cookies or blacklist are enabled, so the token "
-                    "has not been deleted server side. Please make sure the token is deleted client side."
+                    "쿠키 또는 블랙리스트가 활성화되지 않았으므로 토큰이 서버 측에서 삭제되지 않았습니다."
+                    "토큰이 클라이언트 측에서 삭제되었는지 확인하십시오."
                 )
-                response.data = {"detail": message}
+                response.data = {"message": message}
                 response.status_code = status.HTTP_200_OK
         return response
 
@@ -249,12 +266,13 @@ class UserDetailsView(RetrieveUpdateAPIView):
     Reads and updates UserModel fields
     Accepts GET, PUT, PATCH methods.
 
-    Default accepted fields: username, first_name, last_name
-    Default display fields: pk, username, email, first_name, last_name
+    Default accepted fields: email
+    Default display fields: pk, nickname, email
     Read-only fields: pk, email
 
     Returns UserModel fields.
     """
+
     serializer_class = UserDetailsSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -276,9 +294,10 @@ class PasswordResetView(GenericAPIView):
     Accepts the following POST parameters: email
     Returns the success/fail message.
     """
+
     serializer_class = PasswordResetSerializer
     permission_classes = (AllowAny,)
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = "dj_rest_auth"
 
     def post(self, request, *args, **kwargs):
         # Create a serializer with request.data
@@ -288,8 +307,8 @@ class PasswordResetView(GenericAPIView):
         serializer.save()
         # Return the success message with OK HTTP status
         return Response(
-            {"detail": _("Password reset e-mail has been sent.")},
-            status=status.HTTP_200_OK
+            {"message": _("비밀번호 재설정 이메일이 전송되었습니다.")},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -302,9 +321,10 @@ class PasswordResetConfirmView(GenericAPIView):
         new_password1, new_password2
     Returns the success/fail message.
     """
+
     serializer_class = PasswordResetConfirmSerializer
     permission_classes = (AllowAny,)
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = "dj_rest_auth"
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -314,9 +334,7 @@ class PasswordResetConfirmView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(
-            {"detail": _("Password has been reset with the new password.")}
-        )
+        return Response({"message": _("비밀번호가 새 비밀번호로 재설정되었습니다.")})
 
 
 class PasswordChangeView(GenericAPIView):
@@ -326,9 +344,10 @@ class PasswordChangeView(GenericAPIView):
     Accepts the following POST parameters: new_password1, new_password2
     Returns the success/fail message.
     """
+
     serializer_class = PasswordChangeSerializer
     permission_classes = (IsAuthenticated,)
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = "dj_rest_auth"
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
@@ -338,4 +357,4 @@ class PasswordChangeView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": _("New password has been saved.")})
+        return Response({"message": _("새 비밀번호가 저장되었습니다.")})
