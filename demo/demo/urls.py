@@ -1,7 +1,15 @@
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import RedirectView, TemplateView
-from rest_framework_swagger.views import get_swagger_view
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title='API Docs',
+        default_version='v1',
+    )
+)
 
 urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="home.html"), name='home'),
@@ -39,5 +47,5 @@ urlpatterns = [
     url(r'^account/', include('allauth.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/profile/$', RedirectView.as_view(url='/', permanent=True), name='profile-redirect'),
-    url(r'^docs/$', get_swagger_view(title='API Docs'), name='api_docs')
+    url(r'^docs/$', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs')
 ]
