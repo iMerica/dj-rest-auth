@@ -42,7 +42,7 @@ INSTALLED_APPS = (
     'dj_rest_auth.registration',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
-    'rest_framework_swagger',
+    'drf_yasg',
     'corsheaders'
 )
 
