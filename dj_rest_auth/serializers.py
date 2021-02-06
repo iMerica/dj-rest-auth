@@ -161,7 +161,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         extra_fields = []
-        # see https://github.com/jazzband/dj-rest-auth/issues/181
+        # see https://github.com/iMerica/dj-rest-auth/issues/181
         # UserModel.XYZ causing attribute error while importing other
         # classes from `serializers.py`. So, we need to check whether the auth model has
         # the attribute or not

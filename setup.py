@@ -19,7 +19,7 @@ setup(
     version=about['__version__'],
     author='iMerica',
     author_email='imichael@pm.me',
-    url='http://github.com/jazzband/dj-rest-auth',
+    url='http://github.com/iMerica/dj-rest-auth',
     description='Authentication and Registration in Django Rest Framework',
     packages=find_packages(),
     long_description=long_description,

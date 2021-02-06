@@ -1,7 +1,6 @@
 # Dj-Rest-Auth
-[![<iMerica>](https://circleci.com/gh/jazzband/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/jazzband/dj-rest-auth)
-[![Jazzband](https://jazzband.co/static/img/badge.svg)](https://jazzband.co/)
-[![Coverage Status](https://coveralls.io/repos/github/jazzband/dj-rest-auth/badge.svg?branch=master)](https://coveralls.io/github/jazzband/dj-rest-auth?branch=master)
+[![<iMerica>](https://circleci.com/gh/iMerica/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/iMerica/dj-rest-auth)
+[![Coverage Status](https://coveralls.io/repos/github/iMerica/dj-rest-auth/badge.svg?branch=master)](https://coveralls.io/github/iMerica/dj-rest-auth?branch=master)
 
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
 with SPAs (e.g React, Vue, Angular), and Mobile applications. 
