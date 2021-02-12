@@ -31,7 +31,7 @@ Add URL patterns
 
 ```python
 urlpatterns = [
-    url(r'^dj-rest-auth/', include('dj_rest_auth.urls'))
+    path('dj-rest-auth/', include('dj_rest_auth.urls')),
 ]
 ```
     
