@@ -3,6 +3,62 @@ from django.utils import timezone
 from rest_framework import exceptions
 from rest_framework.authentication import CSRFCheck
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+
+
+def set_jwt_cookies(response, access_token, refresh_token):
+    from rest_framework_simplejwt.settings import api_settings as jwt_settings
+    access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+    refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+    cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
+    refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+    refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+    cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
+    cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
+    cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+
+    if cookie_name:
+        response.set_cookie(
+            cookie_name,
+            access_token,
+            expires=access_token_expiration,
+            secure=cookie_secure,
+            httponly=cookie_httponly,
+            samesite=cookie_samesite
+        )
+
+    if refresh_cookie_name:
+        response.set_cookie(
+            refresh_cookie_name,
+            refresh_token,
+            expires=refresh_token_expiration,
+            secure=cookie_secure,
+            httponly=cookie_httponly,
+            samesite=cookie_samesite,
+            path=refresh_cookie_path
+        )
+
+
+def unset_jwt_cookies(response):
+    set_jwt_cookies(response, '', '')
+
+
+class CookieTokenRefreshSerializer(TokenRefreshSerializer):
+    refresh = None
+
+    def extract_refresh_token(self):
+        request = self.context['request']
+        if 'refresh' in request.data and request.data['refresh'] != '':
+            return request['refresh']
+        cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+        if cookie_name:
+            return request.COOKIES.get(cookie_name)
+        else:
+            return ''
+
+    def validate(self, attrs):
+        attrs['refresh'] = self.extract_refresh_token()
+        return super().validate(attrs)
 
 
 def get_refresh_view():
@@ -11,25 +67,13 @@ def get_refresh_view():
     from rest_framework_simplejwt.views import TokenRefreshView
     
     class RefreshViewWithCookieSupport(TokenRefreshView):
-        def post(self, request, *args, **kwargs):
-            response = super().post(request, *args, **kwargs)
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            if cookie_name and response.status_code == 200 and 'access' in response.data:
-                cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-                cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-                cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
-                token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-                response.set_cookie(
-                    cookie_name,
-                    response.data['access'],
-                    expires=token_expiration,
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite,
-                )
+        serializer_class = CookieTokenRefreshSerializer
 
-                response.data['access_token_expiration'] = token_expiration
-            return response
+        def finalize_response(self, request, response, *args, **kwargs):
+            if response.status_code == 200 and 'access' in response.data and 'refresh' in response.data:
+                set_jwt_cookies(response, response.data['access'], response.data['refresh'])
+                response.data['access_token_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+            return super().finalize_response(request, response, *args, **kwargs)
     return RefreshViewWithCookieSupport
 
 
