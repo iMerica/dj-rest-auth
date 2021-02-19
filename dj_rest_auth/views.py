@@ -13,7 +13,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from jwt_auth import unset_jwt_cookies
 from .app_settings import (JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
                            PasswordChangeSerializer,
                            PasswordResetConfirmSerializer,
@@ -104,7 +103,7 @@ class LoginView(GenericAPIView):
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
         if getattr(settings, 'REST_USE_JWT', False):
-            from jwt_auth import set_jwt_cookies
+            from .jwt_auth import set_jwt_cookies
             set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
 
@@ -158,9 +157,10 @@ class LogoutView(APIView):
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken
+            from .jwt_auth import unset_jwt_cookies
             cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
 
-            unset_jwt_cookies()
+            unset_jwt_cookies(response)
 
             if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
