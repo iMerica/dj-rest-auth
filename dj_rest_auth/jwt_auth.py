@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.utils import timezone
-from rest_framework import exceptions
+from rest_framework import exceptions, serializers
 from rest_framework.authentication import CSRFCheck
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
@@ -44,7 +44,7 @@ def unset_jwt_cookies(response):
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = None
+    refresh = serializers.CharField(required=False)
 
     def extract_refresh_token(self):
         request = self.context['request']
