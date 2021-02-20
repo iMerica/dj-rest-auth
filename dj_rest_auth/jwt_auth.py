@@ -44,12 +44,12 @@ def unset_jwt_cookies(response):
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = serializers.CharField(required=False)
+    refresh = serializers.CharField(blank=True)
 
     def extract_refresh_token(self):
         request = self.context['request']
         if 'refresh' in request.data and request.data['refresh'] != '':
-            return request['refresh']
+            return request.data['refresh']
         cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
         if cookie_name:
             return request.COOKIES.get(cookie_name)
