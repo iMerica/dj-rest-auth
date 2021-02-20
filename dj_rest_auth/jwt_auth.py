@@ -44,17 +44,18 @@ def unset_jwt_cookies(response):
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = serializers.CharField(blank=True)
+    refresh = serializers.CharField(required=False, help_text="WIll override cookie.")
 
     def extract_refresh_token(self):
         request = self.context['request']
         if 'refresh' in request.data and request.data['refresh'] != '':
             return request.data['refresh']
         cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-        if cookie_name:
+        if cookie_name and cookie_name in request.COOKIES:
             return request.COOKIES.get(cookie_name)
         else:
-            return ''
+            from rest_framework_simplejwt.exceptions import InvalidToken
+            raise InvalidToken('No valid refresh token found.')
 
     def validate(self, attrs):
         attrs['refresh'] = self.extract_refresh_token()
