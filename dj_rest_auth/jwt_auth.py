@@ -6,13 +6,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 
-def set_jwt_cookies(response, access_token, refresh_token):
+def set_jwt_access_cookie(response, access_token):
     from rest_framework_simplejwt.settings import api_settings as jwt_settings
-    access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-    refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
     cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-    refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-    refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+    access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
     cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
     cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
     cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
@@ -27,6 +24,16 @@ def set_jwt_cookies(response, access_token, refresh_token):
             samesite=cookie_samesite
         )
 
+
+def set_jwt_refresh_cookie(response, refresh_token):
+    from rest_framework_simplejwt.settings import api_settings as jwt_settings
+    refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+    refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+    refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+    cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
+    cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
+    cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
+
     if refresh_cookie_name:
         response.set_cookie(
             refresh_cookie_name,
@@ -37,6 +44,11 @@ def set_jwt_cookies(response, access_token, refresh_token):
             samesite=cookie_samesite,
             path=refresh_cookie_path
         )
+
+
+def set_jwt_cookies(response, access_token, refresh_token):
+    set_jwt_access_cookie(response, access_token)
+    set_jwt_refresh_cookie(response, refresh_token)
 
 
 def unset_jwt_cookies(response):
@@ -78,9 +90,11 @@ def get_refresh_view():
         serializer_class = CookieTokenRefreshSerializer
 
         def finalize_response(self, request, response, *args, **kwargs):
-            if response.status_code == 200 and 'access' in response.data and 'refresh' in response.data:
-                set_jwt_cookies(response, response.data['access'], response.data['refresh'])
+            if response.status_code == 200 and 'access' in response.data:
+                set_jwt_access_cookie(response, response.data['access'])
                 response.data['access_token_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+            if response.status_code == 200 and 'refresh' in response.data:
+                set_jwt_refresh_cookie(response, response.data['refresh'])
             return super().finalize_response(request, response, *args, **kwargs)
     return RefreshViewWithCookieSupport
 
