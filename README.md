@@ -74,3 +74,4 @@ View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/
 ### Acknowledgements
 
 This project began as a fork of `django-rest-auth`. Big thanks to everyone who contributed to that repo!
+
