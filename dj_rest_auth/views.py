@@ -103,33 +103,8 @@ class LoginView(GenericAPIView):
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
         if getattr(settings, 'REST_USE_JWT', False):
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-            refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
-            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
-
-            if cookie_name:
-                response.set_cookie(
-                    cookie_name,
-                    self.access_token,
-                    expires=access_token_expiration,
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite
-                )
-
-            if refresh_cookie_name:
-                response.set_cookie(
-                    refresh_cookie_name,
-                    self.refresh_token,
-                    expires=refresh_token_expiration,
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite,
-                    path=refresh_cookie_path
-                )
+            from .jwt_auth import set_jwt_cookies
+            set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
 
     def post(self, request, *args, **kwargs):
@@ -182,36 +157,10 @@ class LogoutView(APIView):
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken
-
+            from .jwt_auth import unset_jwt_cookies
             cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
-            refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
-            refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
-            cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
-            cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
-            cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
 
-            if cookie_name:
-                response.set_cookie(
-                    cookie_name,
-                    # self.access_token,
-                    max_age=0,
-                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite
-                )
-
-            if refresh_cookie_name:
-                response.set_cookie(
-                    refresh_cookie_name,
-                    # self.refresh_token,
-                    max_age=0,
-                    expires='Thu, 01 Jan 1970 00:00:00 GMT',
-                    secure=cookie_secure,
-                    httponly=cookie_httponly,
-                    samesite=cookie_samesite,
-                    path=refresh_cookie_path
-                )
+            unset_jwt_cookies(response)
 
             if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
