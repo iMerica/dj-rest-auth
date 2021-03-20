@@ -81,6 +81,7 @@ class SocialLoginSerializer(serializers.Serializer):
         # Case 1: We received the access_token
         if access_token:
             tokens_to_parse = {'access_token': access_token}
+            token = access_token
             # For sign in with apple
             id_token = attrs.get('id_token')
             if id_token:
@@ -130,7 +131,7 @@ class SocialLoginSerializer(serializers.Serializer):
         social_token.app = app
 
         try:
-            login = self.get_social_login(adapter, app, social_token, access_token)
+            login = self.get_social_login(adapter, app, social_token, token)
             complete_social_login(request, login)
         except HTTPError:
             raise serializers.ValidationError(_("Incorrect value"))
