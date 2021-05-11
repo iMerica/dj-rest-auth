@@ -52,8 +52,7 @@ class TestsMixin(object):
                 kwargs['HTTP_AUTHORIZATION'] = 'Token %s' % self.token
 
         self.response = request_func(*args, **kwargs)
-        is_json = bool(
-            [x for x in self.response._headers['content-type'] if 'json' in x])
+        is_json = 'application/json' in self.response.get('content-type')
 
         self.response.json = {}
         if is_json and self.response.content:
