@@ -23,7 +23,7 @@ def jwt_encode(user):
 
     JWTTokenClaimsSerializer = rest_auth_serializers.get(
         'JWT_TOKEN_CLAIMS_SERIALIZER',
-        TokenObtainPairSerializer
+        TokenObtainPairSerializer,
     )
 
     TOPS = import_callable(JWTTokenClaimsSerializer)

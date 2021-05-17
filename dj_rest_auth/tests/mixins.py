@@ -5,6 +5,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import force_str
 from rest_framework import permissions, status
 
+
 try:
     from django.urls import reverse
 except ImportError:
@@ -27,7 +28,7 @@ class APIClient(Client):
         return self.generic('OPTIONS', path, data, content_type, **extra)
 
 
-class TestsMixin(object):
+class TestsMixin:
     """
     base for API tests:
         * easy request calls, f.e.: self.post(url, data), self.get(url)
@@ -47,9 +48,9 @@ class TestsMixin(object):
         # check_headers = kwargs.pop('check_headers', True)
         if hasattr(self, 'token'):
             if getattr(settings, 'REST_USE_JWT', False):
-                kwargs['HTTP_AUTHORIZATION'] = 'JWT %s' % self.token
+                kwargs['HTTP_AUTHORIZATION'] = f'JWT {self.token}'
             else:
-                kwargs['HTTP_AUTHORIZATION'] = 'Token %s' % self.token
+                kwargs['HTTP_AUTHORIZATION'] = f'Token {self.token}'
 
         self.response = request_func(*args, **kwargs)
         is_json = 'application/json' in self.response.get('content-type')
@@ -93,8 +94,8 @@ class TestsMixin(object):
 
     def _login(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=status.HTTP_200_OK)
 

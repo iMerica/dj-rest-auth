@@ -2,19 +2,20 @@ import logging
 import os
 import sys
 
+
 PROJECT_ROOT = os.path.abspath(os.path.split(os.path.split(__file__)[0])[0])
 
 
 logging.disable(logging.CRITICAL)
 ROOT_URLCONF = 'urls'
 STATIC_URL = '/static/'
-STATIC_ROOT = '%s/staticserve' % PROJECT_ROOT
+STATIC_ROOT = f'{PROJECT_ROOT}/staticserve'
 STATICFILES_DIRS = (
-    ('global', '%s/static' % PROJECT_ROOT),
+    ('global', f'{PROJECT_ROOT}/static'),
 )
 UPLOADS_DIR_NAME = 'uploads'
-MEDIA_URL = '/%s/' % UPLOADS_DIR_NAME
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, '%s' % UPLOADS_DIR_NAME)
+MEDIA_URL = f'/{UPLOADS_DIR_NAME}/'
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, f'{UPLOADS_DIR_NAME}')
 
 IS_DEV = False
 IS_STAGING = False
@@ -25,7 +26,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',
-    }
+    },
 }
 
 MIDDLEWARE = [
@@ -33,7 +34,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware'
+    'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
 # Adding for backwards compatibility for Django 1.8 tests
@@ -47,8 +48,8 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     'django.contrib.messages.context_processors.messages',
     'django.core.context_processors.static',
 
-    "allauth.account.context_processors.account",
-    "allauth.socialaccount.context_processors.socialaccount",
+    'allauth.account.context_processors.account',
+    'allauth.socialaccount.context_processors.socialaccount',
 ]
 
 # avoid deprecation warnings during tests
@@ -69,7 +70,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
-    )
+    ),
 }
 
 TEST_RUNNER = 'xmlrunner.extra.djangotestrunner.XMLTestRunner'
@@ -98,10 +99,10 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
-    'rest_framework_simplejwt.token_blacklist'
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
-SECRET_KEY = "38dh*skf8sjfhs287dh&^hd8&3hdg*j2&sd"
+SECRET_KEY = '38dh*skf8sjfhs287dh&^hd8&3hdg*j2&sd'
 ACCOUNT_ACTIVATION_DAYS = 1
 SITE_ID = 1
 

@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 
 from .views import RegisterView, VerifyEmailView
 
+
 urlpatterns = [
     path('', RegisterView.as_view(), name='rest_register'),
     path('verify-email/', VerifyEmailView.as_view(), name='rest_verify_email'),
@@ -18,6 +19,8 @@ urlpatterns = [
     # If you don't want to use API on that step, then just use ConfirmEmailView
     # view from:
     # django-allauth https://github.com/pennersr/django-allauth/blob/master/allauth/account/views.py
-    re_path(r'^account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
-        name='account_confirm_email'),
+    re_path(
+        r'^account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
+        name='account_confirm_email',
+    ),
 ]
