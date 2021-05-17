@@ -2,6 +2,7 @@ from django.conf import settings
 from django.http import HttpRequest
 from rest_framework import serializers
 
+
 # Import is needed only if we are using social login, in which
 # case the allauth.socialaccount will be declared
 if 'allauth.socialaccount' in settings.INSTALLED_APPS:
@@ -33,8 +34,10 @@ class TwitterLoginSerializer(serializers.Serializer):
             `allauth.socialaccount.SocialLoginView` instance
         """
         request = self._get_request()
-        social_login = adapter.complete_login(request, app, token,
-                                              response=response)
+        social_login = adapter.complete_login(
+            request, app, token,
+            response=response,
+        )
         social_login.token = token
         return social_login
 
@@ -44,12 +47,12 @@ class TwitterLoginSerializer(serializers.Serializer):
 
         if not view:
             raise serializers.ValidationError(
-                "View is not defined, pass it as a context variable"
+                'View is not defined, pass it as a context variable',
             )
 
         adapter_class = getattr(view, 'adapter_class', None)
         if not adapter_class:
-            raise serializers.ValidationError("Define adapter_class in view")
+            raise serializers.ValidationError('Define adapter_class in view')
 
         adapter = adapter_class(request)
         app = adapter.get_provider().get_app(request)

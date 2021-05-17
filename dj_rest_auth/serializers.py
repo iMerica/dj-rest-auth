@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode as uid_decoder
 from django.utils.module_loading import import_string
 
+
 try:
     from django.utils.translation import gettext_lazy as _
 except ImportError:
@@ -15,6 +16,7 @@ from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import TokenModel
+
 
 # Get the UserModel
 UserModel = get_user_model()
@@ -40,8 +42,6 @@ class LoginSerializer(serializers.Serializer):
         return user
 
     def _validate_username(self, username, password):
-        user = None
-
         if username and password:
             user = self.authenticate(username=username, password=password)
         else:
@@ -51,8 +51,6 @@ class LoginSerializer(serializers.Serializer):
         return user
 
     def _validate_username_email(self, username, email, password):
-        user = None
-
         if email and password:
             user = self.authenticate(email=email, password=password)
         elif username and password:
@@ -101,12 +99,14 @@ class LoginSerializer(serializers.Serializer):
             return self.get_auth_user_using_allauth(username, email, password)
         return self.get_auth_user_using_orm(username, email, password)
 
-    def validate_auth_user_status(self, user):
+    @staticmethod
+    def validate_auth_user_status(user):
         if not user.is_active:
             msg = _('User account is disabled.')
             raise exceptions.ValidationError(msg)
 
-    def validate_email_verification_status(self, user):
+    @staticmethod
+    def validate_email_verification_status(user):
         from allauth.account import app_settings
         if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
             email_address = user.emailaddress_set.get(email=user.email)
@@ -149,7 +149,8 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     User model w/o password
     """
 
-    def validate_username(self, username):
+    @staticmethod
+    def validate_username(username):
         if 'allauth.account' not in settings.INSTALLED_APPS:
             # We don't need to call the all-auth
             # username validator unless its installed
@@ -165,13 +166,13 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         # UserModel.XYZ causing attribute error while importing other
         # classes from `serializers.py`. So, we need to check whether the auth model has
         # the attribute or not
-        if hasattr(UserModel, "USERNAME_FIELD"):
+        if hasattr(UserModel, 'USERNAME_FIELD'):
             extra_fields.append(UserModel.USERNAME_FIELD)
-        if hasattr(UserModel, "EMAIL_FIELD"):
+        if hasattr(UserModel, 'EMAIL_FIELD'):
             extra_fields.append(UserModel.EMAIL_FIELD)
-        if hasattr(UserModel, "first_name"):
+        if hasattr(UserModel, 'first_name'):
             extra_fields.append('first_name')
-        if hasattr(UserModel, "last_name"):
+        if hasattr(UserModel, 'last_name'):
             extra_fields.append('last_name')
         model = UserModel
         fields = ('pk', *extra_fields)
@@ -196,8 +197,8 @@ class JWTSerializer(serializers.Serializer):
         JWTUserDetailsSerializer = import_string(
             rest_auth_serializers.get(
                 'USER_DETAILS_SERIALIZER',
-                'dj_rest_auth.serializers.UserDetailsSerializer'
-            )
+                'dj_rest_auth.serializers.UserDetailsSerializer',
+            ),
         )
 
         user_data = JWTUserDetailsSerializer(obj['user'], context=self.context).data
@@ -219,6 +220,8 @@ class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     password_reset_form_class = PasswordResetForm
+
+    reset_form = None
 
     def get_email_options(self):
         """Override this method to change default e-mail options"""
@@ -256,11 +259,14 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     set_password_form_class = SetPasswordForm
 
+    _errors = {}
+    user = None
+    set_password_form = None
+
     def custom_validation(self, attrs):
         pass
 
     def validate(self, attrs):
-        self._errors = {}
 
         # Decode the uidb64 to uid to get User object
         try:
@@ -275,7 +281,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         self.custom_validation(attrs)
         # Construct SetPasswordForm instance
         self.set_password_form = self.set_password_form_class(
-            user=self.user, data=attrs
+            user=self.user, data=attrs,
         )
         if not self.set_password_form.is_valid():
             raise serializers.ValidationError(self.set_password_form.errors)
@@ -293,14 +299,16 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     set_password_form_class = SetPasswordForm
 
+    set_password_form = None
+
     def __init__(self, *args, **kwargs):
         self.old_password_field_enabled = getattr(
-            settings, 'OLD_PASSWORD_FIELD_ENABLED', False
+            settings, 'OLD_PASSWORD_FIELD_ENABLED', False,
         )
         self.logout_on_password_change = getattr(
-            settings, 'LOGOUT_ON_PASSWORD_CHANGE', False
+            settings, 'LOGOUT_ON_PASSWORD_CHANGE', False,
         )
-        super(PasswordChangeSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if not self.old_password_field_enabled:
             self.fields.pop('old_password')
@@ -312,17 +320,17 @@ class PasswordChangeSerializer(serializers.Serializer):
         invalid_password_conditions = (
             self.old_password_field_enabled,
             self.user,
-            not self.user.check_password(value)
+            not self.user.check_password(value),
         )
 
         if all(invalid_password_conditions):
-            err_msg = _("Your old password was entered incorrectly. Please enter it again.")
+            err_msg = _('Your old password was entered incorrectly. Please enter it again.')
             raise serializers.ValidationError(err_msg)
         return value
 
     def validate(self, attrs):
         self.set_password_form = self.set_password_form_class(
-            user=self.user, data=attrs
+            user=self.user, data=attrs,
         )
 
         if not self.set_password_form.is_valid():

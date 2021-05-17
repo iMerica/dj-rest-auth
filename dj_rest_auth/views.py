@@ -2,8 +2,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
-from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
@@ -13,18 +13,20 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .app_settings import (JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
-                           PasswordChangeSerializer,
-                           PasswordResetConfirmSerializer,
-                           PasswordResetSerializer, TokenSerializer,
-                           UserDetailsSerializer, create_token)
+from .app_settings import (
+    JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
+    PasswordChangeSerializer, PasswordResetConfirmSerializer,
+    PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
+    create_token,
+)
 from .models import TokenModel
 from .utils import jwt_encode
 
+
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
-        'password', 'old_password', 'new_password1', 'new_password2'
-    )
+        'password', 'old_password', 'new_password1', 'new_password2',
+    ),
 )
 
 
@@ -43,9 +45,13 @@ class LoginView(GenericAPIView):
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
 
+    user = None
+    access_token = None
+    token = None
+
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
-        return super(LoginView, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def process_login(self):
         django_login(self.request, self.user)
@@ -68,8 +74,10 @@ class LoginView(GenericAPIView):
         if getattr(settings, 'REST_USE_JWT', False):
             self.access_token, self.refresh_token = jwt_encode(self.user)
         else:
-            self.token = create_token(self.token_model, self.user,
-                                      self.serializer)
+            self.token = create_token(
+                self.token_model, self.user,
+                self.serializer,
+            )
 
         if getattr(settings, 'REST_SESSION_LOGIN', True):
             self.process_login()
@@ -77,10 +85,10 @@ class LoginView(GenericAPIView):
     def get_response(self):
         serializer_class = self.get_response_serializer()
 
-        access_token_expiration = None
-        refresh_token_expiration = None
         if getattr(settings, 'REST_USE_JWT', False):
-            from rest_framework_simplejwt.settings import api_settings as jwt_settings
+            from rest_framework_simplejwt.settings import (
+                api_settings as jwt_settings,
+            )
             access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return_expiration_times = getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False)
@@ -88,18 +96,22 @@ class LoginView(GenericAPIView):
             data = {
                 'user': self.user,
                 'access_token': self.access_token,
-                'refresh_token': self.refresh_token
+                'refresh_token': self.refresh_token,
             }
 
             if return_expiration_times:
                 data['access_token_expiration'] = access_token_expiration
                 data['refresh_token_expiration'] = refresh_token_expiration
 
-            serializer = serializer_class(instance=data,
-                                          context=self.get_serializer_context())
+            serializer = serializer_class(
+                instance=data,
+                context=self.get_serializer_context(),
+            )
         else:
-            serializer = serializer_class(instance=self.token,
-                                          context=self.get_serializer_context())
+            serializer = serializer_class(
+                instance=self.token,
+                context=self.get_serializer_context(),
+            )
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
         if getattr(settings, 'REST_USE_JWT', False):
@@ -147,8 +159,8 @@ class LogoutView(APIView):
             django_logout(request)
 
         response = Response(
-            {"detail": _("Successfully logged out.")},
-            status=status.HTTP_200_OK
+            {'detail': _('Successfully logged out.')},
+            status=status.HTTP_200_OK,
         )
 
         if getattr(settings, 'REST_USE_JWT', False):
@@ -157,6 +169,7 @@ class LogoutView(APIView):
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken
+
             from .jwt_auth import unset_jwt_cookies
             cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
 
@@ -168,27 +181,27 @@ class LogoutView(APIView):
                     token = RefreshToken(request.data['refresh'])
                     token.blacklist()
                 except KeyError:
-                    response.data = {"detail": _("Refresh token was not included in request data.")}
+                    response.data = {'detail': _('Refresh token was not included in request data.')}
                     response.status_code =status.HTTP_401_UNAUTHORIZED
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, 'args'):
                         if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
-                            response.data = {"detail": _(error.args[0])}
+                            response.data = {'detail': _(error.args[0])}
                             response.status_code = status.HTTP_401_UNAUTHORIZED
                         else:
-                            response.data = {"detail": _("An error has occurred.")}
+                            response.data = {'detail': _('An error has occurred.')}
                             response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
                     else:
-                        response.data = {"detail": _("An error has occurred.")}
+                        response.data = {'detail': _('An error has occurred.')}
                         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             elif not cookie_name:
                 message = _(
-                    "Neither cookies or blacklist are enabled, so the token "
-                    "has not been deleted server side. Please make sure the token is deleted client side."
+                    'Neither cookies or blacklist are enabled, so the token '
+                    'has not been deleted server side. Please make sure the token is deleted client side.',
                 )
-                response.data = {"detail": message}
+                response.data = {'detail': message}
                 response.status_code = status.HTTP_200_OK
         return response
 
@@ -237,8 +250,8 @@ class PasswordResetView(GenericAPIView):
         serializer.save()
         # Return the success message with OK HTTP status
         return Response(
-            {"detail": _("Password reset e-mail has been sent.")},
-            status=status.HTTP_200_OK
+            {'detail': _('Password reset e-mail has been sent.')},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -257,14 +270,14 @@ class PasswordResetConfirmView(GenericAPIView):
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
-        return super(PasswordResetConfirmView, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            {"detail": _("Password has been reset with the new password.")}
+            {'detail': _('Password has been reset with the new password.')},
         )
 
 
@@ -281,10 +294,10 @@ class PasswordChangeView(GenericAPIView):
 
     @sensitive_post_parameters_m
     def dispatch(self, *args, **kwargs):
-        return super(PasswordChangeView, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": _("New password has been saved.")})
+        return Response({'detail': _('New password has been saved.')})

@@ -14,6 +14,7 @@ from dj_rest_auth.registration.views import RegisterView
 
 from .mixins import CustomPermissionClass, TestsMixin
 
+
 try:
     from django.urls import reverse
 except ImportError:
@@ -34,7 +35,7 @@ class TESTTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
-@override_settings(ROOT_URLCONF="tests.urls")
+@override_settings(ROOT_URLCONF='tests.urls')
 class APIBasicTests(TestsMixin, TestCase):
     """
     Case #1:
@@ -46,24 +47,24 @@ class APIBasicTests(TestsMixin, TestCase):
 
     USERNAME = 'person'
     PASS = 'person'
-    EMAIL = "person1@world.com"
+    EMAIL = 'person1@world.com'
     NEW_PASS = 'new-test-pass'
     REGISTRATION_VIEW = 'rest_auth.runtests.RegistrationView'
 
     # data without user profile
     REGISTRATION_DATA = {
-        "username": USERNAME,
-        "password1": PASS,
-        "password2": PASS
+        'username': USERNAME,
+        'password1': PASS,
+        'password2': PASS,
     }
 
     REGISTRATION_DATA_WITH_EMAIL = REGISTRATION_DATA.copy()
     REGISTRATION_DATA_WITH_EMAIL['email'] = EMAIL
 
     BASIC_USER_DATA = {
-        'first_name': "John",
+        'first_name': 'John',
         'last_name': 'Smith',
-        'email': EMAIL
+        'email': EMAIL,
     }
     USER_DATA = BASIC_USER_DATA.copy()
     USER_DATA['newsletter_subscribe'] = True
@@ -84,36 +85,36 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(ACCOUNT_AUTHENTICATION_METHOD=account_app_settings.AuthenticationMethod.EMAIL)
     def test_login_failed_email_validation(self):
         payload = {
-            "email": '',
-            "password": self.PASS
+            'email': '',
+            'password': self.PASS,
         }
 
         resp = self.post(self.login_url, data=payload, status_code=400)
-        self.assertEqual(resp.json['non_field_errors'][0], u'Must include "email" and "password".')
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include "email" and "password".')
 
     @override_settings(ACCOUNT_AUTHENTICATION_METHOD=account_app_settings.AuthenticationMethod.USERNAME)
     def test_login_failed_username_validation(self):
         payload = {
-            "username": '',
-            "password": self.PASS
+            'username': '',
+            'password': self.PASS,
         }
 
         resp = self.post(self.login_url, data=payload, status_code=400)
-        self.assertEqual(resp.json['non_field_errors'][0], u'Must include "username" and "password".')
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include "username" and "password".')
 
     @override_settings(ACCOUNT_AUTHENTICATION_METHOD=account_app_settings.AuthenticationMethod.USERNAME_EMAIL)
     def test_login_failed_username_email_validation(self):
         payload = {
-            "password": self.PASS
+            'password': self.PASS,
         }
 
         resp = self.post(self.login_url, data=payload, status_code=400)
-        self.assertEqual(resp.json['non_field_errors'][0], u'Must include either "username" or "email" and "password".')
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include either "username" or "email" and "password".')
 
     def test_allauth_login_with_username(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         # there is no users in db so it should throw error (400)
         self.post(self.login_url, data=payload, status_code=400)
@@ -136,8 +137,8 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # test wrong username/password
         payload = {
-            "username": self.USERNAME + '?',
-            "password": self.PASS
+            'username': self.USERNAME + '?',
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=400)
 
@@ -147,8 +148,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(ACCOUNT_AUTHENTICATION_METHOD=account_app_settings.AuthenticationMethod.EMAIL)
     def test_allauth_login_with_email(self):
         payload = {
-            "email": self.EMAIL,
-            "password": self.PASS
+            'email': self.EMAIL,
+            'password': self.PASS,
         }
         # there is no users in db so it should throw error (400)
         self.post(self.login_url, data=payload, status_code=400)
@@ -163,8 +164,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(REST_USE_JWT=True)
     def test_login_jwt(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
 
@@ -177,8 +178,8 @@ class APIBasicTests(TestsMixin, TestCase):
         settings.INSTALLED_APPS.remove('allauth')
 
         payload = {
-            "email": self.EMAIL.lower(),
-            "password": self.PASS
+            'email': self.EMAIL.lower(),
+            'password': self.PASS,
         }
         # there is no users in db so it should throw error (400)
         self.post(self.login_url, data=payload, status_code=400)
@@ -195,8 +196,8 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # test auth by email in different case
         payload = {
-            "email": self.EMAIL.upper(),
-            "password": self.PASS
+            'email': self.EMAIL.upper(),
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
         self.assertEqual('key' in self.response.json.keys(), True)
@@ -209,8 +210,8 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # test wrong email/password
         payload = {
-            "email": 't' + self.EMAIL,
-            "password": self.PASS
+            'email': 't' + self.EMAIL,
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=400)
 
@@ -222,21 +223,21 @@ class APIBasicTests(TestsMixin, TestCase):
 
     def test_password_change(self):
         login_payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=login_payload, status_code=200)
         self.token = self.response.json['key']
 
         new_password_payload = {
-            "new_password1": "new_person",
-            "new_password2": "new_person"
+            'new_password1': 'new_person',
+            'new_password2': 'new_person',
         }
         self.post(
             self.password_change_url,
             data=new_password_payload,
-            status_code=200
+            status_code=200,
         )
 
         # user should not be able to login using old password
@@ -248,13 +249,13 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # pass1 and pass2 are not equal
         new_password_payload = {
-            "new_password1": "new_person1",
-            "new_password2": "new_person"
+            'new_password1': 'new_person1',
+            'new_password2': 'new_person',
         }
         self.post(
             self.password_change_url,
             data=new_password_payload,
-            status_code=400
+            status_code=400,
         )
 
         # send empty payload
@@ -263,33 +264,33 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(OLD_PASSWORD_FIELD_ENABLED=True)
     def test_password_change_with_old_password(self):
         login_payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=login_payload, status_code=200)
         self.token = self.response.json['key']
 
         new_password_payload = {
-            "old_password": "%s!" % self.PASS,  # wrong password
-            "new_password1": "new_person",
-            "new_password2": "new_person"
+            'old_password': f'{self.PASS}!',  # wrong password
+            'new_password1': 'new_person',
+            'new_password2': 'new_person',
         }
         self.post(
             self.password_change_url,
             data=new_password_payload,
-            status_code=400
+            status_code=400,
         )
 
         new_password_payload = {
-            "old_password": self.PASS,
-            "new_password1": "new_person",
-            "new_password2": "new_person"
+            'old_password': self.PASS,
+            'new_password1': 'new_person',
+            'new_password2': 'new_person',
         }
         self.post(
             self.password_change_url,
             data=new_password_payload,
-            status_code=200
+            status_code=200,
         )
 
         # user should not be able to login using old password
@@ -316,7 +317,7 @@ class APIBasicTests(TestsMixin, TestCase):
             'new_password1': self.NEW_PASS,
             'new_password2': self.NEW_PASS,
             'uid': force_str(url_kwargs['uid']),
-            'token': '-wrong-token-'
+            'token': '-wrong-token-',
         }
         self.post(url, data=data, status_code=400)
 
@@ -325,7 +326,7 @@ class APIBasicTests(TestsMixin, TestCase):
             'new_password1': self.NEW_PASS,
             'new_password2': self.NEW_PASS,
             'uid': '-wrong-uid-',
-            'token': url_kwargs['token']
+            'token': url_kwargs['token'],
         }
         self.post(url, data=data, status_code=400)
 
@@ -334,7 +335,7 @@ class APIBasicTests(TestsMixin, TestCase):
             'new_password1': self.NEW_PASS,
             'new_password2': self.NEW_PASS,
             'uid': '-wrong-uid-',
-            'token': '-wrong-token-'
+            'token': '-wrong-token-',
         }
         self.post(url, data=data, status_code=400)
 
@@ -343,14 +344,14 @@ class APIBasicTests(TestsMixin, TestCase):
             'new_password1': self.NEW_PASS,
             'new_password2': self.NEW_PASS,
             'uid': force_str(url_kwargs['uid']),
-            'token': url_kwargs['token']
+            'token': url_kwargs['token'],
         }
         url = reverse('rest_password_reset_confirm')
         self.post(url, data=data, status_code=200)
 
         payload = {
-            "username": self.USERNAME,
-            "password": self.NEW_PASS
+            'username': self.USERNAME,
+            'password': self.NEW_PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
 
@@ -378,8 +379,8 @@ class APIBasicTests(TestsMixin, TestCase):
     def test_user_details(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
         self.token = self.response.json['key']
@@ -395,8 +396,8 @@ class APIBasicTests(TestsMixin, TestCase):
     def test_user_details_using_jwt(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
         self.token = self.response.json['access_token']
@@ -457,7 +458,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(
         ACCOUNT_EMAIL_VERIFICATION='mandatory',
         ACCOUNT_EMAIL_REQUIRED=True,
-        ACCOUNT_EMAIL_CONFIRMATION_HMAC=False
+        ACCOUNT_EMAIL_CONFIRMATION_HMAC=False,
     )
     def test_registration_with_email_verification(self):
         user_count = get_user_model().objects.all().count()
@@ -467,13 +468,13 @@ class APIBasicTests(TestsMixin, TestCase):
         self.post(
             self.register_url,
             data={},
-            status_code=status.HTTP_400_BAD_REQUEST
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
 
         result = self.post(
             self.register_url,
             data=self.REGISTRATION_DATA_WITH_EMAIL,
-            status_code=status.HTTP_201_CREATED
+            status_code=status.HTTP_201_CREATED,
         )
         self.assertNotIn('key', result.data)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
@@ -483,20 +484,20 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # test browsable endpoint
         result = self.get(
-            self.verify_email_url
+            self.verify_email_url,
         )
         self.assertEqual(result.status_code, 405)
         self.assertEqual(result.json['detail'], 'Method "GET" not allowed.')
 
         # email is not verified yet
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         self.post(
             self.login_url,
             data=payload,
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
         # verify email
@@ -504,8 +505,8 @@ class APIBasicTests(TestsMixin, TestCase):
             .emailconfirmation_set.order_by('-created')[0]
         self.post(
             self.verify_email_url,
-            data={"key": email_confirmation.key},
-            status_code=status.HTTP_200_OK
+            data={'key': email_confirmation.key},
+            status_code=status.HTTP_200_OK,
         )
 
         # try to login again
@@ -515,8 +516,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(ACCOUNT_LOGOUT_ON_GET=True)
     def test_logout_on_get(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
 
         # create user
@@ -528,8 +529,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(ACCOUNT_LOGOUT_ON_GET=False)
     def test_logout_on_post_only(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
 
         # create user
@@ -542,8 +543,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     def test_login_jwt_sets_cookie(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
@@ -553,8 +554,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     def test_logout_jwt_deletes_cookie(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=payload, status_code=200)
@@ -566,8 +567,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     def test_logout_jwt_deletes_cookie_refresh(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=payload, status_code=200)
@@ -577,16 +578,18 @@ class APIBasicTests(TestsMixin, TestCase):
 
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     def test_cookie_authentication(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
@@ -598,23 +601,25 @@ class APIBasicTests(TestsMixin, TestCase):
     def test_blacklisting_not_installed(self):
         settings.INSTALLED_APPS.remove('rest_framework_simplejwt.token_blacklist')
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
         token = resp.data['refresh_token']
         resp = self.post(self.logout_url, status=200, data={'refresh': token})
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.data["detail"],
-                         "Neither cookies or blacklist are enabled, so the token has not been deleted server side. "
-                         "Please make sure the token is deleted client side.")
+        self.assertEqual(
+            resp.data['detail'],
+            'Neither cookies or blacklist are enabled, so the token has not been deleted server side. '
+            'Please make sure the token is deleted client side.',
+        )
 
     @override_settings(REST_USE_JWT=True)
     def test_blacklisting(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
@@ -632,21 +637,23 @@ class APIBasicTests(TestsMixin, TestCase):
 
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE=None)
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(
         REST_AUTH_SERIALIZERS={
-            "JWT_TOKEN_CLAIMS_SERIALIZER": 'tests.test_api.TESTTokenObtainPairSerializer'
-        }
+            'JWT_TOKEN_CLAIMS_SERIALIZER': 'tests.test_api.TESTTokenObtainPairSerializer',
+        },
     )
     def test_custom_jwt_claims(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
 
@@ -661,21 +668,23 @@ class APIBasicTests(TestsMixin, TestCase):
 
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(
         REST_AUTH_SERIALIZERS={
-            "JWT_TOKEN_CLAIMS_SERIALIZER": 'tests.test_api.TESTTokenObtainPairSerializer'
-        }
+            'JWT_TOKEN_CLAIMS_SERIALIZER': 'tests.test_api.TESTTokenObtainPairSerializer',
+        },
     )
     def test_custom_jwt_claims_cookie_w_authentication(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
@@ -693,23 +702,25 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=False)
     @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=False)
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_wo_csrf_enforcement(self): 
+    def test_wo_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
+
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
@@ -734,26 +745,28 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=True)
     @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=False)
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_wo_login_csrf_enforcement(self): 
+    def test_csrf_wo_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
-        response = client.get(reverse("getcsrf"))
+
+        client.get(reverse('getcsrf'))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
@@ -778,7 +791,7 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
-        csrfparam = {"csrfmiddlewaretoken": csrftoken}
+        csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
@@ -787,26 +800,28 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=True)
     @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True) #True at your own risk
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_w_login_csrf_enforcement(self): 
+    def test_csrf_w_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
-        response = client.get(reverse("getcsrf"))
+
+        client.get(reverse('getcsrf'))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         #fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
@@ -817,7 +832,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH JWT AUTH HEADER does not make sense 
+        ## TEST WITH JWT AUTH HEADER does not make sense
 
         ## TEST WITH COOKIES
         resp = client.get('/protected-view/')
@@ -826,7 +841,7 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
-        csrfparam = {"csrfmiddlewaretoken": csrftoken}
+        csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
@@ -835,26 +850,28 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=False)
     @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True) #True at your own risk
-    @override_settings(REST_FRAMEWORK=dict(
-        DEFAULT_AUTHENTICATION_CLASSES=[
-            'dj_rest_auth.jwt_auth.JWTCookieAuthentication'
-        ]
-    ))
+    @override_settings(
+        REST_FRAMEWORK=dict(
+            DEFAULT_AUTHENTICATION_CLASSES=[
+                'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+            ],
+        ),
+    )
     @override_settings(REST_SESSION_LOGIN=False)
     @override_settings(CSRF_COOKIE_SECURE =True)
     @override_settings(CSRF_COOKIE_HTTPONLY =True)
-    def test_csrf_w_login_csrf_enforcement_2(self): 
+    def test_csrf_w_login_csrf_enforcement_2(self):
         from .mixins import APIClient
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
         client = APIClient(enforce_csrf_checks=True)
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
-        
-        response = client.get(reverse("getcsrf"))
+
+        client.get(reverse('getcsrf'))
         csrftoken = client.cookies['csrftoken'].value
-        
+
         #fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
@@ -865,7 +882,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH JWT AUTH HEADER does not make sense 
+        ## TEST WITH JWT AUTH HEADER does not make sense
 
         ## TEST WITH COOKIES
         resp = client.get('/protected-view/')
@@ -874,7 +891,7 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
-        csrfparam = {"csrfmiddlewaretoken": csrftoken}
+        csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
@@ -883,8 +900,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(ACCOUNT_LOGOUT_ON_GET=True)
     def test_return_expiration(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
 
         # create user
@@ -902,8 +919,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_REFRESH_COOKIE_PATH='/foo/bar')
     def test_refresh_cookie_name(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
 
         # create user
@@ -920,8 +937,8 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(JWT_AUTH_REFRESH_COOKIE='refresh-xxx')
     def test_custom_token_refresh_view(self):
         payload = {
-            "username": self.USERNAME,
-            "password": self.PASS
+            'username': self.USERNAME,
+            'password': self.PASS,
         }
 
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
@@ -930,6 +947,6 @@ class APIBasicTests(TestsMixin, TestCase):
         refresh_resp = self.post(
             reverse('token_refresh'),
             data=dict(refresh=refresh),
-            status_code=200
+            status_code=200,
         )
         self.assertIn('xxx', refresh_resp.cookies)

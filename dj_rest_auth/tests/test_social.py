@@ -11,23 +11,24 @@ from rest_framework import status
 
 from .mixins import TestsMixin
 
+
 try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
 
 
-@override_settings(ROOT_URLCONF="tests.urls")
+@override_settings(ROOT_URLCONF='tests.urls')
 class TestSocialAuth(TestsMixin, TestCase):
 
     USERNAME = 'person'
     PASS = 'person'
-    EMAIL = "person1@world.com"
+    EMAIL = 'person1@world.com'
     REGISTRATION_DATA = {
-        "username": USERNAME,
-        "password1": PASS,
-        "password2": PASS,
-        "email": EMAIL
+        'username': USERNAME,
+        'password1': PASS,
+        'password2': PASS,
+        'email': EMAIL,
     }
 
     def setUp(self):
@@ -61,11 +62,11 @@ class TestSocialAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body='',
             status=400,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
         self.post(self.fb_login_url, data=payload, status_code=400)
 
@@ -73,17 +74,17 @@ class TestSocialAuth(TestsMixin, TestCase):
     def test_social_auth(self):
         # fake response for facebook call
         resp_body = {
-            "id": "123123123123",
-            "first_name": "John",
-            "gender": "male",
-            "last_name": "Smith",
-            "link": "https://www.facebook.com/john.smith",
-            "locale": "en_US",
-            "name": "John Smith",
-            "timezone": 2,
-            "updated_time": "2014-08-13T10:14:38+0000",
-            "username": "john.smith",
-            "verified": True
+            'id': '123123123123',
+            'first_name': 'John',
+            'gender': 'male',
+            'last_name': 'Smith',
+            'link': 'https://www.facebook.com/john.smith',
+            'locale': 'en_US',
+            'name': 'John Smith',
+            'timezone': 2,
+            'updated_time': '2014-08-13T10:14:38+0000',
+            'username': 'john.smith',
+            'verified': True,
         }
 
         responses.add(
@@ -91,12 +92,12 @@ class TestSocialAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body=json.dumps(resp_body),
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
 
         self.post(self.fb_login_url, data=payload, status_code=200)
@@ -111,7 +112,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     def _twitter_social_auth(self):
         # fake response for twitter call
         resp_body = {
-            "id": "123123123123",
+            'id': '123123123123',
         }
 
         responses.add(
@@ -119,13 +120,13 @@ class TestSocialAuth(TestsMixin, TestCase):
             'https://api.twitter.com/1.1/account/verify_credentials.json',
             body=json.dumps(resp_body),
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
             'access_token': 'abc123',
-            'token_secret': '1111222233334444'
+            'token_secret': '1111222233334444',
         }
 
         self.post(self.tw_login_url, data=payload)
@@ -152,7 +153,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     def test_twitter_social_auth_request_error(self):
         # fake response for twitter call
         resp_body = {
-            "id": "123123123123",
+            'id': '123123123123',
         }
 
         responses.add(
@@ -160,13 +161,13 @@ class TestSocialAuth(TestsMixin, TestCase):
             'https://api.twitter.com/1.1/account/verify_credentials.json',
             body=json.dumps(resp_body),
             status=400,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
             'access_token': 'abc123',
-            'token_secret': '1111222233334444'
+            'token_secret': '1111222233334444',
         }
 
         self.post(self.tw_login_url, data=payload, status_code=400)
@@ -177,7 +178,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     def test_twitter_social_auth_no_view_in_context(self):
         # fake response for twitter call
         resp_body = {
-            "id": "123123123123",
+            'id': '123123123123',
         }
 
         responses.add(
@@ -185,13 +186,13 @@ class TestSocialAuth(TestsMixin, TestCase):
             'https://api.twitter.com/1.1/account/verify_credentials.json',
             body=json.dumps(resp_body),
             status=400,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
             'access_token': 'abc123',
-            'token_secret': '1111222233334444'
+            'token_secret': '1111222233334444',
         }
 
         self.post(self.tw_login_no_view_url, data=payload, status_code=400)
@@ -201,7 +202,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     def test_twitter_social_auth_no_adapter(self):
         # fake response for twitter call
         resp_body = {
-            "id": "123123123123",
+            'id': '123123123123',
         }
 
         responses.add(
@@ -209,13 +210,13 @@ class TestSocialAuth(TestsMixin, TestCase):
             'https://api.twitter.com/1.1/account/verify_credentials.json',
             body=json.dumps(resp_body),
             status=400,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
             'access_token': 'abc123',
-            'token_secret': '1111222233334444'
+            'token_secret': '1111222233334444',
         }
 
         self.post(self.tw_login_no_adapter_url, data=payload, status_code=400)
@@ -226,22 +227,22 @@ class TestSocialAuth(TestsMixin, TestCase):
         ACCOUNT_EMAIL_VERIFICATION='mandatory',
         ACCOUNT_EMAIL_REQUIRED=True,
         REST_SESSION_LOGIN=False,
-        ACCOUNT_EMAIL_CONFIRMATION_HMAC=False
+        ACCOUNT_EMAIL_CONFIRMATION_HMAC=False,
     )
     def test_email_clash_with_existing_account(self):
         resp_body = {
-            "id": "123123123123",
-            "first_name": "John",
-            "gender": "male",
-            "last_name": "Smith",
-            "link": "https://www.facebook.com/john.smith",
-            "locale": "en_US",
-            "name": "John Smith",
-            "timezone": 2,
-            "updated_time": "2014-08-13T10:14:38+0000",
-            "username": "john.smith",
-            "verified": True,
-            "email": self.EMAIL
+            'id': '123123123123',
+            'first_name': 'John',
+            'gender': 'male',
+            'last_name': 'Smith',
+            'link': 'https://www.facebook.com/john.smith',
+            'locale': 'en_US',
+            'name': 'John Smith',
+            'timezone': 2,
+            'updated_time': '2014-08-13T10:14:38+0000',
+            'username': 'john.smith',
+            'verified': True,
+            'email': self.EMAIL,
         }
 
         responses.add(
@@ -249,7 +250,7 @@ class TestSocialAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body=json.dumps(resp_body),
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         # test empty payload
@@ -259,7 +260,7 @@ class TestSocialAuth(TestsMixin, TestCase):
         self.post(
             self.register_url,
             data=self.REGISTRATION_DATA,
-            status_code=201
+            status_code=201,
         )
         new_user = get_user_model().objects.latest('id')
         self.assertEqual(new_user.username, self.REGISTRATION_DATA['username'])
@@ -269,8 +270,8 @@ class TestSocialAuth(TestsMixin, TestCase):
             .emailconfirmation_set.order_by('-created')[0]
         self.post(
             self.verify_email_url,
-            data={"key": email_confirmation.key},
-            status_code=status.HTTP_200_OK
+            data={'key': email_confirmation.key},
+            status_code=status.HTTP_200_OK,
         )
 
         self._login()
@@ -278,13 +279,13 @@ class TestSocialAuth(TestsMixin, TestCase):
 
         # fb log in with already existing email
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
         self.post(self.fb_login_url, data=payload, status_code=400)
 
     @responses.activate
     @override_settings(
-        REST_USE_JWT=True
+        REST_USE_JWT=True,
     )
     def test_jwt(self):
         resp_body = '{"id":"123123123123","first_name":"John","gender":"male","last_name":"Smith","link":"https:\\/\\/www.facebook.com\\/john.smith","locale":"en_US","name":"John Smith","timezone":2,"updated_time":"2014-08-13T10:14:38+0000","username":"john.smith","verified":true}'  # noqa
@@ -293,12 +294,12 @@ class TestSocialAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body=resp_body,
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         users_count = get_user_model().objects.all().count()
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
 
         self.post(self.fb_login_url, data=payload, status_code=200)
@@ -308,17 +309,17 @@ class TestSocialAuth(TestsMixin, TestCase):
         self.assertEqual(get_user_model().objects.all().count(), users_count + 1)
 
 
-@override_settings(ROOT_URLCONF="tests.urls")
+@override_settings(ROOT_URLCONF='tests.urls')
 class TestSocialConnectAuth(TestsMixin, TestCase):
 
     USERNAME = 'person'
     PASS = 'person'
-    EMAIL = "person1@world.com"
+    EMAIL = 'person1@world.com'
     REGISTRATION_DATA = {
-        "username": USERNAME,
-        "password1": PASS,
-        "password2": PASS,
-        "email": EMAIL
+        'username': USERNAME,
+        'password1': PASS,
+        'password2': PASS,
+        'email': EMAIL,
     }
 
     def setUp(self):
@@ -351,11 +352,11 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body='',
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
         self.post(self.fb_connect_url, data=payload, status_code=403)
         self.post(self.tw_connect_url, data=payload, status_code=403)
@@ -366,22 +367,22 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
         self.post(
             self.register_url,
             data=self.REGISTRATION_DATA,
-            status_code=201
+            status_code=201,
         )
 
         # Test Facebook
         resp_body = {
-            "id": "123123123123",
-            "first_name": "John",
-            "gender": "male",
-            "last_name": "Smith",
-            "link": "https://www.facebook.com/john.smith",
-            "locale": "en_US",
-            "name": "John Smith",
-            "timezone": 2,
-            "updated_time": "2014-08-13T10:14:38+0000",
-            "username": "john.smith",
-            "verified": True
+            'id': '123123123123',
+            'first_name': 'John',
+            'gender': 'male',
+            'last_name': 'Smith',
+            'link': 'https://www.facebook.com/john.smith',
+            'locale': 'en_US',
+            'name': 'John Smith',
+            'timezone': 2,
+            'updated_time': '2014-08-13T10:14:38+0000',
+            'username': 'john.smith',
+            'verified': True,
         }
 
         responses.add(
@@ -389,18 +390,18 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
             self.graph_api_url,
             body=json.dumps(resp_body),
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         payload = {
-            'access_token': 'abc123'
+            'access_token': 'abc123',
         }
         self.post(self.fb_connect_url, data=payload, status_code=200)
         self.assertIn('key', self.response.json.keys())
 
         # Test Twitter
         resp_body = {
-            "id": "123123123123",
+            'id': '123123123123',
         }
 
         responses.add(
@@ -408,12 +409,12 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
             self.twitter_url,
             body=json.dumps(resp_body),
             status=200,
-            content_type='application/json'
+            content_type='application/json',
         )
 
         payload = {
             'access_token': 'abc123',
-            'token_secret': '1111222233334444'
+            'token_secret': '1111222233334444',
         }
 
         self.post(self.tw_connect_url, data=payload)
@@ -430,12 +431,12 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
 
         # Try disconnecting accounts
         self.incorrect_disconnect_url = reverse(
-            'social_account_disconnect', args=[999999999]
+            'social_account_disconnect', args=[999999999],
         )
         self.post(self.incorrect_disconnect_url, status_code=404)
 
         self.disconnect_url = reverse(
-            'social_account_disconnect', args=[facebook_social_account_id]
+            'social_account_disconnect', args=[facebook_social_account_id],
         )
         self.post(self.disconnect_url, status_code=200)
 

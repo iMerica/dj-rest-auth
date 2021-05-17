@@ -21,7 +21,7 @@ def set_jwt_access_cookie(response, access_token):
             expires=access_token_expiration,
             secure=cookie_secure,
             httponly=cookie_httponly,
-            samesite=cookie_samesite
+            samesite=cookie_samesite,
         )
 
 
@@ -42,7 +42,7 @@ def set_jwt_refresh_cookie(response, refresh_token):
             secure=cookie_secure,
             httponly=cookie_httponly,
             samesite=cookie_samesite,
-            path=refresh_cookie_path
+            path=refresh_cookie_path,
         )
 
 
@@ -63,7 +63,7 @@ def unset_jwt_cookies(response):
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = serializers.CharField(required=False, help_text="WIll override cookie.")
+    refresh = serializers.CharField(required=False, help_text='WIll override cookie.')
 
     def extract_refresh_token(self):
         request = self.context['request']
@@ -85,7 +85,7 @@ def get_refresh_view():
     """ Returns a Token Refresh CBV without a circular import """
     from rest_framework_simplejwt.settings import api_settings as jwt_settings
     from rest_framework_simplejwt.views import TokenRefreshView
-    
+
     class RefreshViewWithCookieSupport(TokenRefreshView):
         serializer_class = CookieTokenRefreshSerializer
 
@@ -115,7 +115,7 @@ class JWTCookieAuthentication(JWTAuthentication):
         reason = check.process_view(request, None, (), {})
         if reason:
             # CSRF failed, bail with explicit error message
-            raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
+            raise exceptions.PermissionDenied(f'CSRF Failed: {reason}')
 
     def authenticate(self, request):
         cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
@@ -123,7 +123,7 @@ class JWTCookieAuthentication(JWTAuthentication):
         if header is None:
             if cookie_name:
                 raw_token = request.COOKIES.get(cookie_name)
-                if getattr(settings, 'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED', False): #True at your own risk 
+                if getattr(settings, 'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED', False): #True at your own risk
                     self.enforce_csrf(request)
                 elif raw_token is not None and getattr(settings, 'JWT_AUTH_COOKIE_USE_CSRF', False):
                     self.enforce_csrf(request)
