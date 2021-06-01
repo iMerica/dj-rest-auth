@@ -45,6 +45,8 @@ JWT_AUTH_COOKIE = 'jwt-auth'
 
 ### Testing
 
+Install required modules with `pip install -r  dj_rest_auth/tests/requirements.pip`
+
 To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
 The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
 which runs the tests against all supported Django installs. To run the test coverage 
