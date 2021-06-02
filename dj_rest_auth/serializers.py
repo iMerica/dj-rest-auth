@@ -1,9 +1,12 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import exceptions as url_exceptions
+
 from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
-
 
 try:
     from django.utils.translation import gettext_lazy as _
@@ -21,7 +24,6 @@ from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
 from .models import TokenModel
-
 
 # Get the UserModel
 UserModel = get_user_model()
@@ -101,7 +103,14 @@ class LoginSerializer(serializers.Serializer):
         else `None` will be returned
         """
         if 'allauth' in settings.INSTALLED_APPS:
-            return self.get_auth_user_using_allauth(username, email, password)
+
+            # When `is_active` of a user is set to False, allauth tries to return template html
+            # which does not exist. This is the solution for it. See issue #264.
+            try:
+                return self.get_auth_user_using_allauth(username, email, password)
+            except url_exceptions.NoReverseMatch:
+                msg = _('Unable to log in with provided credentials.')
+                raise exceptions.ValidationError(msg)
         return self.get_auth_user_using_orm(username, email, password)
 
     @staticmethod
