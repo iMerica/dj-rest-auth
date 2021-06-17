@@ -8,6 +8,7 @@ from django.test import TestCase, override_settings
 from django.utils.encoding import force_str
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
+
 from dj_rest_auth.registration.app_settings import register_permission_classes
 from dj_rest_auth.registration.views import RegisterView
 
@@ -73,15 +74,11 @@ class APIBasicTests(TestsMixin, TestCase):
 
     def _generate_uid_and_token(self, user):
         result = {}
-        if 'allauth' in settings.INSTALLED_APPS:
-            from allauth.account.forms import default_token_generator
-            from allauth.account.utils import user_pk_to_url_str
-            result['uid'] = user_pk_to_url_str(user)
-        else:
-            from django.utils.encoding import force_bytes
-            from django.contrib.auth.tokens import default_token_generator 
-            from django.utils.http import urlsafe_base64_encode
-            result['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.encoding import force_bytes
+        from django.utils.http import urlsafe_base64_encode
+
+        result['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
         result['token'] = default_token_generator.make_token(user)
         return result
 
