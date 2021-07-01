@@ -1,11 +1,11 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpRequest
 from django.urls.exceptions import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 from requests.exceptions import HTTPError
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-
 
 try:
     from allauth.account import app_settings as allauth_settings
@@ -236,7 +236,14 @@ class RegisterSerializer(serializers.Serializer):
         adapter = get_adapter()
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
-        adapter.save_user(request, user, self)
+        user = adapter.save_user(request, user, self, commit=False)
+        try:
+            adapter.clean_password(self.cleaned_data['password1'], user=user)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(
+                detail=serializers.as_serializer_error(exc)
+            )
+        user.save()
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
         return user
