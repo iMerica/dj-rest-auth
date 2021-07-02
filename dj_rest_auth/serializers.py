@@ -1,33 +1,29 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
-
-from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.forms import SetPasswordForm
 from django.urls import exceptions as url_exceptions
-
 from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
+from rest_framework import exceptions, serializers
+from rest_framework.exceptions import ValidationError
+
+if 'allauth' in settings.INSTALLED_APPS:
+    from allauth.account.forms import default_token_generator
+    from allauth.account.utils import url_str_to_user_pk as uid_decoder
+else:
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.http import urlsafe_base64_decode as uid_decoder
 
 try:
     from django.utils.translation import gettext_lazy as _
 except ImportError:
     from django.utils.translation import gettext_lazy as _
 
-if 'allauth' in settings.INSTALLED_APPS:
-    from allauth.account.forms import default_token_generator
-    from allauth.account.utils import url_str_to_user_pk as uid_decoder
-else:
-    from django.contrib.auth.tokens import default_token_generator 
-    from django.utils.http import urlsafe_base64_decode as uid_decoder
-
-from rest_framework import exceptions, serializers
-from rest_framework.exceptions import ValidationError
-
+from .forms import PasswordResetForm
 from .models import TokenModel
 
 # Get the UserModel
 UserModel = get_user_model()
-
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=False, allow_blank=True)
@@ -256,6 +252,7 @@ class PasswordResetSerializer(serializers.Serializer):
             'use_https': request.is_secure(),
             'from_email': getattr(settings, 'DEFAULT_FROM_EMAIL'),
             'request': request,
+            'token_generator': default_token_generator,
         }
 
         opts.update(self.get_email_options())
@@ -282,7 +279,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
     def validate(self, attrs):
 
-        # Decode the uidb64 to uid to get User object
+        # Decode the uidb64 (allauth use base36) to uid to get User object
         try:
             uid = force_str(uid_decoder(attrs['uid']))
             self.user = UserModel._default_manager.get(pk=uid)
