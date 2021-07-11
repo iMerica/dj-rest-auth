@@ -13,8 +13,9 @@ if 'allauth' in settings.INSTALLED_APPS:
                                        user_pk_to_url_str, user_username)
     from allauth.utils import build_absolute_uri
 else:
-    from django.contrib.auth.forms import DefaultPasswordResetForm
+    from django.contrib.auth.forms import PasswordResetForm as DefaultPasswordResetForm
     from django.contrib.auth.tokens import default_token_generator
+
 
 class PasswordResetForm(DefaultPasswordResetForm):
     def clean_email(self):
