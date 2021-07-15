@@ -348,7 +348,7 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError(self.set_password_form.errors)
         return attrs
 
-    def save(self):        
+    def save(self):
         self.set_password_form.save()
         if not self.logout_on_password_change:
             # Get current user
