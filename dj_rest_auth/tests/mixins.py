@@ -91,6 +91,7 @@ class TestsMixin:
         self.fb_connect_url = reverse('fb_connect')
         self.tw_connect_url = reverse('tw_connect')
         self.social_account_list_url = reverse('social_account_list')
+        self.resend_email_url = reverse("rest_resend_email")
 
     def _login(self):
         payload = {
