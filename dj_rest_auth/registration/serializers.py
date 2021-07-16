@@ -35,7 +35,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
         )
 
 
-class SocialLoginSerializer(serializers.Serializer):
+class SocialLoginSerializer(serializers.Serializer): # noqa
     access_token = serializers.CharField(required=False, allow_blank=True)
     code = serializers.CharField(required=False, allow_blank=True)
     id_token = serializers.CharField(required=False, allow_blank=True)
@@ -187,11 +187,11 @@ class SocialConnectMixin:
         return social_login
 
 
-class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
+class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer): # noqa
     pass
 
 
-class RegisterSerializer(serializers.Serializer):
+class RegisterSerializer(serializers.Serializer): # noqa
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_settings.USERNAME_MIN_LENGTH,
@@ -249,7 +249,7 @@ class RegisterSerializer(serializers.Serializer):
         return user
 
 
-class VerifyEmailSerializer(serializers.Serializer):
+class VerifyEmailSerializer(serializers.Serializer): # noqa
     key = serializers.CharField()
 
 

@@ -1,6 +1,6 @@
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
-from allauth.account.utils import complete_signup, send_email_confirmation
+from allauth.account.utils import complete_signup
 from allauth.account.views import ConfirmEmailView
 from allauth.account.models import EmailAddress
 from allauth.socialaccount import signals
@@ -10,6 +10,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import MethodNotAllowed, NotFound, ValidationError
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView
@@ -117,10 +118,7 @@ class ResendEmailVerificationView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = EmailAddress.objects.get(**serializer.validated_data)
-        if not email:
-            raise ValidationError("Account does not exist")
-
+        email = get_object_or_404(EmailAddress, **serializer.validated_data)
         if email.verified:
             raise ValidationError("Account is already verified")
 

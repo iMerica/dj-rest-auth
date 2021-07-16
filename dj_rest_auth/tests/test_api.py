@@ -543,6 +543,13 @@ class APIBasicTests(TestsMixin, TestCase):
             status_code=status.HTTP_200_OK
         )
 
+        # email does not exist
+        self.post(
+            self.resend_email_url,
+            data={'email': 'test@yopmail.com'},
+            status_code=status.HTTP_404_NOT_FOUND
+        )
+
         # verify email
         email_confirmation = new_user.emailaddress_set.get(email=self.EMAIL) \
             .emailconfirmation_set.order_by('-created')[0]
