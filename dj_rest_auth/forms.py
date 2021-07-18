@@ -17,6 +17,14 @@ else:
     from django.contrib.auth.tokens import default_token_generator
 
 
+def default_url_generator(request, user_pk, temp_key):
+    path = reverse(
+        'password_reset_confirm',
+        args=[user_pk, temp_key],
+    )
+    return build_absolute_uri(request, path)
+
+
 class PasswordResetForm(DefaultPasswordResetForm):
     def clean_email(self):
         """
@@ -45,11 +53,8 @@ class PasswordResetForm(DefaultPasswordResetForm):
             # password_reset.save()
 
             # send the password reset email
-            path = reverse(
-                'password_reset_confirm',
-                args=[user_pk_to_url_str(user), temp_key],
-            )
-            url = build_absolute_uri(request, path)
+            url_generator = kwargs.get('url_generator', default_url_generator)
+            url = url_generator(request, user_pk_to_url_str(user), temp_key)
 
             context = {
                 'current_site': current_site,
