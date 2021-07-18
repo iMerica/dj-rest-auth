@@ -193,6 +193,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
 
 class DynamicSerializerField(Field):
     def __init__(self, *args, **kwargs):
+        # Pop __init__ kwargs that aren't valid for the superclass
         self.setting = kwargs.pop('setting')
         self.default_cls = kwargs.pop('default_cls', None)
         super().__init__(*args, **kwargs)

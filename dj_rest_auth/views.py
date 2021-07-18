@@ -20,6 +20,7 @@ from .app_settings import (
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
     create_token,
 )
+from .schema import DynamicResponseSerializerSchema
 from .models import TokenModel
 from .utils import jwt_encode
 
@@ -29,17 +30,6 @@ sensitive_post_parameters_m = method_decorator(
         'password', 'old_password', 'new_password1', 'new_password2',
     ),
 )
-
-
-class LoginViewSchema(AutoSchema):
-    """
-    Override the response payload format to accurately
-    represent the expected format in generated schemas.
-    """
-
-    def get_response_serializer(self, *args, **kwargs):
-        serializer_cls = self.view.get_response_serializer()
-        return serializer_cls()
 
 
 class LoginView(GenericAPIView):
@@ -56,7 +46,7 @@ class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
-    schema = LoginViewSchema()
+    schema = DynamicResponseSerializerSchema()
 
     user = None
     access_token = None

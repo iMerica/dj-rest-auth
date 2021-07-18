@@ -19,6 +19,10 @@ except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
 
+class EmailVerificationResponseSerializer(serializers.Serializer):
+    detail = serializers.ReadOnlyField(default=_('Verification e-mail sent.'))
+
+
 class SocialAccountSerializer(serializers.ModelSerializer):
     """
     serialize allauth SocialAccounts for use with a REST API
