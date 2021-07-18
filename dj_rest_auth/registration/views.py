@@ -22,7 +22,7 @@ from dj_rest_auth.app_settings import (
 )
 from dj_rest_auth.models import TokenModel
 from dj_rest_auth.registration.serializers import (
-    EmailVerificationResponseSerializer, SocialAccountSerializer, SocialConnectSerializer, SocialLoginSerializer,
+    DetailResponseSerializer, SocialAccountSerializer, SocialConnectSerializer, SocialLoginSerializer,
     VerifyEmailSerializer,
 )
 from dj_rest_auth.schema import DynamicResponseSerializerSchema
@@ -51,7 +51,7 @@ class RegisterView(CreateAPIView):
     def get_response_serializer(self):
         if allauth_settings.EMAIL_VERIFICATION == \
                 allauth_settings.EmailVerificationMethod.MANDATORY:
-            return EmailVerificationResponseSerializer
+            return DetailResponseSerializer
         if getattr(settings, 'REST_USE_JWT', False):
             return JWTSerializer
         else:
@@ -59,8 +59,10 @@ class RegisterView(CreateAPIView):
 
     def get_response_data(self, user):
         serializer_class = self.get_response_serializer()
-        if serializer_class == EmailVerificationResponseSerializer:
-            return serializer_class(context=self.get_serializer_context()).data
+        if serializer_class == DetailResponseSerializer:
+            return serializer_class(
+                {'detail': _('Verification e-mail sent.')},
+                context=self.get_serializer_context()).data
         elif serializer_class == JWTSerializer:
             data = {
                 'user': user,

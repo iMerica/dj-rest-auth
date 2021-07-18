@@ -510,6 +510,7 @@ class APIBasicTests(TestsMixin, TestCase):
             data=self.REGISTRATION_DATA_WITH_EMAIL,
             status_code=status.HTTP_201_CREATED,
         )
+        self.assertIn('detail', result.data)
         self.assertNotIn('key', result.data)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
         self.assertEqual(len(mail.outbox), mail_count + 1)

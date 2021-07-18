@@ -73,13 +73,13 @@ class TestRegistrationViewSchema(SchemaTestCase):
         success_response = responses['201']['content']['application/json']
         self.assertEqual(
             success_response['schema']['$ref'],
-            '#/components/schemas/EmailVerificationResponse')
+            '#/components/schemas/DetailResponse')
 
     @override_settings(ACCOUNT_EMAIL_REQUIRED=True)
     @override_settings(ACCOUNT_EMAIL_VERIFICATION='mandatory')
     def test_email_verification_required_schema(self):
         schema = self._get_schema()
-        props = schema['components']['schemas']['EmailVerificationResponse']['properties']
+        props = schema['components']['schemas']['DetailResponse']['properties']
         self.assertIn('detail', props)
 
     @override_settings(REST_USE_JWT=True)
