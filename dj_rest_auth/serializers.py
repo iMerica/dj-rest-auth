@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 from django.utils.module_loading import import_string
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import Field
 
 if 'allauth' in settings.INSTALLED_APPS:
     from allauth.account.forms import default_token_generator
@@ -24,6 +25,7 @@ from .models import TokenModel
 
 # Get the UserModel
 UserModel = get_user_model()
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=False, allow_blank=True)
@@ -189,30 +191,45 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         read_only_fields = ('email',)
 
 
-class JWTSerializer(serializers.Serializer):
+class DynamicSerializerField(Field):
+    def __init__(self, *args, **kwargs):
+        self.setting = kwargs.pop('setting')
+        self.default_cls = kwargs.pop('default_cls', None)
+        super().__init__(*args, **kwargs)
+
+
+class DynamicFieldSerializerMetaclass(serializers.SerializerMetaclass):
+    @classmethod
+    def _get_declared_fields(cls, bases, attrs):
+        dynamic_fields = [(field_name, attrs.pop(field_name))
+                          for field_name, obj in list(attrs.items())
+                          if isinstance(obj, DynamicSerializerField)]
+        for dynamic_field in dynamic_fields:
+            field = dynamic_field[1]
+            settings_parts = field.setting.split('.')
+            # Left-most part is a settings attr
+            setting_attr = getattr(settings, settings_parts.pop(0), {})
+            for part in settings_parts:
+                setting_attr = setting_attr.get(part, {})
+            # The referenced setting is not defined
+            if isinstance(setting_attr, dict):
+                dynamic_class = import_string(field.default_cls)
+            else:
+                dynamic_class = import_string(setting_attr)
+
+            attrs[dynamic_field[0]] = dynamic_class()
+        return super()._get_declared_fields(bases, attrs)
+
+
+class JWTSerializer(serializers.Serializer, metaclass=DynamicFieldSerializerMetaclass):
     """
     Serializer for JWT authentication.
     """
     access_token = serializers.CharField()
     refresh_token = serializers.CharField()
-    user = serializers.SerializerMethodField()
-
-    def get_user(self, obj):
-        """
-        Required to allow using custom USER_DETAILS_SERIALIZER in
-        JWTSerializer. Defining it here to avoid circular imports
-        """
-        rest_auth_serializers = getattr(settings, 'REST_AUTH_SERIALIZERS', {})
-
-        JWTUserDetailsSerializer = import_string(
-            rest_auth_serializers.get(
-                'USER_DETAILS_SERIALIZER',
-                'dj_rest_auth.serializers.UserDetailsSerializer',
-            ),
-        )
-
-        user_data = JWTUserDetailsSerializer(obj['user'], context=self.context).data
-        return user_data
+    user = DynamicSerializerField(
+        setting='REST_AUTH_SERIALIZER.USER_DETAILS_SERIALIZER',
+        default_cls='dj_rest_auth.serializers.UserDetailsSerializer')
 
 
 class JWTSerializerWithExpiration(JWTSerializer):

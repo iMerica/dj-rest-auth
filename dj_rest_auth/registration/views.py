@@ -46,6 +46,7 @@ class RegisterView(CreateAPIView):
         return super().dispatch(*args, **kwargs)
 
     def get_response_data(self, user):
+        # TODO: Serializers for the 3 response payload formats
         if allauth_settings.EMAIL_VERIFICATION == \
                 allauth_settings.EmailVerificationMethod.MANDATORY:
             return {'detail': _('Verification e-mail sent.')}
