@@ -12,12 +12,9 @@ if 'allauth' in settings.INSTALLED_APPS:
     from allauth.account.utils import (filter_users_by_email,
                                        user_pk_to_url_str, user_username)
     from allauth.utils import build_absolute_uri
-else:
-    from django.contrib.auth.forms import PasswordResetForm as DefaultPasswordResetForm
-    from django.contrib.auth.tokens import default_token_generator
 
 
-class PasswordResetForm(DefaultPasswordResetForm):
+class AllAuthPasswordResetForm(DefaultPasswordResetForm):
     def clean_email(self):
         """
         Invalid email should not raise error, as this would leak users
@@ -29,9 +26,6 @@ class PasswordResetForm(DefaultPasswordResetForm):
         return self.cleaned_data["email"]
 
     def save(self, request, **kwargs):
-        if 'allauth' not in settings.INSTALLED_APPS:
-            return super().save(request, **kwargs)
-        # for allauth
         current_site = get_current_site(request)
         email = self.cleaned_data['email']
         token_generator = kwargs.get('token_generator', default_token_generator)

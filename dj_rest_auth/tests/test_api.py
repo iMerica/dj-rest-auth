@@ -4,7 +4,7 @@ from allauth.account import app_settings as account_app_settings
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import TestCase, override_settings
+from django.test import TestCase, modify_settings, override_settings
 from django.utils.encoding import force_str
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
@@ -79,7 +79,7 @@ class APIBasicTests(TestsMixin, TestCase):
             result['uid'] = user_pk_to_url_str(user)
         else:
             from django.utils.encoding import force_bytes
-            from django.contrib.auth.tokens import default_token_generator 
+            from django.contrib.auth.tokens import default_token_generator
             from django.utils.http import urlsafe_base64_encode
             result['uid'] = urlsafe_base64_encode(force_bytes(user.pk))
         result['token'] = default_token_generator.make_token(user)
@@ -176,10 +176,8 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual('access_token' in self.response.json.keys(), True)
         self.token = self.response.json['access_token']
 
+    @modify_settings(INSTALLED_APPS={'remove': ['allauth', 'allauth.account']})
     def test_login_by_email(self):
-        # starting test without allauth app
-        settings.INSTALLED_APPS.remove('allauth')
-
         payload = {
             'email': self.EMAIL.lower(),
             'password': self.PASS,
@@ -220,9 +218,6 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # test empty payload
         self.post(self.login_url, data={}, status_code=400)
-
-        # bring back allauth
-        settings.INSTALLED_APPS.append('allauth')
 
     def test_password_change(self):
         login_payload = {
@@ -314,7 +309,7 @@ class APIBasicTests(TestsMixin, TestCase):
         login_payload['password'] = new_password_payload['new_password1']
         self.post(self.login_url, data=login_payload, status_code=200)
 
-    def test_password_reset(self):
+    def _password_reset(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
 
         # call password reset
@@ -368,6 +363,13 @@ class APIBasicTests(TestsMixin, TestCase):
             'password': self.NEW_PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
+
+    def test_password_reset_allauth(self):
+        self._password_reset()
+
+    @modify_settings(INSTALLED_APPS={'remove': ['allauth', 'allauth.account']})
+    def test_password_reset_no_allauth(self):
+        self._password_reset()
 
     def test_password_reset_with_email_in_different_case(self):
         get_user_model().objects.create_user(self.USERNAME, self.EMAIL.lower(), self.PASS)
@@ -631,9 +633,9 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
 
+    @modify_settings(INSTALLED_APPS={'remove': ['rest_framework_simplejwt.token_blacklist']})
     @override_settings(REST_USE_JWT=True)
     def test_blacklisting_not_installed(self):
-        settings.INSTALLED_APPS.remove('rest_framework_simplejwt.token_blacklist')
         payload = {
             'username': self.USERNAME,
             'password': self.PASS,
