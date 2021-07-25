@@ -12,6 +12,7 @@ from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.schemas.openapi import AutoSchema
 
 from .app_settings import (
     JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
@@ -19,6 +20,7 @@ from .app_settings import (
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
     create_token,
 )
+from .schema import DynamicResponseSerializerSchema
 from .models import TokenModel
 from .utils import jwt_encode
 
@@ -44,6 +46,7 @@ class LoginView(GenericAPIView):
     serializer_class = LoginSerializer
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
+    schema = DynamicResponseSerializerSchema()
 
     user = None
     access_token = None
@@ -182,7 +185,7 @@ class LogoutView(APIView):
                     token.blacklist()
                 except KeyError:
                     response.data = {'detail': _('Refresh token was not included in request data.')}
-                    response.status_code =status.HTTP_401_UNAUTHORIZED
+                    response.status_code = status.HTTP_401_UNAUTHORIZED
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, 'args'):
                         if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:

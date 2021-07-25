@@ -19,6 +19,10 @@ except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
 
+class DetailResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField()
+
+
 class SocialAccountSerializer(serializers.ModelSerializer):
     """
     serialize allauth SocialAccounts for use with a REST API

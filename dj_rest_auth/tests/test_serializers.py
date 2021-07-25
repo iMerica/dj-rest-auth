@@ -1,9 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase, modify_settings, override_settings
+from rest_framework import serializers
 from rest_framework.exceptions import ErrorDetail
 
+from dj_rest_auth.serializers import DynamicSerializerField
 from dj_rest_auth.serializers import UserDetailsSerializer
+from dj_rest_auth.serializers import DynamicFieldSerializerMetaclass
+from dj_rest_auth.serializers import JWTSerializer
 
 
 User = get_user_model()
@@ -57,3 +61,87 @@ class TestUserDetailsSerializer(TestCase):
         )
         self.assertEqual(True, serializer.is_valid())
         self.assertEqual(serializer.validated_data, {'username': 'TestUsername'})
+
+
+class TestDynamicSerializerField(TestCase):
+    def test_setting_required(self):
+        with self.assertRaises(KeyError):
+            serializer = DynamicSerializerField()
+
+    def test_setting_popped(self):
+        serializer = DynamicSerializerField(setting='foo.bar')
+        self.assertEqual(serializer.setting, 'foo.bar')
+
+    def test_default_cls_popped(self):
+        serializer = DynamicSerializerField(
+            setting='foo.bar',
+            default_cls='biz.baz')
+        self.assertEqual(serializer.default_cls, 'biz.baz')
+
+
+class DummyDynamicUserSerializer(
+        serializers.Serializer, metaclass=DynamicFieldSerializerMetaclass):
+    user = DynamicSerializerField(
+        setting='DUMMY_SETTING.USER_DETAILS_SERIALIZER',
+        default_cls='dj_rest_auth.serializers.UserDetailsSerializer')
+
+
+class DummyAlternativeSettingsDynamicSerializer(
+        serializers.Serializer, metaclass=DynamicFieldSerializerMetaclass):
+    user = DynamicSerializerField(
+        setting='DUMMY_SETTING.FOOBAR.USER_DETAILS_SERIALIZER',
+        default_cls='dj_rest_auth.serializers.UserDetailsSerializer')
+
+
+class DummyUserDetailsSerializer(UserDetailsSerializer):
+    foobar = serializers.CharField()
+
+
+class TestDynamicFieldSerializerMetaclass(TestCase):
+    @override_settings(
+        DUMMY_SETTING=
+            {'USER_DETAILS_SERIALIZER': 'dj_rest_auth.tests.test_serializers.DummyDynamicUserSerializer'}
+    )
+    def test_setting_provided(self):
+        serializer = DummyDynamicUserSerializer()
+        import pdb; pdb.set_trace();
+        self.assertIsInstance(
+            serializer.fields['user'],
+            DummyDynamicUserSerializer)
+
+    def test_default_cls_fallback(self):
+        serializer = DummyDynamicUserSerializer()
+        self.assertIsInstance(
+            serializer.fields['user'],
+            UserDetailsSerializer)
+
+    @override_settings(
+        DUMMY_SETTING={
+            'USER_DETAILS_SERIALIZER': {
+                'FOOBAR': 'dj_rest_auth.tests.test_serializers.DummyDynamicUserSerializer'
+            }
+        }
+    )
+    def test_alternative_settings_setting_provided(self):
+        serializer = DummyAlternativeSettingsDynamicSerializer()
+        self.assertIsInstance(
+            serializer.fields['user'],
+            DummyDynamicUserSerializer)
+
+
+class TestJWTSerializer(TestCase):
+    @override_settings(
+        REST_AUTH_SERIALIZER=
+            {'USER_DETAILS_SERIALIZER': 'dj_rest_auth.tests.test_serializers.DummyDynamicUserSerializer'}
+    )
+    def test_setting_provided_serializer(self):
+        serializer = JWTSerializer()
+        self.assertIsInstance(
+            serializer.fields['user'],
+            DummyDynamicUserSerializer)
+
+    def test_default_cls_serializer(self):
+        serializer = JWTSerializer()
+        self.assertIsInstance(
+            serializer.fields['user'],
+            UserDetailsSerializer)
