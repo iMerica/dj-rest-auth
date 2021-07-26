@@ -17,11 +17,12 @@ from .app_settings import (
     JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
     PasswordChangeSerializer, PasswordResetConfirmSerializer,
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
-    create_token,
+    create_token, ResendEmailSerializer,
 )
 from .models import TokenModel
 from .utils import jwt_encode
 
+from allauth.accounts.admin import EmailAddress
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters(
@@ -301,3 +302,31 @@ class PasswordChangeView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'detail': _('New password has been saved.')})
+
+
+class ResendEmailView(GenericAPIView):
+	""" This resends the email confirmation key to the user email. Parameter is only email"""
+	serializer_class = ResendEmailSerializer
+	permission_classes = [AllowAny]
+
+	def post(self, request, *args, **kwargs):
+		serializer = self.serializer_class(data=request.data)
+		if serializer.is_valid():
+			# user = User.objects.get(email=request.data['email'])
+			# email = user.emailaddress_set.get(email=request.data['email'])
+
+			try:
+				email = EmailAddress.objects.get(email=request.data['email'])
+			except EmailAddress.DoesNotExist:
+				return Response({'message': 'This email does not exist'}, status=status.HTTP_404_NOT_FOUND)
+			else:
+				user = email.user
+
+				if not email.verified:
+					send_email_confirmation(request, user, email=email)
+					# complete_signup(self.request._request, user, all_auth_settings.EMAIL_VERIFICATION, None)
+					return Response({'message': 'Confirmation message has been sent.'}, status=status.HTTP_200_OK)
+				else:
+					return Response({'message': 'This email has been verified.'}, status=status.HTTP_403_FORBIDDEN)
+		else:
+			return Response({'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
