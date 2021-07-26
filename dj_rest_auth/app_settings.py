@@ -18,7 +18,7 @@ from dj_rest_auth.serializers import TokenSerializer as DefaultTokenSerializer
 from dj_rest_auth.serializers import (
     UserDetailsSerializer as DefaultUserDetailsSerializer,
 )
-
+from dj_rest_auth.serializers import ResendEmailSerializer as DefaultResendEmailSerializer 
 from .utils import default_create_token, import_callable
 
 
@@ -54,3 +54,7 @@ PasswordChangeSerializer = import_callable(
 
 JWT_AUTH_COOKIE = getattr(settings, 'JWT_AUTH_COOKIE', None)
 JWT_AUTH_REFRESH_COOKIE = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+
+ResendEmailSerializer = import_callable(
+    serializers.get('RESEND_EMAIL_SERIALIZER', DefaultResendEmailSerializer),
+)
