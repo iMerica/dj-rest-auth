@@ -536,6 +536,13 @@ class APIBasicTests(TestsMixin, TestCase):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+        # resend email
+        self.post(
+            self.resend_email_url,
+            data={'email': self.EMAIL},
+            status_code=status.HTTP_200_OK
+        )
+
         # verify email
         email_confirmation = new_user.emailaddress_set.get(email=self.EMAIL) \
             .emailconfirmation_set.order_by('-created')[0]

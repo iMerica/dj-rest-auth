@@ -1,7 +1,8 @@
 from allauth.account import app_settings as allauth_settings
 from allauth.account.adapter import get_adapter
-from allauth.account.utils import complete_signup
+from allauth.account.utils import complete_signup, send_email_confirmation
 from allauth.account.views import ConfirmEmailView
+from allauth.account.models import EmailAddress
 from allauth.socialaccount import signals
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount
@@ -10,7 +11,7 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import status
-from rest_framework.exceptions import MethodNotAllowed, NotFound
+from rest_framework.exceptions import MethodNotAllowed, NotFound, ValidationError
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -22,7 +23,7 @@ from dj_rest_auth.app_settings import (
 from dj_rest_auth.models import TokenModel
 from dj_rest_auth.registration.serializers import (
     SocialAccountSerializer, SocialConnectSerializer, SocialLoginSerializer,
-    VerifyEmailSerializer,
+    VerifyEmailSerializer, ResendEmailVerificationSerializer
 )
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.views import LoginView
@@ -106,6 +107,26 @@ class VerifyEmailView(APIView, ConfirmEmailView):
         confirmation = self.get_object()
         confirmation.confirm(self.request)
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+
+
+class ResendEmailVerificationView(CreateAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = ResendEmailVerificationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = EmailAddress.objects.get(**serializer.validated_data)
+        if not email:
+            raise ValidationError("Account does not exist")
+
+        if email.verified:
+            raise ValidationError("Account is already verified")
+
+        email.send_confirmation()
+        return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+
 
 
 class SocialLoginView(LoginView):

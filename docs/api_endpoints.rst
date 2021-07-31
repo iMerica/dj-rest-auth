@@ -84,6 +84,11 @@ Registration
         You need to import the view: ``from dj_rest_auth.registration.views import VerifyEmailView``. Then add the url with the corresponding name:
         ``path('dj-rest-auth/account-confirm-email/', VerifyEmailView.as_view(), name='account_email_verification_sent')`` to the urlpatterns list.
 
+- /dj-rest-auth/registration/resend-email/ (POST)
+
+    - email
+
+    Resends the email verification
 
 
 Social Media Authentication
