@@ -174,6 +174,9 @@ class PasswordResetSerializer(serializers.Serializer):
         return {}
 
     def validate_email(self, value):
+        if not UserModel.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Invalid Email.")
+
         # Create PasswordResetForm with the serializer
         self.reset_form = self.password_reset_form_class(data=self.initial_data)
         if not self.reset_form.is_valid():
