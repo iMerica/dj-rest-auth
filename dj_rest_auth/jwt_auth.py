@@ -13,7 +13,7 @@ def set_jwt_access_cookie(response, access_token):
     cookie_secure = getattr(settings, 'JWT_AUTH_SECURE', False)
     cookie_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', True)
     cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
-    cookie_domain = getattr(settings, "JWT_AUTH__COOKIE_DOMAIN", None)
+    cookie_domain = getattr(settings, "JWT_AUTH_COOKIE_DOMAIN", None)
 
     if cookie_name:
         response.set_cookie(
