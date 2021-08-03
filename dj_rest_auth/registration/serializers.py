@@ -35,7 +35,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
         )
 
 
-class SocialLoginSerializer(serializers.Serializer): # noqa
+class SocialLoginSerializer(serializers.Serializer):
     access_token = serializers.CharField(required=False, allow_blank=True)
     code = serializers.CharField(required=False, allow_blank=True)
     id_token = serializers.CharField(required=False, allow_blank=True)
@@ -249,7 +249,7 @@ class RegisterSerializer(serializers.Serializer): # noqa
         return user
 
 
-class VerifyEmailSerializer(serializers.Serializer): # noqa
+class VerifyEmailSerializer(serializers.Serializer):
     key = serializers.CharField()
 
 
