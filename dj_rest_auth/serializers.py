@@ -8,7 +8,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 
-from .forms import AllAuthPasswordResetForm
+if 'allauth' in settings.INSTALLED_APPS:
+    from .forms import AllAuthPasswordResetForm
+
 from .models import TokenModel
 
 # Get the UserModel
