@@ -187,11 +187,11 @@ class SocialConnectMixin:
         return social_login
 
 
-class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer): # noqa
+class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
     pass
 
 
-class RegisterSerializer(serializers.Serializer): # noqa
+class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_settings.USERNAME_MIN_LENGTH,
