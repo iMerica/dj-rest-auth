@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpRequest
@@ -198,8 +199,11 @@ class RegisterSerializer(serializers.Serializer):
         required=allauth_settings.USERNAME_REQUIRED,
     )
     email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
-    password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
+    if settings.ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE:
+        password1 = serializers.CharField(write_only=True)
+        password2 = serializers.CharField(write_only=True)
+    else:
+        password = serializers.CharField(write_only=True)
 
     def validate_username(self, username):
         username = get_adapter().clean_username(username)
@@ -218,19 +222,24 @@ class RegisterSerializer(serializers.Serializer):
         return get_adapter().clean_password(password)
 
     def validate(self, data):
-        if data['password1'] != data['password2']:
-            raise serializers.ValidationError(_("The two password fields didn't match."))
+        if settings.ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE:
+            if data['password1'] != data['password2']:
+                raise serializers.ValidationError(_("The two password fields didn't match."))
         return data
 
     def custom_signup(self, request, user):
         pass
 
     def get_cleaned_data(self):
-        return {
-            'username': self.validated_data.get('username', ''),
-            'password1': self.validated_data.get('password1', ''),
-            'email': self.validated_data.get('email', ''),
-        }
+        cleaned_data = {
+                'username': self.validated_data.get('username', ''),
+                'email': self.validated_data.get('email', ''),
+            }
+        if settings.ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE:
+            cleaned_data['password1'] = self.validated_data.get('password1', '')
+        else:
+            cleaned_data['password1'] = self.validated_data.get('password', '')
+        return cleaned_data
 
     def save(self, request):
         adapter = get_adapter()
