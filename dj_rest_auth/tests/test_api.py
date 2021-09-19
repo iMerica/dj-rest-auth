@@ -537,11 +537,13 @@ class APIBasicTests(TestsMixin, TestCase):
         )
 
         # resend email
+        mail_count = len(mail.outbox)
         self.post(
             self.resend_email_url,
             data={'email': self.EMAIL},
             status_code=status.HTTP_200_OK
         )
+        self.assertEqual(len(mail.outbox), mail_count + 1)
 
         # verify email
         email_confirmation = new_user.emailaddress_set.get(email=self.EMAIL) \
@@ -552,9 +554,28 @@ class APIBasicTests(TestsMixin, TestCase):
             status_code=status.HTTP_200_OK,
         )
 
+        # resend email again
+        mail_count = len(mail.outbox)
+        self.post(
+            self.resend_email_url,
+            data={'email': self.EMAIL},
+            status_code=status.HTTP_200_OK
+        )
+        self.assertEqual(len(mail.outbox), mail_count)
+
         # try to login again
         self._login()
         self._logout()
+
+    def test_resend_verification_on_nonexisting_address(self):
+        # won't resend email
+        mail_count = len(mail.outbox)
+        self.post(
+            self.resend_email_url,
+            data={'email': 'nonexisting@email.com'},
+            status_code=status.HTTP_200_OK
+        )
+        self.assertEqual(len(mail.outbox), mail_count)
 
     @override_settings(ACCOUNT_LOGOUT_ON_GET=True)
     def test_logout_on_get(self):

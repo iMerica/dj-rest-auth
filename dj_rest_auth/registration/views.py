@@ -118,15 +118,10 @@ class ResendEmailVerificationView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        try:
-            email = EmailAddress.objects.get(**serializer.validated_data)
-        except EmailAddress.DoesNotExist:
-            raise ValidationError("Account does not exist")
+        email = EmailAddress.objects.filter(**serializer.validated_data).first()
+        if email and not email.verified:
+            email.send_confirmation()
 
-        if email.verified:
-            raise ValidationError("Account is already verified")
-
-        email.send_confirmation()
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
 
 
