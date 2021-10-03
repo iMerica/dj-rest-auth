@@ -4,19 +4,20 @@ from allauth.account import app_settings as account_app_settings
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, modify_settings, override_settings
 from django.utils.encoding import force_str
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 from dj_rest_auth.registration.app_settings import register_permission_classes
 from dj_rest_auth.registration.views import RegisterView
-
+from dj_rest_auth.models import get_token_model
 from .mixins import CustomPermissionClass, TestsMixin
 
 
 try:
     from django.urls import reverse
-except ImportError:
+except ImportError:  # pragma: no cover
     from django.core.urlresolvers import reverse
 
 from jwt import decode as decode_jwt
@@ -993,3 +994,46 @@ class APIBasicTests(TestsMixin, TestCase):
             status_code=200,
         )
         self.assertIn('xxx', refresh_resp.cookies)
+
+    @override_settings(REST_AUTH_TOKEN_MODEL=None)
+    @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
+    def test_login_with_no_token_model(self):
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        # there is no users in db so it should throw error (400)
+        resp = self.post(self.login_url, data=payload, status_code=status.HTTP_400_BAD_REQUEST)
+
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        resp = self.post(self.login_url, data=payload, status_code=status.HTTP_204_NO_CONTENT)
+        # The response body should be empty
+        self.assertEqual(resp.content, b'')
+
+    def test_rest_session_login_sets_session_cookie(self):
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        with self.settings(REST_SESSION_LOGIN=False):
+            resp = self.post(self.login_url, data=payload, status_code=200)
+            self.assertFalse(settings.SESSION_COOKIE_NAME in resp.cookies.keys())
+
+        with self.settings(REST_SESSION_LOGIN=True):
+            resp = self.post(self.login_url, data=payload, status_code=200)
+            self.assertTrue(settings.SESSION_COOKIE_NAME in resp.cookies.keys())
+
+
+    @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
+    def test_misconfigured_token_model(self):
+        # default token model, but authtoken app not installed raises error
+        with self.assertRaises(ImproperlyConfigured):
+            get_token_model()
+
+        # no authentication method enabled raises error
+        with self.settings(REST_SESSION_LOGIN=False, REST_USE_JWT=False, REST_AUTH_TOKEN_MODEL=False):
+            with self.assertRaises(ImproperlyConfigured):
+                get_token_model()
+
+        # only session login is fine
+        with self.settings(REST_SESSION_LOGIN=True, REST_USE_JWT=False, REST_AUTH_TOKEN_MODEL=False):
+            assert get_token_model() is None
+
+        # only jwt authentication is fine
+        with self.settings(REST_SESSION_LOGIN=False, REST_USE_JWT=True, REST_AUTH_TOKEN_MODEL=False):
+            assert get_token_model() is None

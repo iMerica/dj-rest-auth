@@ -19,7 +19,7 @@ from .app_settings import (
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
     create_token,
 )
-from .models import TokenModel
+from .models import get_token_model
 from .utils import jwt_encode
 
 
@@ -42,7 +42,6 @@ class LoginView(GenericAPIView):
     """
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
-    token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
 
     user = None
@@ -70,14 +69,12 @@ class LoginView(GenericAPIView):
 
     def login(self):
         self.user = self.serializer.validated_data['user']
+        token_model = get_token_model()
 
         if getattr(settings, 'REST_USE_JWT', False):
             self.access_token, self.refresh_token = jwt_encode(self.user)
-        else:
-            self.token = create_token(
-                self.token_model, self.user,
-                self.serializer,
-            )
+        elif token_model:
+            self.token = create_token(token_model, self.user, self.serializer)
 
         if getattr(settings, 'REST_SESSION_LOGIN', True):
             self.process_login()
@@ -107,11 +104,13 @@ class LoginView(GenericAPIView):
                 instance=data,
                 context=self.get_serializer_context(),
             )
-        else:
+        elif self.token:
             serializer = serializer_class(
                 instance=self.token,
                 context=self.get_serializer_context(),
             )
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
         if getattr(settings, 'REST_USE_JWT', False):
