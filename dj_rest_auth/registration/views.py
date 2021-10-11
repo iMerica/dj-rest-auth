@@ -124,7 +124,7 @@ class ResendEmailVerificationView(CreateAPIView):
         if email.verified:
             raise ValidationError("Account is already verified")
 
-        email.send_confirmation()
+        email.send_confirmation(request)
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
 
 
