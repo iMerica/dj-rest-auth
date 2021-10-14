@@ -29,8 +29,7 @@ class LoginSerializer(serializers.Serializer):
         if email and password:
             user = self.authenticate(email=email, password=password)
         else:
-            msg = _('Must include "email" and "password".')
-            raise exceptions.ValidationError(msg)
+            raise exceptions.ValidationError(_('Must include "email" and "password".'))
 
         return user
 
@@ -38,8 +37,9 @@ class LoginSerializer(serializers.Serializer):
         if username and password:
             user = self.authenticate(username=username, password=password)
         else:
-            msg = _('Must include "username" and "password".')
-            raise exceptions.ValidationError(msg)
+            raise exceptions.ValidationError(
+                _('Must include "username" and "password".')
+            )
 
         return user
 
@@ -49,8 +49,9 @@ class LoginSerializer(serializers.Serializer):
         elif username and password:
             user = self.authenticate(username=username, password=password)
         else:
-            msg = _('Must include either "username" or "email" and "password".')
-            raise exceptions.ValidationError(msg)
+            raise exceptions.ValidationError(
+                _('Must include either "username" or "email" and "password".')
+            )
 
         return user
 
@@ -95,8 +96,9 @@ class LoginSerializer(serializers.Serializer):
             try:
                 return self.get_auth_user_using_allauth(username, email, password)
             except url_exceptions.NoReverseMatch:
-                msg = _('Unable to log in with provided credentials.')
-                raise exceptions.ValidationError(msg)
+                raise exceptions.ValidationError(
+                    _('Unable to log in with provided credentials.')
+                )
         return self.get_auth_user_using_orm(username, email, password)
 
     @staticmethod
@@ -120,8 +122,9 @@ class LoginSerializer(serializers.Serializer):
         user = self.get_auth_user(username, email, password)
 
         if not user:
-            msg = _('Unable to log in with provided credentials.')
-            raise exceptions.ValidationError(msg)
+            raise exceptions.ValidationError(
+                _('Unable to log in with provided credentials.')
+            )
 
         # Did we get back an active user?
         self.validate_auth_user_status(user)
@@ -290,10 +293,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             uid = force_str(uid_decoder(attrs['uid']))
             self.user = UserModel._default_manager.get(pk=uid)
         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
-            raise ValidationError({'uid': ['Invalid value']})
+            raise ValidationError({'uid': [_('Invalid value.')]})
 
         if not default_token_generator.check_token(self.user, attrs['token']):
-            raise ValidationError({'token': ['Invalid value']})
+            raise ValidationError({'token': [_('Invalid value.')]})
 
         self.custom_validation(attrs)
         # Construct SetPasswordForm instance
@@ -341,8 +344,9 @@ class PasswordChangeSerializer(serializers.Serializer):
         )
 
         if all(invalid_password_conditions):
-            err_msg = _('Your old password was entered incorrectly. Please enter it again.')
-            raise serializers.ValidationError(err_msg)
+            raise serializers.ValidationError(
+                _('Your old password was entered incorrectly. Please enter it again.')
+            )
         return value
 
     def validate(self, attrs):
