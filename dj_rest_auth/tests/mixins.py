@@ -53,7 +53,7 @@ class TestsMixin:
                 kwargs['HTTP_AUTHORIZATION'] = f'Token {self.token}'
 
         self.response = request_func(*args, **kwargs)
-        is_json = 'application/json' in self.response.get('content-type')
+        is_json = 'application/json' in self.response.get('content-type', '')
 
         self.response.json = {}
         if is_json and self.response.content:

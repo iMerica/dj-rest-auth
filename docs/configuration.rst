@@ -53,6 +53,7 @@ Configuration
             ...
         )
 - **REST_AUTH_TOKEN_MODEL** - path to model class for tokens, default value ``'rest_framework.authtoken.models.Token'``
+  If set to ``None`` token authentication will be disabled. In this case at least one of REST_SESSION_LOGIN or REST_USE_JWT must be enabled.
 - **REST_AUTH_TOKEN_CREATOR** - path to callable or callable for creating tokens, default value ``dj_rest_auth.utils.default_create_token``.
 - **REST_SESSION_LOGIN** - Enable session login in Login API view (default: True)
 - **REST_USE_JWT** - Enable JWT Authentication instead of Token/Session based. This is built on top of djangorestframework-simplejwt https://github.com/SimpleJWT/django-rest-framework-simplejwt, which must also be installed. (default: False)
