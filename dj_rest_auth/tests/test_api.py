@@ -14,7 +14,6 @@ from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.models import get_token_model
 from .mixins import CustomPermissionClass, TestsMixin
 
-
 try:
     from django.urls import reverse
 except ImportError:  # pragma: no cover
@@ -513,17 +512,21 @@ class APIBasicTests(TestsMixin, TestCase):
             data=self.REGISTRATION_DATA_WITH_EMAIL,
             status_code=status.HTTP_201_CREATED,
         )
+
         self.assertNotIn('key', result.data)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
         self.assertEqual(len(mail.outbox), mail_count + 1)
         new_user = get_user_model().objects.latest('id')
         self.assertEqual(new_user.username, self.REGISTRATION_DATA['username'])
 
+        # increment count
+        mail_count += 1
+
         # test browsable endpoint
         result = self.get(
             self.verify_email_url,
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED
         )
-        self.assertEqual(result.status_code, 405)
         self.assertEqual(result.json['detail'], 'Method "GET" not allowed.')
 
         # email is not verified yet
@@ -543,6 +546,8 @@ class APIBasicTests(TestsMixin, TestCase):
             data={'email': self.EMAIL},
             status_code=status.HTTP_200_OK
         )
+        # check mail count
+        self.assertEqual(len(mail.outbox), mail_count + 1)
 
         # verify email
         email_confirmation = new_user.emailaddress_set.get(email=self.EMAIL) \
@@ -556,6 +561,21 @@ class APIBasicTests(TestsMixin, TestCase):
         # try to login again
         self._login()
         self._logout()
+
+    def test_should_not_resend_email_verification_for_nonexistent_email(self):
+        # mail count before resend
+        mail_count = len(mail.outbox)
+
+        # resend non-existent email
+        resend_email_result = self.post(
+            self.resend_email_url,
+            data={'email': 'test@test.com'},
+            status_code=status.HTTP_200_OK
+        )
+
+        self.assertEqual(resend_email_result.status_code, status.HTTP_200_OK)
+        # verify that mail count did not increment
+        self.assertEqual(mail_count, len(mail.outbox))
 
     @override_settings(ACCOUNT_LOGOUT_ON_GET=True)
     def test_logout_on_get(self):
@@ -709,7 +729,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEquals(claims['name'], 'person')
         self.assertEquals(claims['email'], 'person1@world.com')
 
-
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(
@@ -741,7 +760,6 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
 
-
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=False)
@@ -754,8 +772,8 @@ class APIBasicTests(TestsMixin, TestCase):
         ),
     )
     @override_settings(REST_SESSION_LOGIN=False)
-    @override_settings(CSRF_COOKIE_SECURE =True)
-    @override_settings(CSRF_COOKIE_HTTPONLY =True)
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    @override_settings(CSRF_COOKIE_HTTPONLY=True)
     def test_wo_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
@@ -772,9 +790,9 @@ class APIBasicTests(TestsMixin, TestCase):
         ## TEST WITH JWT AUTH HEADER
         jwtclient = APIClient(enforce_csrf_checks=True)
         token = resp.data['access_token']
-        resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer '+token)
+        resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEquals(resp.status_code, 200)
-        resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer '+token)
+        resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEquals(resp.status_code, 200)
 
         ## TEST WITH COOKIES
@@ -783,7 +801,6 @@ class APIBasicTests(TestsMixin, TestCase):
 
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 200)
-
 
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -797,8 +814,8 @@ class APIBasicTests(TestsMixin, TestCase):
         ),
     )
     @override_settings(REST_SESSION_LOGIN=False)
-    @override_settings(CSRF_COOKIE_SECURE =True)
-    @override_settings(CSRF_COOKIE_HTTPONLY =True)
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    @override_settings(CSRF_COOKIE_HTTPONLY=True)
     def test_csrf_wo_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
@@ -821,17 +838,17 @@ class APIBasicTests(TestsMixin, TestCase):
         token = resp.data['access_token']
         resp = jwtclient.get('/protected-view/')
         self.assertEquals(resp.status_code, 403)
-        resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer '+token)
+        resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEquals(resp.status_code, 200)
         resp = jwtclient.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
-        resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer '+token)
+        resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH COOKIES
+        # TEST WITH COOKIES
         resp = client.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
-        #fail w/o csrftoken in payload
+        # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
@@ -839,11 +856,10 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
-
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=True)
-    @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True) #True at your own risk
+    @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True)  # True at your own risk
     @override_settings(
         REST_FRAMEWORK=dict(
             DEFAULT_AUTHENTICATION_CLASSES=[
@@ -852,8 +868,8 @@ class APIBasicTests(TestsMixin, TestCase):
         ),
     )
     @override_settings(REST_SESSION_LOGIN=False)
-    @override_settings(CSRF_COOKIE_SECURE =True)
-    @override_settings(CSRF_COOKIE_HTTPONLY =True)
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    @override_settings(CSRF_COOKIE_HTTPONLY=True)
     def test_csrf_w_login_csrf_enforcement(self):
         from .mixins import APIClient
         payload = {
@@ -866,7 +882,7 @@ class APIBasicTests(TestsMixin, TestCase):
         client.get(reverse('getcsrf'))
         csrftoken = client.cookies['csrftoken'].value
 
-        #fail w/o csrftoken in payload
+        # fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
 
@@ -881,7 +897,7 @@ class APIBasicTests(TestsMixin, TestCase):
         ## TEST WITH COOKIES
         resp = client.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
-        #fail w/o csrftoken in payload
+        # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
@@ -889,11 +905,10 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post('/protected-view/', csrfparam)
         self.assertEquals(resp.status_code, 200)
 
-
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
     @override_settings(JWT_AUTH_COOKIE_USE_CSRF=False)
-    @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True) #True at your own risk
+    @override_settings(JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED=True)  # True at your own risk
     @override_settings(
         REST_FRAMEWORK=dict(
             DEFAULT_AUTHENTICATION_CLASSES=[
@@ -902,8 +917,8 @@ class APIBasicTests(TestsMixin, TestCase):
         ),
     )
     @override_settings(REST_SESSION_LOGIN=False)
-    @override_settings(CSRF_COOKIE_SECURE =True)
-    @override_settings(CSRF_COOKIE_HTTPONLY =True)
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    @override_settings(CSRF_COOKIE_HTTPONLY=True)
     def test_csrf_w_login_csrf_enforcement_2(self):
         from .mixins import APIClient
         payload = {
@@ -916,7 +931,7 @@ class APIBasicTests(TestsMixin, TestCase):
         client.get(reverse('getcsrf'))
         csrftoken = client.cookies['csrftoken'].value
 
-        #fail w/o csrftoken in payload
+        # fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
         self.assertEquals(resp.status_code, 403)
 
@@ -926,12 +941,12 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
         self.assertEquals(resp.status_code, 200)
 
-        ## TEST WITH JWT AUTH HEADER does not make sense
+        # TEST WITH JWT AUTH HEADER does not make sense
 
-        ## TEST WITH COOKIES
+        # TEST WITH COOKIES
         resp = client.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
-        #fail w/o csrftoken in payload
+        # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
         self.assertEquals(resp.status_code, 403)
 
@@ -1017,7 +1032,6 @@ class APIBasicTests(TestsMixin, TestCase):
         with self.settings(REST_SESSION_LOGIN=True):
             resp = self.post(self.login_url, data=payload, status_code=200)
             self.assertTrue(settings.SESSION_COOKIE_NAME in resp.cookies.keys())
-
 
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
     def test_misconfigured_token_model(self):

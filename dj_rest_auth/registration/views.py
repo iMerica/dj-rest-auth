@@ -112,21 +112,17 @@ class VerifyEmailView(APIView, ConfirmEmailView):
 class ResendEmailVerificationView(CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = ResendEmailVerificationSerializer
+    queryset = EmailAddress.objects.all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = EmailAddress.objects.get(**serializer.validated_data)
-        if not email:
-            raise ValidationError("Account does not exist")
+        email = EmailAddress.objects.filter(**serializer.validated_data).first()
+        if email and not email.verified:
+            email.send_confirmation(request)
 
-        if email.verified:
-            raise ValidationError("Account is already verified")
-
-        email.send_confirmation()
         return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
-
 
 
 class SocialLoginView(LoginView):
