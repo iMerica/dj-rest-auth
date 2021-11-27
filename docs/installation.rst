@@ -182,6 +182,55 @@ If you are using GitHub for your social authentication, it uses code and not Acc
         ...,
         path('dj-rest-auth/github/', GitHubLogin.as_view(), name='github_login')
     ]
+    
+    
+Google
+######
+If you are using Google for your social authentication, the OAuth flow is ``Hybrid Flow``, so it only uses code.
+
+
+1. Add ``allauth.socialaccount`` and ``allauth.socialaccount.providers.google`` apps to INSTALLED_APPS in your django settings.py:
+
+.. code-block:: python
+
+    INSTALLED_APPS = (
+        ...,
+        'rest_framework',
+        'rest_framework.authtoken',
+        'dj_rest_auth'
+        ...,
+        'django.contrib.sites',
+        'allauth',
+        'allauth.account',
+        'dj_rest_auth.registration',
+        ...,
+        'allauth.socialaccount',
+        'allauth.socialaccount.providers.google',
+
+    )
+    
+3. Create new view as a subclass of ``dj_rest_auth.views.SocialLoginView`` with ``GitHubOAuth2Adapter`` adapter, an ``OAuth2Client`` and a callback_url as attributes:
+
+.. code-block:: python
+
+    from allauth.socialaccount.providers.github.views import GoogleOAuth2Adapter
+    from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+    from dj_rest_auth.registration.views import SocialLoginView
+    
+    class GoogleLogin(SocialLoginView):
+        adapter_class = GoogleOAuth2Adapter
+        callback_url = CALLBACK_URL_YOU_SET_ON_GOOGLE
+        client_class = OAuth2Client
+
+4. Create url for GoogleLogin view:
+
+.. code-block:: python
+
+    urlpatterns += [
+        ...,
+        path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login')
+    ]
+    
 
 Additional Social Connect Views
 ###############################
