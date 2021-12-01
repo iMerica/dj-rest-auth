@@ -486,6 +486,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self._logout()
 
     @override_settings(REST_SESSION_LOGIN=True)
+    @override_settings(REST_AUTH_TOKEN_MODEL=None)
     def test_registration_with_session(self):
         user_count = get_user_model().objects.all().count()
 
@@ -495,7 +496,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(result.data, None)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
 
-        self._login()
+        self._login(status.HTTP_204_NO_CONTENT)
         self._logout()
 
     def test_registration_with_invalid_password(self):
