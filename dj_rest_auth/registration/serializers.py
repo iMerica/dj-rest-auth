@@ -14,6 +14,7 @@ try:
     from allauth.socialaccount.helpers import complete_social_login
     from allauth.socialaccount.models import SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
+    from allauth.socialaccount.providers.oauth2.client import OAuth2Error
     from allauth.utils import email_address_exists, get_username_max_length
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
@@ -130,7 +131,12 @@ class SocialLoginSerializer(serializers.Serializer):
                 headers=adapter.headers,
                 basic_auth=adapter.basic_auth,
             )
-            token = client.get_access_token(code)
+            try:
+                token = client.get_access_token(code)
+            except OAuth2Error:
+                raise serializers.ValidationError(
+                    _("Invalid code"),
+                )
             access_token = token['access_token']
             tokens_to_parse = {'access_token': access_token}
 
