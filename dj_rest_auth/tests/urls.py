@@ -1,6 +1,6 @@
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from rest_framework import permissions
@@ -74,30 +74,30 @@ def get_csrf_cookie(request):
 
 
 urlpatterns += [
-    url(r'^rest-registration/', include('dj_rest_auth.registration.urls')),
-    url(r'^test-admin/', include(django_urls)),
-    url(
+    re_path(r'^rest-registration/', include('dj_rest_auth.registration.urls')),
+    re_path(r'^test-admin/', include(django_urls)),
+    re_path(
         r'^account-email-verification-sent/$', TemplateView.as_view(),
         name='account_email_verification_sent',
     ),
-    url(
+    re_path(
         r'^account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
         name='account_confirm_email',
     ),
-    url(r'^social-login/facebook/$', FacebookLogin.as_view(), name='fb_login'),
-    url(r'^social-login/twitter/$', TwitterLogin.as_view(), name='tw_login'),
-    url(r'^social-login/twitter-no-view/$', twitter_login_view, name='tw_login_no_view'),
-    url(r'^social-login/twitter-no-adapter/$', TwitterLoginNoAdapter.as_view(), name='tw_login_no_adapter'),
-    url(r'^social-login/facebook/connect/$', FacebookConnect.as_view(), name='fb_connect'),
-    url(r'^social-login/twitter/connect/$', TwitterConnect.as_view(), name='tw_connect'),
-    url(r'^socialaccounts/$', SocialAccountListView.as_view(), name='social_account_list'),
-    url(r'^protected-view/$', ExampleProtectedView.as_view()),
-    url(
+    re_path(r'^social-login/facebook/$', FacebookLogin.as_view(), name='fb_login'),
+    re_path(r'^social-login/twitter/$', TwitterLogin.as_view(), name='tw_login'),
+    re_path(r'^social-login/twitter-no-view/$', twitter_login_view, name='tw_login_no_view'),
+    re_path(r'^social-login/twitter-no-adapter/$', TwitterLoginNoAdapter.as_view(), name='tw_login_no_adapter'),
+    re_path(r'^social-login/facebook/connect/$', FacebookConnect.as_view(), name='fb_connect'),
+    re_path(r'^social-login/twitter/connect/$', TwitterConnect.as_view(), name='tw_connect'),
+    re_path(r'^socialaccounts/$', SocialAccountListView.as_view(), name='social_account_list'),
+    re_path(r'^protected-view/$', ExampleProtectedView.as_view()),
+    re_path(
         r'^socialaccounts/(?P<pk>\d+)/disconnect/$', SocialAccountDisconnectView.as_view(),
         name='social_account_disconnect',
     ),
-    url(r'^accounts/', include('allauth.socialaccount.urls')),
-    url(r'^getcsrf/', get_csrf_cookie, name='getcsrf'),
-    url('^token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    url('^token/refresh/', get_refresh_view().as_view(), name='token_refresh'),
+    re_path(r'^accounts/', include('allauth.socialaccount.urls')),
+    re_path(r'^getcsrf/', get_csrf_cookie, name='getcsrf'),
+    re_path('^token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    re_path('^token/refresh/', get_refresh_view().as_view(), name='token_refresh'),
 ]
