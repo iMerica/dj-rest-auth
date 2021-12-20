@@ -58,6 +58,8 @@ class RegisterView(CreateAPIView):
                 'refresh_token': self.refresh_token,
             }
             return JWTSerializer(data, context=self.get_serializer_context()).data
+        elif getattr(settings, 'REST_SESSION_LOGIN', False):
+            return None
         else:
             return TokenSerializer(user.auth_token, context=self.get_serializer_context()).data
 
@@ -66,12 +68,18 @@ class RegisterView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
+        data = self.get_response_data(user)
 
-        return Response(
-            self.get_response_data(user),
-            status=status.HTTP_201_CREATED,
-            headers=headers,
-        )
+        if data:
+            response = Response(
+                data,
+                status=status.HTTP_201_CREATED,
+                headers=headers,
+            )
+        else:
+            response = Response(status=status.HTTP_204_NO_CONTENT, headers=headers)
+
+        return response
 
     def perform_create(self, serializer):
         user = serializer.save(self.request)
@@ -79,7 +87,9 @@ class RegisterView(CreateAPIView):
                 allauth_settings.EmailVerificationMethod.MANDATORY:
             if getattr(settings, 'REST_USE_JWT', False):
                 self.access_token, self.refresh_token = jwt_encode(user)
-            else:
+            elif not getattr(settings, 'REST_SESSION_LOGIN', False):
+                # Session authentication isn't active either, so this has to be
+                #  token authentication
                 create_token(self.token_model, user, serializer)
 
         complete_signup(

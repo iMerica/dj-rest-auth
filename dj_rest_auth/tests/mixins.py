@@ -93,12 +93,12 @@ class TestsMixin:
         self.social_account_list_url = reverse('social_account_list')
         self.resend_email_url = reverse("rest_resend_email")
 
-    def _login(self):
+    def _login(self, expected_status_code=status.HTTP_200_OK):
         payload = {
             'username': self.USERNAME,
             'password': self.PASS,
         }
-        self.post(self.login_url, data=payload, status_code=status.HTTP_200_OK)
+        self.post(self.login_url, data=payload, status_code=expected_status_code)
 
     def _logout(self):
         self.post(self.logout_url, status=status.HTTP_200_OK)
