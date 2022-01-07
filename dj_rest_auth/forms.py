@@ -43,7 +43,11 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'password_reset_confirm',
                 args=[user_pk_to_url_str(user), temp_key],
             )
-            url = build_absolute_uri(request, path)
+
+            if settings.REST_AUTH_PW_RESET_USE_SITES_DOMAIN is True:
+                url = build_absolute_uri(None, path)
+            else:
+                url = build_absolute_uri(request, path)
 
             context = {
                 'current_site': current_site,
