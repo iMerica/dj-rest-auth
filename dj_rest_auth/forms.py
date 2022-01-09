@@ -44,7 +44,7 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 args=[user_pk_to_url_str(user), temp_key],
             )
 
-            if settings.REST_AUTH_PW_RESET_USE_SITES_DOMAIN is True:
+            if getattr(settings, 'REST_AUTH_PW_RESET_USE_SITES_DOMAIN', False) is True:
                 url = build_absolute_uri(None, path)
             else:
                 url = build_absolute_uri(request, path)
