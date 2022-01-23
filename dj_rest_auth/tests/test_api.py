@@ -1024,6 +1024,27 @@ class APIBasicTests(TestsMixin, TestCase):
         )
         self.assertIn('xxx', refresh_resp.cookies)
 
+    @override_settings(REST_USE_JWT=True)
+    def test_rotate_token_refresh_view(self):
+        from rest_framework_simplejwt.settings import api_settings as jwt_settings
+        jwt_settings.ROTATE_REFRESH_TOKENS = True
+        payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        resp = self.post(self.login_url, data=payload)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        refresh = resp.data.get('refresh_token', None)
+        resp = self.post(
+            reverse('token_refresh'),
+            data=dict(refresh=refresh),
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn('refresh', resp.data)
+
     @override_settings(REST_AUTH_TOKEN_MODEL=None)
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
     def test_login_with_no_token_model(self):
