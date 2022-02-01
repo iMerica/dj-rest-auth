@@ -81,6 +81,7 @@ class TestsMixin:
         self.logout_url = reverse('rest_logout')
         self.password_change_url = reverse('rest_password_change')
         self.register_url = reverse('rest_register')
+        self.no_password_register_url = reverse('no_password_rest_register')
         self.password_reset_url = reverse('rest_password_reset')
         self.user_url = reverse('rest_user_details')
         self.verify_email_url = reverse('rest_verify_email')

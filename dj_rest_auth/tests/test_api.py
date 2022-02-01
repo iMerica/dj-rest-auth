@@ -11,9 +11,7 @@ from rest_framework import status
 from rest_framework.test import APIRequestFactory
 from dj_rest_auth.registration.app_settings import register_permission_classes
 from dj_rest_auth.registration.views import RegisterView
-from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.models import get_token_model
-from rest_framework.serializers import CharField
 from .mixins import CustomPermissionClass, TestsMixin
 
 try:
@@ -481,23 +479,10 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         user_count = get_user_model().objects.all().count()
 
-        class CustomRegisterSerializer(RegisterSerializer):
-            password1 = CharField(write_only=True, default=None)
-            password2 = CharField(write_only=True, default=None)
+        # test empty payload
+        self.post(self.no_password_register_url, data={}, status_code=400)
 
-            def get_cleaned_data(self):
-                data = {
-                    "username": self.validated_data.get("username", ""),
-                    "email": self.validated_data.get("email", ""),
-                }
-
-        class CustomRegisterView(RegisterView):
-            serializer_class = CustomRegisterSerializer
-
-        factory = APIRequestFactory()
-        request = factory.post(self.register_url, payload, format='json')
-        result = CustomRegisterView.as_view()(request)
-
+        result = self.post(self.no_password_register_url, data=payload, status_code=201)
         self.assertIn('key', result.data)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
 
