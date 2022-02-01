@@ -237,7 +237,7 @@ class RegisterSerializer(serializers.Serializer):
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user = adapter.save_user(request, user, self, commit=False)
-        if self.cleaned_data.get('password1'):
+        if "password1" in self.cleaned_data:
             try:
                 adapter.clean_password(self.cleaned_data['password1'], user=user)
             except DjangoValidationError as exc:
