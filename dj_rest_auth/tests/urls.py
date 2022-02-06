@@ -6,14 +6,16 @@ from django.views.generic import TemplateView
 from rest_framework import permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.serializers import CharField
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenVerifyView
 
 from dj_rest_auth.jwt_auth import get_refresh_view
 from dj_rest_auth.registration.views import (
     SocialAccountDisconnectView, SocialAccountListView, SocialConnectView,
-    SocialLoginView,
+    SocialLoginView, RegisterView
 )
+from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.social_serializers import (
     TwitterConnectSerializer, TwitterLoginSerializer,
 )
@@ -54,6 +56,25 @@ class TwitterLoginSerializerFoo(TwitterLoginSerializer):
     pass
 
 
+class NoPassowrdRegisterSerializer(RegisterSerializer):
+    password1 = CharField(write_only=True, default=None)
+    password2 = CharField(write_only=True, default=None)
+
+    def get_cleaned_data(self):
+        return {
+            "username": self.validated_data.get("username", ""),
+            "email": self.validated_data.get("email", ""),
+        }
+
+    def validate_password1(self, password):
+        if password:
+            return super().validate_password1(password)
+        return None
+
+class NoPasswordRegisterView(RegisterView):
+    serializer_class = NoPassowrdRegisterSerializer
+
+
 @api_view(['POST'])
 def twitter_login_view(request):
     serializer = TwitterLoginSerializerFoo(
@@ -75,6 +96,7 @@ def get_csrf_cookie(request):
 
 urlpatterns += [
     re_path(r'^rest-registration/', include('dj_rest_auth.registration.urls')),
+    re_path(r'^rest-registration-no-password/', NoPasswordRegisterView.as_view(), name="no_password_rest_register"),
     re_path(r'^test-admin/', include(django_urls)),
     re_path(
         r'^account-email-verification-sent/$', TemplateView.as_view(),

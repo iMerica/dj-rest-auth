@@ -472,6 +472,38 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(response.data['detail'], CustomPermissionClass.message)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_registration_allowed_with_custom_no_password_serializer(self):
+        payload = {
+            "username": "test_username",
+            "email": "test@email.com",
+        }
+        user_count = get_user_model().objects.all().count()
+
+        # test empty payload
+        self.post(self.no_password_register_url, data={}, status_code=400)
+
+        result = self.post(self.no_password_register_url, data=payload, status_code=201)
+        self.assertIn('key', result.data)
+        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
+
+        new_user = get_user_model().objects.latest('id')
+        self.assertEqual(new_user.username, payload['username'])
+        self.assertFalse(new_user.has_usable_password())
+
+        ## Also check that regular registration also works
+        user_count = get_user_model().objects.all().count()
+
+        # test empty payload
+        self.post(self.register_url, data={}, status_code=400)
+
+        result = self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=201)
+        self.assertIn('key', result.data)
+        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
+
+        new_user = get_user_model().objects.latest('id')
+        self.assertEqual(new_user.username, self.REGISTRATION_DATA['username'])
+
+
     @override_settings(REST_USE_JWT=True)
     def test_registration_with_jwt(self):
         user_count = get_user_model().objects.all().count()
