@@ -1,12 +1,22 @@
+
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookProvider
+from allauth.socialaccount.models import SocialApp
+from allauth.exceptions import ImmediateHttpResponse
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.test import TestCase, modify_settings, override_settings
+from django.contrib.sites.models import Site
+from django.http import HttpResponseBadRequest
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.test import APIRequestFactory, force_authenticate
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from dj_rest_auth.serializers import PasswordChangeSerializer, UserDetailsSerializer
+from dj_rest_auth.registration.serializers import SocialLoginSerializer
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.models import SocialApp
 
 
 User = get_user_model()
@@ -99,3 +109,60 @@ class TestPasswordChangeSerializer(TestCase):
         with self.assertRaisesMessage(ValidationError, "failed"):
             serializer.validate(self.request_data)
 
+
+class TestSocialLoginSerializer(TestCase):
+    NO_VIEW_SUBMIT_ERROR = {"non_field_errors": ["View is not defined, pass it as a context variable"]}
+    NO_ADAPTER_CLASS_PRESENT = {"non_field_errors": ["Define adapter_class in view"]}
+    HTTP_BAD_REQUEST_MESSAGE = {"non_field_errors": ["Bad Request"]}
+    INCORRECT_VALUE = {"non_field_errors": ["Incorrect value"]}
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.request_data = {"access_token": "token1234"}
+        cls.request = APIRequestFactory().post(cls.request_data, format='json')
+        social_app = SocialApp.objects.create(
+            provider='facebook',
+            name='Facebook',
+            client_id='123123123',
+            secret='321321321',
+        )
+        site = Site.objects.get_current()
+        social_app.sites.add(site)
+
+        cls.fb_response = {
+            "id": 56527456,
+            "first_name": "Alice",
+            "last_name": "Test",
+            "name": "Alcie Test",
+            "name_format": "{first} {last}",
+            "email": "alice@test.com"
+        }
+
+    def test_validate_no_view_submit(self):
+        serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request})
+        serializer.is_valid()
+        self.assertDictEqual(serializer.errors, self.NO_VIEW_SUBMIT_ERROR)
+
+    def test_validate_no_adpapter_class_present(self):
+        dummy_view = SocialLoginView()
+        serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
+        serializer.is_valid()
+        self.assertDictEqual(serializer.errors, self.NO_ADAPTER_CLASS_PRESENT)
+
+    @patch('allauth.socialaccount.providers.facebook.views.fb_complete_login')
+    @patch('allauth.socialaccount.adapter.DefaultSocialAccountAdapter.pre_social_login')
+    def test_immediate_http_response_error(self, mock_pre_social_login, mock_fb_complete_login):
+        dummy_view = SocialLoginView()
+        dummy_view.adapter_class = FacebookOAuth2Adapter
+        mock_pre_social_login.side_effect = lambda request, social_login: exec('raise ImmediateHttpResponse(HttpResponseBadRequest("Bad Request"))')
+        mock_fb_complete_login.return_value = FacebookProvider(self.request).sociallogin_from_response(self.request, self.fb_response)
+        serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
+        serializer.is_valid()
+        self.assertDictEqual(serializer.errors, self.HTTP_BAD_REQUEST_MESSAGE)
+
+    def test_http_error(self):
+        dummy_view = SocialLoginView()
+        dummy_view.adapter_class = FacebookOAuth2Adapter
+        serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
+        serializer.is_valid()
+        self.assertDictEqual(serializer.errors, self.INCORRECT_VALUE)

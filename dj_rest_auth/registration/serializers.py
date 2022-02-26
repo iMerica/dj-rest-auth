@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from django.urls.exceptions import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 from requests.exceptions import HTTPError
@@ -148,9 +148,12 @@ class SocialLoginSerializer(serializers.Serializer):
 
         try:
             login = self.get_social_login(adapter, app, social_token, token)
-            complete_social_login(request, login)
+            ret = complete_social_login(request, login)
         except HTTPError:
             raise serializers.ValidationError(_('Incorrect value'))
+
+        if isinstance(ret, HttpResponseBadRequest):
+            raise serializers.ValidationError(ret.content)
 
         if not login.is_existing:
             # We have an account already signed up in a different flow
