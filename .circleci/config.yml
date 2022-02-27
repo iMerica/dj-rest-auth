@@ -10,7 +10,7 @@ jobs:
     steps:
       - checkout
       - run:
-          command: pip install --user tox coverage coveralls
+          command: pip install --user tox coveralls
           name: "Install Tox & Coverage"
       - run:
           command: tox

@@ -53,7 +53,7 @@ class TestsMixin:
                 kwargs['HTTP_AUTHORIZATION'] = f'Token {self.token}'
 
         self.response = request_func(*args, **kwargs)
-        is_json = 'application/json' in self.response.get('content-type')
+        is_json = 'application/json' in self.response.get('content-type', '')
 
         self.response.json = {}
         if is_json and self.response.content:
@@ -81,6 +81,7 @@ class TestsMixin:
         self.logout_url = reverse('rest_logout')
         self.password_change_url = reverse('rest_password_change')
         self.register_url = reverse('rest_register')
+        self.no_password_register_url = reverse('no_password_rest_register')
         self.password_reset_url = reverse('rest_password_reset')
         self.user_url = reverse('rest_user_details')
         self.verify_email_url = reverse('rest_verify_email')
@@ -93,12 +94,12 @@ class TestsMixin:
         self.social_account_list_url = reverse('social_account_list')
         self.resend_email_url = reverse("rest_resend_email")
 
-    def _login(self):
+    def _login(self, expected_status_code=status.HTTP_200_OK):
         payload = {
             'username': self.USERNAME,
             'password': self.PASS,
         }
-        self.post(self.login_url, data=payload, status_code=status.HTTP_200_OK)
+        self.post(self.login_url, data=payload, status_code=expected_status_code)
 
     def _logout(self):
         self.post(self.logout_url, status=status.HTTP_200_OK)
