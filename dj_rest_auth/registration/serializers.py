@@ -40,6 +40,7 @@ class SocialLoginSerializer(serializers.Serializer):
     code = serializers.CharField(required=False, allow_blank=True)
     id_token = serializers.CharField(required=False, allow_blank=True)
     refresh_token = serializers.CharField(required=False, allow_blank=True)
+    expires_in = serializers.IntegerField(required=False, default=0)
 
     def _get_request(self):
         request = self.context.get("request")
@@ -111,6 +112,11 @@ class SocialLoginSerializer(serializers.Serializer):
             refresh_token = attrs.get("refresh_token")
             if refresh_token:
                 tokens_to_parse["refresh_token"] = refresh_token
+
+            # If expires in is provided
+            expires_in = attrs.get("expires_in")
+            if expires_in:
+                tokens_to_parse["expires_in"] = expires_in
 
         # Case 2: We received the authorization code
         elif code:
