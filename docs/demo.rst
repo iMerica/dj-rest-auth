@@ -8,7 +8,7 @@ To run this locally follow the steps below.
 .. code-block:: python
 
     cd /tmp
-    git clone https://github.com/iMerica/dj-rest-auth.git
+    git clone https://github.com/robertwt7/dj-rest-auth-social.git
     cd dj-rest-auth/demo/
     pip install -r requirements.pip
     python manage.py migrate --settings=demo.settings --noinput

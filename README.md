@@ -1,9 +1,9 @@
 # Dj-Rest-Auth
-[![<iMerica>](https://circleci.com/gh/iMerica/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/iMerica/dj-rest-auth)
+[![<robertwt7>](https://circleci.com/gh/robertwt7/dj-rest-auth-social.svg?style=svg)](https://app.circleci.com/pipelines/github/robertwt7/dj-rest-auth-social)
 
 
-Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
-with SPAs (e.g React, Vue, Angular), and Mobile applications. 
+Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well
+with SPAs (e.g React, Vue, Angular), and Mobile applications.
 
 ## Requirements
 - Django 2 or 3
@@ -14,7 +14,7 @@ with SPAs (e.g React, Vue, Angular), and Mobile applications.
 Install package
 
     pip install dj-rest-auth
-    
+
 Add `dj_rest_auth` app to INSTALLED_APPS in your django settings.py:
 
 ```python
@@ -26,7 +26,7 @@ INSTALLED_APPS = (
     'dj_rest_auth'
 )
 ```
-    
+
 Add URL patterns
 
 ```python
@@ -34,7 +34,7 @@ urlpatterns = [
     path('dj-rest-auth/', include('dj_rest_auth.urls')),
 ]
 ```
-    
+
 
 (Optional) Use Http-Only cookies
 
@@ -49,7 +49,7 @@ Install required modules with `pip install -r  dj_rest_auth/tests/requirements.p
 
 To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
 The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
-which runs the tests against all supported Django installs. To run the test coverage 
+which runs the tests against all supported Django installs. To run the test coverage
 within a virtualenv, run `coverage run ./runtests.py` from the repository directory then run `coverage report`.
 
 #### Tox
@@ -75,4 +75,4 @@ View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/
 
 ### Acknowledgements
 
-This project began as a fork of `django-rest-auth`. Big thanks to everyone who contributed to that repo!
+This project began is a fork of [dj-rest-auth](https://github.com/iMerica/dj-rest-auth). Big thanks to everyone who contributed to that repo!
