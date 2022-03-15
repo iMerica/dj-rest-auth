@@ -8,7 +8,7 @@ Some basic rules:
 
 - Keep it legal.
 - Respect everyone's privacy.
-- Contact the core maintainer(s) immediately if you discover a serious security vulnerability (imichael@pm.me for now).
+- Contact the core maintainer(s) immediately if you discover a serious security vulnerability (robert@sharkware.org for now).
 
 
 

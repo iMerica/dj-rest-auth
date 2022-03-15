@@ -1,5 +1,5 @@
 django>=2.2,<4.0
-dj-rest-auth @ git+https://github.com/robertwt7/dj-rest-auth-social.git@master
+dj-rest-auth-social @ git+https://github.com/robertwt7/dj-rest-auth-social.git@master
 djangorestframework>=3.11.0
 djangorestframework-simplejwt==4.7.1
 django-allauth>=0.24.1

@@ -1,4 +1,4 @@
-# Dj-Rest-Auth
+# Dj-Rest-Auth-Social
 [![<robertwt7>](https://circleci.com/gh/robertwt7/dj-rest-auth-social.svg?style=svg)](https://app.circleci.com/pipelines/github/robertwt7/dj-rest-auth-social)
 
 
@@ -13,7 +13,7 @@ with SPAs (e.g React, Vue, Angular), and Mobile applications.
 
 Install package
 
-    pip install dj-rest-auth
+    pip install dj-rest-auth-social
 
 Add `dj_rest_auth` app to INSTALLED_APPS in your django settings.py:
 
