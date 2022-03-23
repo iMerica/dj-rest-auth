@@ -186,8 +186,8 @@ If you are using GitHub for your social authentication, it uses code and not Acc
     
 Google
 ######
-If you are using Google for your social authentication, the OAuth flow is ``Hybrid Flow``, so it only uses code.
-
+If you are using Google for your social authentication, you can choose ``Authorization Code Grant`` or ``Implicit Grant`` (deprecated).
+Serializer of dj-rest-auth accepts both ``code`` and ``token`` 
 
 1. Add ``allauth.socialaccount`` and ``allauth.socialaccount.providers.google`` apps to INSTALLED_APPS in your django settings.py:
 
@@ -217,10 +217,13 @@ If you are using Google for your social authentication, the OAuth flow is ``Hybr
     from allauth.socialaccount.providers.oauth2.client import OAuth2Client
     from dj_rest_auth.registration.views import SocialLoginView
     
-    class GoogleLogin(SocialLoginView):
+    class GoogleLogin(SocialLoginView): # if you want to use Authorization Code Grant, use this
         adapter_class = GoogleOAuth2Adapter
         callback_url = CALLBACK_URL_YOU_SET_ON_GOOGLE
         client_class = OAuth2Client
+        
+    class GoogleLogin(SocialLoginView): # if you want to use Implicit Grant, use this
+        adapter_class = GoogleOAuth2Adapter
 
 4. Create url for GoogleLogin view:
 
@@ -230,7 +233,23 @@ If you are using Google for your social authentication, the OAuth flow is ``Hybr
         ...,
         path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login')
     ]
-    
+
+5. Retrive code (or token)
+By accessing Google's endpoint, you can get ``code`` or ``token``
+
+If you're using Authorization Code Grant, you can get code from folloing URL
+
+
+``https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=<CALLBACK_URL_YOU_SET_ON_GOOGLE>&prompt=consent&response_type=code&client_id=<YOUR CLIENT ID>&scope=openid%20email%20profile&access_type=offline``
+
+
+If you're using Implicit Grant, you can get token from folloing URL
+
+
+``https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=<CALLBACK_URL_YOU_SET_ON_GOOGLE>&prompt=consent&response_type=token&client_id=<YOUR CLIENT ID>&scope=openid%20email%20profile``
+
+6. POST code or token to specified URL(/dj-rest-auth/google/)
+
 
 Additional Social Connect Views
 ###############################
