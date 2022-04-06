@@ -79,6 +79,8 @@ Social Authentication (optional)
 
 Using ``django-allauth``, ``dj-rest-auth`` provides helpful class for creating social media authentication view.
 
+For a full walkthrough on how to do this, complete with a minimal example project, read https://michaeldel.github.io/posts/django-rest-auth-social-tutorial/. If you already know enough about the setup, read below for some reference information.
+
 .. note:: Points 1 and 2 are related to ``django-allauth`` configuration, so if you have already configured social authentication, then please go to step 3. See ``django-allauth`` documentation for more details.
 
 1. Add ``allauth.socialaccount`` and ``allauth.socialaccount.providers.facebook`` or ``allauth.socialaccount.providers.twitter`` apps to INSTALLED_APPS in your django settings.py:
