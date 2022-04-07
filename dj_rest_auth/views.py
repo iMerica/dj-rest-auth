@@ -89,12 +89,18 @@ class LoginView(GenericAPIView):
             access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return_expiration_times = getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False)
+            auth_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', False)
 
             data = {
                 'user': self.user,
                 'access_token': self.access_token,
-                'refresh_token': self.refresh_token,
             }
+
+            if not auth_httponly:
+                data['refresh_token'] = self.refresh_token
+            else:
+                # Wasnt sure if the serializer needed this
+                data['refresh_token'] = ""
 
             if return_expiration_times:
                 data['access_token_expiration'] = access_token_expiration
