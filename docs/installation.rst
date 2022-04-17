@@ -209,7 +209,7 @@ Serializer of dj-rest-auth accepts both ``code`` and ``token``
 
     )
     
-3. Create new view as a subclass of ``dj_rest_auth.views.SocialLoginView`` with ``GitHubOAuth2Adapter`` adapter, an ``OAuth2Client`` and a callback_url as attributes:
+3. Create new view as a subclass of ``dj_rest_auth.views.SocialLoginView`` with ``GoogleOAuth2Adapter`` adapter, an ``OAuth2Client`` and a callback_url as attributes:
 
 .. code-block:: python
 
