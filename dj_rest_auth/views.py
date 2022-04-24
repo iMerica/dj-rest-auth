@@ -30,28 +30,7 @@ sensitive_post_parameters_m = method_decorator(
 )
 
 
-class LoginView(GenericAPIView):
-    """
-    Check the credentials and return the REST Token
-    if the credentials are valid and authenticated.
-    Calls Django Auth login method to register User ID
-    in Django session framework
-
-    Accept the following POST parameters: username, password
-    Return the REST Framework Token Object's key.
-    """
-    permission_classes = (AllowAny,)
-    serializer_class = LoginSerializer
-    throttle_scope = 'dj_rest_auth'
-
-    user = None
-    access_token = None
-    token = None
-
-    @sensitive_post_parameters_m
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
-
+class LoginViewMixin:
     def process_login(self):
         django_login(self.request, self.user)
 
@@ -67,7 +46,11 @@ class LoginView(GenericAPIView):
             response_serializer = TokenSerializer
         return response_serializer
 
-    def login(self):
+    def login(self, request, *args, **kwargs):
+        self.request = request
+        self.serializer = self.get_serializer(data=self.request.data)
+        self.serializer.is_valid(raise_exception=True)
+
         self.user = self.serializer.validated_data['user']
         token_model = get_token_model()
 
@@ -78,6 +61,8 @@ class LoginView(GenericAPIView):
 
         if getattr(settings, 'REST_SESSION_LOGIN', True):
             self.process_login()
+
+        return self.get_response()
 
     def get_response(self):
         serializer_class = self.get_response_serializer()
@@ -124,36 +109,34 @@ class LoginView(GenericAPIView):
             set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
 
-    def post(self, request, *args, **kwargs):
-        self.request = request
-        self.serializer = self.get_serializer(data=self.request.data)
-        self.serializer.is_valid(raise_exception=True)
 
-        self.login()
-        return self.get_response()
-
-
-class LogoutView(APIView):
+class LoginView(LoginViewMixin, GenericAPIView):
     """
-    Calls Django logout method and delete the Token object
-    assigned to the current User object.
+    Check the credentials and return the REST Token
+    if the credentials are valid and authenticated.
+    Calls Django Auth login method to register User ID
+    in Django session framework
 
-    Accepts/Returns nothing.
+    Accept the following POST parameters: username, password
+    Return the REST Framework Token Object's key.
     """
     permission_classes = (AllowAny,)
+    serializer_class = LoginSerializer
     throttle_scope = 'dj_rest_auth'
 
-    def get(self, request, *args, **kwargs):
-        if getattr(settings, 'ACCOUNT_LOGOUT_ON_GET', False):
-            response = self.logout(request)
-        else:
-            response = self.http_method_not_allowed(request, *args, **kwargs)
+    user = None
+    access_token = None
+    token = None
 
-        return self.finalize_response(request, response, *args, **kwargs)
+    @sensitive_post_parameters_m
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        return self.logout(request)
+        return self.login(request, *args, **kwargs)
 
+
+class LogoutViewMixin:
     def logout(self, request):
         try:
             request.user.auth_token.delete()
@@ -210,6 +193,27 @@ class LogoutView(APIView):
                 response.status_code = status.HTTP_200_OK
         return response
 
+class LogoutView(LogoutViewMixin, APIView):
+    """
+    Calls Django logout method and delete the Token object
+    assigned to the current User object.
+
+    Accepts/Returns nothing.
+    """
+    permission_classes = (AllowAny,)
+    throttle_scope = 'dj_rest_auth'
+
+    def get(self, request, *args, **kwargs):
+        if getattr(settings, 'ACCOUNT_LOGOUT_ON_GET', False):
+            response = self.logout(request, *args, **kwargs)
+        else:
+            response = self.http_method_not_allowed(request, *args, **kwargs)
+
+        return self.finalize_response(request, response, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.logout(request, *args, **kwargs)
+
 
 class UserDetailsView(RetrieveUpdateAPIView):
     """
@@ -236,19 +240,8 @@ class UserDetailsView(RetrieveUpdateAPIView):
         return get_user_model().objects.none()
 
 
-class PasswordResetView(GenericAPIView):
-    """
-    Calls Django Auth PasswordResetForm save method.
-
-    Accepts the following POST parameters: email
-    Returns the success/fail message.
-    """
-    serializer_class = PasswordResetSerializer
-    permission_classes = (AllowAny,)
-    throttle_scope = 'dj_rest_auth'
-
-    def post(self, request, *args, **kwargs):
-        # Create a serializer with request.data
+class PasswordResetMixin:
+    def password_reset(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -260,7 +253,32 @@ class PasswordResetView(GenericAPIView):
         )
 
 
-class PasswordResetConfirmView(GenericAPIView):
+class PasswordResetView(PasswordResetMixin, GenericAPIView):
+    """
+    Calls Django Auth PasswordResetForm save method.
+
+    Accepts the following POST parameters: email
+    Returns the success/fail message.
+    """
+    serializer_class = PasswordResetSerializer
+    permission_classes = (AllowAny,)
+    throttle_scope = 'dj_rest_auth'
+
+    def post(self, request, *args, **kwargs):
+        return self.password_reset(request, *args, **kwargs)
+
+
+class PasswordResetConfirmMixin:
+    def password_reset_confirm(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {'detail': _('Password has been reset with the new password.')},
+        )
+
+
+class PasswordResetConfirmView(PasswordResetConfirmMixin, GenericAPIView):
     """
     Password reset e-mail link is confirmed, therefore
     this resets the user's password.
@@ -278,15 +296,18 @@ class PasswordResetConfirmView(GenericAPIView):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        return self.password_reset_confirm(request, *args, **kwargs)
+
+
+class PasswordChangeMixin:
+    def password_change(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(
-            {'detail': _('Password has been reset with the new password.')},
-        )
+        return Response({'detail': _('New password has been saved.')})
 
 
-class PasswordChangeView(GenericAPIView):
+class PasswordChangeView(PasswordChangeMixin, GenericAPIView):
     """
     Calls Django Auth SetPasswordForm save method.
 
@@ -302,7 +323,4 @@ class PasswordChangeView(GenericAPIView):
         return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({'detail': _('New password has been saved.')})
+        return self.password_change(request, *args, **kwargs)

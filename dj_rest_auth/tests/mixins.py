@@ -60,7 +60,9 @@ class TestsMixin:
             self.response.json = json.loads(force_str(self.response.content))
 
         if status_code:
-            self.assertEqual(self.response.status_code, status_code)
+            self.assertEqual(self.response.status_code, status_code,
+                             msg=f'Expected {status_code}, but was {self.response.status_code}'
+                                 f' with content: {self.response.content.decode()}')
 
         return self.response
 

@@ -94,7 +94,7 @@ def get_csrf_cookie(request):
     return Response()
 
 
-urlpatterns += [
+test_urlpatterns = [
     re_path(r'^rest-registration/', include('dj_rest_auth.registration.urls')),
     re_path(r'^rest-registration-no-password/', NoPasswordRegisterView.as_view(), name="no_password_rest_register"),
     re_path(r'^test-admin/', include(django_urls)),
@@ -123,3 +123,5 @@ urlpatterns += [
     re_path('^token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     re_path('^token/refresh/', get_refresh_view().as_view(), name='token_refresh'),
 ]
+
+urlpatterns += test_urlpatterns

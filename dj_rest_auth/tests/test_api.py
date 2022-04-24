@@ -765,15 +765,15 @@ class APIBasicTests(TestsMixin, TestCase):
             'username': self.USERNAME,
             'password': self.PASS,
         }
-        get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
+        user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
 
         self.post(self.login_url, data=payload, status_code=200)
         self.assertEqual('access_token' in self.response.json.keys(), True)
         self.token = self.response.json['access_token']
         claims = decode_jwt(self.token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEquals(claims['user_id'], 1)
-        self.assertEquals(claims['name'], 'person')
-        self.assertEquals(claims['email'], 'person1@world.com')
+        self.assertEquals(claims['user_id'], user.id)
+        self.assertEquals(claims['name'], self.USERNAME)
+        self.assertEquals(claims['email'], self.EMAIL)
 
     @override_settings(REST_USE_JWT=True)
     @override_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -795,14 +795,14 @@ class APIBasicTests(TestsMixin, TestCase):
             'username': self.USERNAME,
             'password': self.PASS,
         }
-        get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
+        user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
         self.assertEqual(['jwt-auth'], list(resp.cookies.keys()))
         token = resp.cookies.get('jwt-auth').value
         claims = decode_jwt(token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEquals(claims['user_id'], 1)
-        self.assertEquals(claims['name'], 'person')
-        self.assertEquals(claims['email'], 'person1@world.com')
+        self.assertEquals(claims['user_id'], user.id)
+        self.assertEquals(claims['name'], self.USERNAME)
+        self.assertEquals(claims['email'], self.EMAIL)
         resp = self.get('/protected-view/')
         self.assertEquals(resp.status_code, 200)
 

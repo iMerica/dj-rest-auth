@@ -79,20 +79,24 @@ class TestPasswordChangeSerializer(TestCase):
         cls.request = request
 
     def test_custom_validation(self):
+        # Mock to avoid side effects on other tests
+        class PasswordChangeSerializerMock(PasswordChangeSerializer):
+            pass
+
         # Test custom validation success
-        PasswordChangeSerializer.custom_validation = MagicMock(return_value=True)
-        serializer = PasswordChangeSerializer(
+        PasswordChangeSerializerMock.custom_validation = MagicMock(return_value=True)
+        serializer = PasswordChangeSerializerMock(
             reverse("rest_password_change"),
             data=self.request_data
         )
         serializer.validate(self.request_data)
-        PasswordChangeSerializer.custom_validation.assert_called_once_with(self.request_data)
+        PasswordChangeSerializerMock.custom_validation.assert_called_once_with(self.request_data)
 
         # Test custom validation error
-        PasswordChangeSerializer.custom_validation = MagicMock(
+        PasswordChangeSerializerMock.custom_validation = MagicMock(
             side_effect=ValidationError("failed")
         )
-        serializer = PasswordChangeSerializer(
+        serializer = PasswordChangeSerializerMock(
             reverse("rest_password_change"),
             data=self.request_data
         )
