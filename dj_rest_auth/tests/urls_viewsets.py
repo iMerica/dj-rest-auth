@@ -14,6 +14,7 @@ class ViewSetTestRouter(SimpleRouter):
             url=r'^{prefix}{trailing_slash}$',
             mapping={
                 'get': 'list',
+                'patch': 'partial_update'
             },
             name='rest_user_details',
             detail=False,

@@ -12,6 +12,7 @@ from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.serializers import Serializer
 
 from .app_settings import (
     JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
@@ -202,6 +203,7 @@ class LogoutView(LogoutViewMixin, APIView):
     """
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
+    serializer_class = Serializer
 
     def get(self, request, *args, **kwargs):
         if getattr(settings, 'ACCOUNT_LOGOUT_ON_GET', False):

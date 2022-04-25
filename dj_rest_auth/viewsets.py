@@ -1,43 +1,58 @@
 from django.conf import settings
-from rest_framework.viewsets import ViewSetMixin
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.serializers import Serializer
+from django.contrib.auth import get_user_model
 
-from .views import LoginView, UserDetailsView, sensitive_post_parameters_m
 from .app_settings import (
     JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
     PasswordChangeSerializer, PasswordResetConfirmSerializer,
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
     create_token
 )
+from .views import (
+    LoginViewMixin, LogoutViewMixin, PasswordResetMixin, PasswordChangeMixin,
+    PasswordResetConfirmMixin, sensitive_post_parameters_m
+)
 
-from .views import LoginViewMixin, LogoutViewMixin, PasswordResetMixin, PasswordChangeMixin, PasswordResetConfirmMixin
 
-UNAUTHENTICATED_VIEWSET_METHODS = ('list', 'login', 'logout',
-                                   'password_reset', 'password_reset_confirm')
-
-class UserDetailsViewSet(ViewSetMixin, LoginViewMixin, LogoutViewMixin, PasswordResetMixin, PasswordChangeMixin,
-                         PasswordResetConfirmMixin, UserDetailsView):
+class UserDetailsViewSet(LoginViewMixin, LogoutViewMixin, PasswordResetMixin,
+                         PasswordChangeMixin, PasswordResetConfirmMixin,
+                         RetrieveModelMixin, UpdateModelMixin, GenericViewSet):
     serializer_classes = {
         'default': UserDetailsSerializer,
         'login': LoginSerializer,
         'password_change': PasswordChangeSerializer,
         'password_reset': PasswordResetSerializer,
         'password_reset_confirm': PasswordResetConfirmSerializer,
+        'logout': Serializer
     }
 
     user = None
     access_token = None
     token = None
 
+    def get_object(self):
+        return self.request.user
+
+    def get_queryset(self):
+        """
+        Adding this method since it is sometimes called when using
+        django-rest-swagger
+        """
+        return get_user_model().objects.none()
+
     def list(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
     def get_permissions(self):
-        if self.action in UNAUTHENTICATED_VIEWSET_METHODS:
-            permission_classes = [AllowAny]
-        else:
-            permission_classes = [IsAuthenticated]
+        permission_classes = [AllowAny]
+        for method in ('password_change', 'list'):
+            if method in self.action_map.values():
+                permission_classes = [IsAuthenticatedOrReadOnly]
+                break
         return [permission() for permission in permission_classes]
 
     def get_serializer_class(self):
