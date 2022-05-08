@@ -36,7 +36,7 @@ urlpatterns = [
 ```
     
 
-(Optional) Use Http-Only cookies
+(Optional) Use Http-Only cookies, Needs to install `djangorestframework-simplejwt`,
 
 ```python
 REST_USE_JWT = True
