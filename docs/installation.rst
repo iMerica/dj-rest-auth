@@ -169,7 +169,7 @@ If you are using GitHub for your social authentication, it uses code and not Acc
     from allauth.socialaccount.providers.oauth2.client import OAuth2Client
     from dj_rest_auth.registration.views import SocialLoginView
 
-    class GithubLogin(SocialLoginView):
+    class GitHubLogin(SocialLoginView):
         adapter_class = GitHubOAuth2Adapter
         callback_url = CALLBACK_URL_YOU_SET_ON_GITHUB
         client_class = OAuth2Client
