@@ -57,9 +57,9 @@ def unset_jwt_cookies(response):
     refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
 
     if cookie_name:
-        response.delete_cookie(cookie_name)
+        response.delete_cookie(cookie_name, samesite=None)
     if refresh_cookie_name:
-        response.delete_cookie(refresh_cookie_name, path=refresh_cookie_path)
+        response.delete_cookie(refresh_cookie_name, path=refresh_cookie_path, samesite=None)
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
@@ -109,7 +109,9 @@ class JWTCookieAuthentication(JWTAuthentication):
         """
         Enforce CSRF validation for session based authentication.
         """
-        check = CSRFCheck()
+        def dummy_get_response(request):  # pragma: no cover
+            return None
+        check = CSRFCheck(dummy_get_response)
         # populates request.META['CSRF_COOKIE'], which is used in process_view()
         check.process_request(request)
         reason = check.process_view(request, None, (), {})

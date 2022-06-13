@@ -472,6 +472,38 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(response.data['detail'], CustomPermissionClass.message)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_registration_allowed_with_custom_no_password_serializer(self):
+        payload = {
+            "username": "test_username",
+            "email": "test@email.com",
+        }
+        user_count = get_user_model().objects.all().count()
+
+        # test empty payload
+        self.post(self.no_password_register_url, data={}, status_code=400)
+
+        result = self.post(self.no_password_register_url, data=payload, status_code=201)
+        self.assertIn('key', result.data)
+        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
+
+        new_user = get_user_model().objects.latest('id')
+        self.assertEqual(new_user.username, payload['username'])
+        self.assertFalse(new_user.has_usable_password())
+
+        ## Also check that regular registration also works
+        user_count = get_user_model().objects.all().count()
+
+        # test empty payload
+        self.post(self.register_url, data={}, status_code=400)
+
+        result = self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=201)
+        self.assertIn('key', result.data)
+        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
+
+        new_user = get_user_model().objects.latest('id')
+        self.assertEqual(new_user.username, self.REGISTRATION_DATA['username'])
+
+
     @override_settings(REST_USE_JWT=True)
     def test_registration_with_jwt(self):
         user_count = get_user_model().objects.all().count()
@@ -483,6 +515,20 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
 
         self._login()
+        self._logout()
+
+    @override_settings(REST_SESSION_LOGIN=True)
+    @override_settings(REST_AUTH_TOKEN_MODEL=None)
+    def test_registration_with_session(self):
+        user_count = get_user_model().objects.all().count()
+
+        self.post(self.register_url, data={}, status_code=400)
+
+        result = self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=204)
+        self.assertEqual(result.data, None)
+        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
+
+        self._login(status.HTTP_204_NO_CONTENT)
         self._logout()
 
     def test_registration_with_invalid_password(self):
@@ -1009,6 +1055,27 @@ class APIBasicTests(TestsMixin, TestCase):
             status_code=200,
         )
         self.assertIn('xxx', refresh_resp.cookies)
+
+    @override_settings(REST_USE_JWT=True)
+    def test_rotate_token_refresh_view(self):
+        from rest_framework_simplejwt.settings import api_settings as jwt_settings
+        jwt_settings.ROTATE_REFRESH_TOKENS = True
+        payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        resp = self.post(self.login_url, data=payload)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        refresh = resp.data.get('refresh_token', None)
+        resp = self.post(
+            reverse('token_refresh'),
+            data=dict(refresh=refresh),
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertIn('refresh', resp.data)
 
     @override_settings(REST_AUTH_TOKEN_MODEL=None)
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})

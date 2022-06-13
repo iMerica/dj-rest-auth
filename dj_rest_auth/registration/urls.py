@@ -24,4 +24,8 @@ urlpatterns = [
         r'^account-confirm-email/(?P<key>[-:\w]+)/$', TemplateView.as_view(),
         name='account_confirm_email',
     ),
+    path(
+        'account-email-verification-sent/', TemplateView.as_view(),
+        name='account_email_verification_sent',
+    ),
 ]

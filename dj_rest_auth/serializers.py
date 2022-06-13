@@ -108,10 +108,11 @@ class LoginSerializer(serializers.Serializer):
     @staticmethod
     def validate_email_verification_status(user):
         from allauth.account import app_settings
-        if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
-            email_address = user.emailaddress_set.get(email=user.email)
-            if not email_address.verified:
-                raise serializers.ValidationError(_('E-mail is not verified.'))
+        if (
+            app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY
+            and not user.emailaddress_set.filter(email=user.email, verified=True).exists()
+        ):
+            raise serializers.ValidationError(_('E-mail is not verified.'))
 
     def validate(self, attrs):
         username = attrs.get('username')
@@ -345,11 +346,15 @@ class PasswordChangeSerializer(serializers.Serializer):
             raise serializers.ValidationError(err_msg)
         return value
 
+    def custom_validation(self, attrs):
+        pass
+
     def validate(self, attrs):
         self.set_password_form = self.set_password_form_class(
             user=self.user, data=attrs,
         )
 
+        self.custom_validation(attrs)
         if not self.set_password_form.is_valid():
             raise serializers.ValidationError(self.set_password_form.errors)
         return attrs

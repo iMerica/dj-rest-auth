@@ -1,4 +1,4 @@
-django>=2.2
+django>=2.2,<4.0
 dj-rest-auth @ git+https://github.com/iMerica/dj-rest-auth.git@master
 djangorestframework>=3.11.0
 djangorestframework-simplejwt==4.7.1
