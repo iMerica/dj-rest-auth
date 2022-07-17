@@ -6,7 +6,7 @@ Drop-in API endpoints for handling authentication securely in Django Rest Framew
 with SPAs (e.g React, Vue, Angular), and Mobile applications. 
 
 ## Requirements
-- Django 2 or 3
+- Django 2, 3 or 4 (See Unit Test Coverage in CI)
 - Python 3
 
 ## Quick Setup
