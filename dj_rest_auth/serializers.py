@@ -224,7 +224,8 @@ class PasswordResetSerializer(serializers.Serializer):
 
     @property
     def password_reset_form_class(self):
-        if 'allauth' in settings.INSTALLED_APPS:
+        custom_email_template_used = self.get_email_options().get("html_email_template_name", None) is not None
+        if 'allauth' in settings.INSTALLED_APPS and not custom_email_template_used:
             return AllAuthPasswordResetForm
         else:
             return PasswordResetForm
