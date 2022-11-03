@@ -172,10 +172,22 @@ class SocialLoginSerializer(serializers.Serializer):
 
             login.lookup()
             login.save(request, connect=True)
+            self.post_signup(login, attrs)
 
         attrs['user'] = login.account.user
 
         return attrs
+
+    def post_signup(self, login, attrs):
+        """
+        Inject behavior when the user signs up with a social account.
+
+        :param login: The social login instance being registered.
+        :type login: allauth.socialaccount.models.SocialLogin
+        :param attrs: The attributes of the serializer.
+        :type attrs: dict
+        """
+        pass
 
 
 class SocialConnectMixin:
