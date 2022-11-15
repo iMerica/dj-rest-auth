@@ -274,6 +274,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     _errors = {}
     user = None
     set_password_form = None
+    uid_lookup_field = 'pk'
 
     def custom_validation(self, attrs):
         pass
@@ -289,7 +290,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         # Decode the uidb64 (allauth use base36) to uid to get User object
         try:
             uid = force_str(uid_decoder(attrs['uid']))
-            self.user = UserModel._default_manager.get(pk=uid)
+            self.user = UserModel._default_manager.get(**{self.uid_lookup_field: uid})
         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
             raise ValidationError({'uid': ['Invalid value']})
 
