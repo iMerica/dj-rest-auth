@@ -55,11 +55,12 @@ def unset_jwt_cookies(response):
     cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
     refresh_cookie_name = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
     refresh_cookie_path = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE_PATH', '/')
+    cookie_samesite = getattr(settings, 'JWT_AUTH_SAMESITE', 'Lax')
 
     if cookie_name:
-        response.delete_cookie(cookie_name, samesite=None)
+        response.delete_cookie(cookie_name, samesite=cookie_samesite)
     if refresh_cookie_name:
-        response.delete_cookie(refresh_cookie_name, path=refresh_cookie_path, samesite=None)
+        response.delete_cookie(refresh_cookie_name, path=refresh_cookie_path, samesite=cookie_samesite)
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
