@@ -3,6 +3,6 @@ dj-rest-auth @ git+https://github.com/iMerica/dj-rest-auth.git@master
 djangorestframework>=3.11.0
 djangorestframework-simplejwt==4.7.1
 django-allauth>=0.24.1
-drf-yasg==1.20.0
+drf-yasg==1.21.4
 django-cors-headers==3.2.1
 coreapi==2.3.3
