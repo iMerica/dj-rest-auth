@@ -353,4 +353,4 @@ This example value above will cause dj-rest-auth to return a `Set-Cookie` header
 
     Set-Cookie: my-app-auth=xxxxxxxxxxxxx; expires=Sat, 28 Mar 2020 18:59:00 GMT; HttpOnly; Max-Age=300; Path=/
 
-If ``JWT_AUTH_REFRESH_COOKIE`` is also set, it will also set a comperable cookie for that. ``JWT_AUTH_COOKIE`` is also used while authenticating each request against protected views.
+If ``JWT_AUTH_REFRESH_COOKIE`` is also set, it will also set a comparable cookie for that. ``JWT_AUTH_COOKIE`` is also used while authenticating each request against protected views.
