@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.authentication import CSRFCheck
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -64,7 +65,7 @@ def unset_jwt_cookies(response):
 
 
 class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = serializers.CharField(required=False, help_text='WIll override cookie.')
+    refresh = serializers.CharField(required=False, help_text=_('WIll override cookie.'))
 
     def extract_refresh_token(self):
         request = self.context['request']
@@ -75,7 +76,7 @@ class CookieTokenRefreshSerializer(TokenRefreshSerializer):
             return request.COOKIES.get(cookie_name)
         else:
             from rest_framework_simplejwt.exceptions import InvalidToken
-            raise InvalidToken('No valid refresh token found.')
+            raise InvalidToken(_('No valid refresh token found.'))
 
     def validate(self, attrs):
         attrs['refresh'] = self.extract_refresh_token()
