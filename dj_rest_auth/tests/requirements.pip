@@ -1,5 +1,5 @@
 coveralls==1.11.1
-django-allauth==0.50.0
+django-allauth==0.52.0
 djangorestframework-simplejwt==4.6.0
 flake8==3.8.4
 responses==0.12.1
