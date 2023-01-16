@@ -1,3 +1,4 @@
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.http import HttpRequest, HttpResponseBadRequest
@@ -130,7 +131,12 @@ class SocialLoginSerializer(serializers.Serializer):
                 headers=adapter.headers,
                 basic_auth=adapter.basic_auth,
             )
-            token = client.get_access_token(code)
+            try:
+                token = client.get_access_token(code)
+            except OAuth2Error as ex:
+                raise serializers.ValidationError(
+                    _('Failed to exchange code for access token')
+                ) from ex
             access_token = token['access_token']
             tokens_to_parse = {'access_token': access_token}
 
