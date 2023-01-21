@@ -132,7 +132,7 @@ class ResendEmailVerificationView(CreateAPIView):
         if email:
             if not email.verified
                 email.send_confirmation(request)
-                    return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
+                return Response({'detail': _('ok')}, status=status.HTTP_200_OK)
             return Response({'detail': _('Account already verified')}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'detail': _('Inexistant account with email this address')}, status=status.HTTP_400_BAD_REQUEST)
 
