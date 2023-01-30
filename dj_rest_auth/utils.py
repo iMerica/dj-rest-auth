@@ -1,6 +1,7 @@
 from importlib import import_module
 
 from django.conf import settings
+from django.utils.functional import lazy
 
 
 def import_callable(path_or_callable):
@@ -29,6 +30,13 @@ def jwt_encode(user):
     TOPS = import_callable(JWTTokenClaimsSerializer)
     refresh = TOPS.get_token(user)
     return refresh.access_token, refresh
+
+
+def format_lazy(s, *args, **kwargs):
+    return s.format(*args, **kwargs)
+
+
+format_lazy = lazy(format_lazy, str)
 
 
 try:

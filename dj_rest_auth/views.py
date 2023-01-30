@@ -17,7 +17,7 @@ from .app_settings import (
     JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
     PasswordChangeSerializer, PasswordResetConfirmSerializer,
     PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
-    create_token,
+    create_token, api_settings,
 )
 from .models import get_token_model
 from .utils import jwt_encode
@@ -56,9 +56,9 @@ class LoginView(GenericAPIView):
         django_login(self.request, self.user)
 
     def get_response_serializer(self):
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
 
-            if getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False):
+            if api_settings.JWT_AUTH_RETURN_EXPIRATION:
                 response_serializer = JWTSerializerWithExpiration
             else:
                 response_serializer = JWTSerializer
@@ -71,25 +71,25 @@ class LoginView(GenericAPIView):
         self.user = self.serializer.validated_data['user']
         token_model = get_token_model()
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             self.access_token, self.refresh_token = jwt_encode(self.user)
         elif token_model:
             self.token = create_token(token_model, self.user, self.serializer)
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if api_settings.SESSION_LOGIN:
             self.process_login()
 
     def get_response(self):
         serializer_class = self.get_response_serializer()
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             from rest_framework_simplejwt.settings import (
                 api_settings as jwt_settings,
             )
             access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
-            return_expiration_times = getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False)
-            auth_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', False)
+            return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
+            auth_httponly = api_settings.JWT_AUTH_HTTPONLY
 
             data = {
                 'user': self.user,
@@ -119,7 +119,7 @@ class LoginView(GenericAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             from .jwt_auth import set_jwt_cookies
             set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
@@ -160,7 +160,7 @@ class LogoutView(APIView):
         except (AttributeError, ObjectDoesNotExist):
             pass
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if api_settings.SESSION_LOGIN:
             django_logout(request)
 
         response = Response(
@@ -168,7 +168,7 @@ class LogoutView(APIView):
             status=status.HTTP_200_OK,
         )
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             # NOTE: this import occurs here rather than at the top level
             # because JWT support is optional, and if `REST_USE_JWT` isn't
             # True we shouldn't need the dependency
@@ -176,7 +176,7 @@ class LogoutView(APIView):
             from rest_framework_simplejwt.tokens import RefreshToken
 
             from .jwt_auth import unset_jwt_cookies
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
+            cookie_name = api_settings.JWT_AUTH_COOKIE
 
             unset_jwt_cookies(response)
 

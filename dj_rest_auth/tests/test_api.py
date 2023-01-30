@@ -1,3 +1,4 @@
+from collections import ChainMap
 import json
 
 from allauth.account import app_settings as account_app_settings
@@ -164,7 +165,7 @@ class APIBasicTests(TestsMixin, TestCase):
 
         self.post(self.login_url, data=payload, status_code=200)
 
-    @override_settings(REST_USE_JWT=True)
+    @override_settings(REST_AUTH=ChainMap({'USE_JWT': True}, settings.REST_AUTH))
     def test_login_jwt(self):
         payload = {
             'username': self.USERNAME,
@@ -270,7 +271,7 @@ class APIBasicTests(TestsMixin, TestCase):
         new_password_payload = {"new_password1": 123, "new_password2": 123}
         self.post(self.password_change_url, data=new_password_payload, status_code=400)
 
-    @override_settings(OLD_PASSWORD_FIELD_ENABLED=True)
+    @override_settings(REST_AUTH=ChainMap({'OLD_PASSWORD_FIELD_ENABLED': True}, settings.REST_AUTH))
     def test_password_change_with_old_password(self):
         login_payload = {
             'username': self.USERNAME,
@@ -422,7 +423,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(user.last_name, self.response.json['last_name'])
         self.assertEqual(user.email, self.response.json['email'])
 
-    @override_settings(REST_USE_JWT=True)
+    @override_settings(REST_AUTH=ChainMap({'USE_JWT': True}, settings.REST_AUTH))
     def test_user_details_using_jwt(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
         payload = {
@@ -459,7 +460,7 @@ class APIBasicTests(TestsMixin, TestCase):
     def test_registration_honors_password_validators(self):
         self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=400)
 
-    @override_settings(REST_AUTH_REGISTER_PERMISSION_CLASSES=(CustomPermissionClass,))
+    @override_settings(REST_AUTH=ChainMap({'REGISTER_PERMISSION_CLASSES': (CustomPermissionClass,)}, settings.REST_AUTH))
     def test_registration_with_custom_permission_class(self):
         class CustomRegisterView(RegisterView):
             permission_classes = register_permission_classes()
