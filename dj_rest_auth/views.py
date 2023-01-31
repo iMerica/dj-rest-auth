@@ -13,12 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .app_settings import (
-    JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
-    PasswordChangeSerializer, PasswordResetConfirmSerializer,
-    PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
-    create_token, api_settings,
-)
+from .app_settings import api_settings
 from .models import get_token_model
 from .utils import jwt_encode
 
@@ -41,7 +36,7 @@ class LoginView(GenericAPIView):
     Return the REST Framework Token Object's key.
     """
     permission_classes = (AllowAny,)
-    serializer_class = LoginSerializer
+    serializer_class = api_settings.LOGIN_SERIALIZER
     throttle_scope = 'dj_rest_auth'
 
     user = None
@@ -59,12 +54,12 @@ class LoginView(GenericAPIView):
         if api_settings.USE_JWT:
 
             if api_settings.JWT_AUTH_RETURN_EXPIRATION:
-                response_serializer = JWTSerializerWithExpiration
+                response_serializer = api_settings.JWT_SERIALIZER_WITH_EXPIRATION
             else:
-                response_serializer = JWTSerializer
+                response_serializer = api_settings.JWT_SERIALIZER
 
         else:
-            response_serializer = TokenSerializer
+            response_serializer = api_settings.TOKEN_SERIALIZER
         return response_serializer
 
     def login(self):
@@ -74,7 +69,7 @@ class LoginView(GenericAPIView):
         if api_settings.USE_JWT:
             self.access_token, self.refresh_token = jwt_encode(self.user)
         elif token_model:
-            self.token = create_token(token_model, self.user, self.serializer)
+            self.token = api_settings.TOKEN_CREATOR(token_model, self.user, self.serializer)
 
         if api_settings.SESSION_LOGIN:
             self.process_login()
@@ -222,7 +217,7 @@ class UserDetailsView(RetrieveUpdateAPIView):
 
     Returns UserModel fields.
     """
-    serializer_class = UserDetailsSerializer
+    serializer_class = api_settings.USER_DETAILS_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
@@ -243,7 +238,7 @@ class PasswordResetView(GenericAPIView):
     Accepts the following POST parameters: email
     Returns the success/fail message.
     """
-    serializer_class = PasswordResetSerializer
+    serializer_class = api_settings.PASSWORD_RESET_SERIALIZER
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
 
@@ -269,7 +264,7 @@ class PasswordResetConfirmView(GenericAPIView):
         new_password1, new_password2
     Returns the success/fail message.
     """
-    serializer_class = PasswordResetConfirmSerializer
+    serializer_class = api_settings.PASSWORD_RESET_CONFIRM_SERIALIZER
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
 
@@ -293,7 +288,7 @@ class PasswordChangeView(GenericAPIView):
     Accepts the following POST parameters: new_password1, new_password2
     Returns the success/fail message.
     """
-    serializer_class = PasswordChangeSerializer
+    serializer_class = api_settings.PASSWORD_CHANGE_SERIALIZER
     permission_classes = (IsAuthenticated,)
     throttle_scope = 'dj_rest_auth'
 

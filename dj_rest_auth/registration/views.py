@@ -17,9 +17,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from dj_rest_auth.app_settings import (
-    JWTSerializer, TokenSerializer, create_token,
-)
+from dj_rest_auth.app_settings import api_settings
 from dj_rest_auth.models import TokenModel
 from dj_rest_auth.registration.serializers import (
     SocialAccountSerializer, SocialConnectSerializer, SocialLoginSerializer,
@@ -60,11 +58,11 @@ class RegisterView(CreateAPIView):
                 'access_token': self.access_token,
                 'refresh_token': self.refresh_token,
             }
-            return JWTSerializer(data, context=self.get_serializer_context()).data
+            return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
         elif api_settings.SESSION_LOGIN:
             return None
         else:
-            return TokenSerializer(user.auth_token, context=self.get_serializer_context()).data
+            return api_settings.TOKEN_SERIALIZER(user.auth_token, context=self.get_serializer_context()).data
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -93,7 +91,7 @@ class RegisterView(CreateAPIView):
             elif not api_settings.SESSION_LOGIN:
                 # Session authentication isn't active either, so this has to be
                 #  token authentication
-                create_token(self.token_model, user, serializer)
+                api_settings.TOKEN_CREATOR(self.token_model, user, serializer)
 
         complete_signup(
             self.request._request, user,

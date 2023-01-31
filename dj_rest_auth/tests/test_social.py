@@ -13,6 +13,7 @@ from django.test.utils import override_settings
 from rest_framework import status
 
 from .mixins import TestsMixin
+from .utils import override_api_settings
 
 
 try:
@@ -229,9 +230,9 @@ class TestSocialAuth(TestsMixin, TestCase):
     @override_settings(
         ACCOUNT_EMAIL_VERIFICATION='mandatory',
         ACCOUNT_EMAIL_REQUIRED=True,
-        REST_AUTH=ChainMap({'SESSION_LOGIN': False}, settings.REST_AUTH),
         ACCOUNT_EMAIL_CONFIRMATION_HMAC=False,
     )
+    @override_api_settings(SESSION_LOGIN=False)
     def test_email_clash_with_existing_account(self):
         resp_body = {
             'id': '123123123123',
@@ -287,9 +288,7 @@ class TestSocialAuth(TestsMixin, TestCase):
         self.post(self.fb_login_url, data=payload, status_code=400)
 
     @responses.activate
-    @override_settings(
-        REST_AUTH=ChainMap({'USE_JWT': True}, settings.REST_AUTH),
-    )
+    @override_api_settings(USE_JWT=True)
     def test_jwt(self):
         resp_body = '{"id":"123123123123","first_name":"John","gender":"male","last_name":"Smith","link":"https:\\/\\/www.facebook.com\\/john.smith","locale":"en_US","name":"John Smith","timezone":2,"updated_time":"2014-08-13T10:14:38+0000","username":"john.smith","verified":true}'  # noqa
         responses.add(

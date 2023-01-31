@@ -5,7 +5,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import force_str
 from rest_framework import permissions, status
 
-from ..app_settings import api_settings
+from dj_rest_auth.app_settings import api_settings
 
 try:
     from django.urls import reverse

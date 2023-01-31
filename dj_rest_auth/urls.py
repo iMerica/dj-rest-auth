@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .app_settings import api_settings
+from dj_rest_auth.app_settings import api_settings
 
 from dj_rest_auth.views import (
     LoginView, LogoutView, PasswordChangeView, PasswordResetConfirmView,

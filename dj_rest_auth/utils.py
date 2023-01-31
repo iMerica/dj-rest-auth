@@ -2,7 +2,7 @@ from importlib import import_module
 
 from django.utils.functional import lazy
 
-from .app_settings import api_settings
+from dj_rest_auth.app_settings import api_settings
 
 
 def import_callable(path_or_callable):
@@ -14,7 +14,7 @@ def import_callable(path_or_callable):
         return getattr(import_module(package), attr)
 
 
-def default_create_token(token_model, user):
+def default_create_token(token_model, user, serializer):
     token, _ = token_model.objects.get_or_create(user=user)
     return token
 
