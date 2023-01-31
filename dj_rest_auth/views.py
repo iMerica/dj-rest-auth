@@ -170,7 +170,7 @@ class LogoutView(APIView):
 
         if api_settings.USE_JWT:
             # NOTE: this import occurs here rather than at the top level
-            # because JWT support is optional, and if `REST_USE_JWT` isn't
+            # because JWT support is optional, and if `USE_JWT` isn't
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken

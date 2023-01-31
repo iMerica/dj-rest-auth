@@ -1,8 +1,11 @@
 import json
 
+from collections import ChainMap
+
 import responses
 from allauth.socialaccount.models import SocialApp
 from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.test import TestCase
@@ -226,7 +229,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     @override_settings(
         ACCOUNT_EMAIL_VERIFICATION='mandatory',
         ACCOUNT_EMAIL_REQUIRED=True,
-        REST_SESSION_LOGIN=False,
+        REST_AUTH=ChainMap({'SESSION_LOGIN': False}, settings.REST_AUTH),
         ACCOUNT_EMAIL_CONFIRMATION_HMAC=False,
     )
     def test_email_clash_with_existing_account(self):
@@ -285,7 +288,7 @@ class TestSocialAuth(TestsMixin, TestCase):
 
     @responses.activate
     @override_settings(
-        REST_USE_JWT=True,
+        REST_AUTH=ChainMap({'USE_JWT': True}, settings.REST_AUTH),
     )
     def test_jwt(self):
         resp_body = '{"id":"123123123123","first_name":"John","gender":"male","last_name":"Smith","link":"https:\\/\\/www.facebook.com\\/john.smith","locale":"en_US","name":"John Smith","timezone":2,"updated_time":"2014-08-13T10:14:38+0000","username":"john.smith","verified":true}'  # noqa

@@ -1,7 +1,8 @@
 from importlib import import_module
 
-from django.conf import settings
 from django.utils.functional import lazy
+
+from .app_settings import api_settings
 
 
 def import_callable(path_or_callable):
@@ -13,22 +14,15 @@ def import_callable(path_or_callable):
         return getattr(import_module(package), attr)
 
 
-def default_create_token(token_model, user, serializer):
+def default_create_token(token_model, user):
     token, _ = token_model.objects.get_or_create(user=user)
     return token
 
 
 def jwt_encode(user):
-    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-    rest_auth_serializers = getattr(settings, 'REST_AUTH_SERIALIZERS', {})
+    JWTTokenClaimsSerializer = api_settings.JWT_TOKEN_CLAIMS_SERIALIZER
 
-    JWTTokenClaimsSerializer = rest_auth_serializers.get(
-        'JWT_TOKEN_CLAIMS_SERIALIZER',
-        TokenObtainPairSerializer,
-    )
-
-    TOPS = import_callable(JWTTokenClaimsSerializer)
-    refresh = TOPS.get_token(user)
+    refresh = JWTTokenClaimsSerializer.get_token(user)
     return refresh.access_token, refresh
 
 
