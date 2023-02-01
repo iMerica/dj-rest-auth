@@ -2,8 +2,6 @@ from importlib import import_module
 
 from django.utils.functional import lazy
 
-from dj_rest_auth.app_settings import api_settings
-
 
 def import_callable(path_or_callable):
     if hasattr(path_or_callable, '__call__'):
@@ -20,6 +18,8 @@ def default_create_token(token_model, user, serializer):
 
 
 def jwt_encode(user):
+    from dj_rest_auth.app_settings import api_settings
+
     JWTTokenClaimsSerializer = api_settings.JWT_TOKEN_CLAIMS_SERIALIZER
 
     refresh = JWTTokenClaimsSerializer.get_token(user)

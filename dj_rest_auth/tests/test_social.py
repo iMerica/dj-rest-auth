@@ -1,7 +1,5 @@
 import json
 
-from collections import ChainMap
-
 import responses
 from allauth.socialaccount.models import SocialApp
 from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL

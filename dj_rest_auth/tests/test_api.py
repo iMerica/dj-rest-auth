@@ -1,7 +1,5 @@
 import json
 
-from collections import ChainMap
-
 from allauth.account import app_settings as allauth_account_settings
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -14,7 +12,7 @@ from rest_framework.test import APIRequestFactory
 from dj_rest_auth.registration.app_settings import register_permission_classes, api_settings
 from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.models import get_token_model
-from .mixins import CustomPermissionClass, TestsMixin
+from .mixins import TestsMixin
 from .utils import override_api_settings
 
 try:
@@ -88,7 +86,9 @@ class APIBasicTests(TestsMixin, TestCase):
         result['token'] = default_token_generator.make_token(user)
         return result
 
-    @override_settings(ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL)
+    @override_settings(
+        ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL
+    )
     def test_login_failed_email_validation(self):
         payload = {
             'email': '',
@@ -98,7 +98,9 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.login_url, data=payload, status_code=400)
         self.assertEqual(resp.json['non_field_errors'][0], 'Must include "email" and "password".')
 
-    @override_settings(ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME)
+    @override_settings(
+        ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME
+    )
     def test_login_failed_username_validation(self):
         payload = {
             'username': '',
@@ -108,7 +110,9 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.login_url, data=payload, status_code=400)
         self.assertEqual(resp.json['non_field_errors'][0], 'Must include "username" and "password".')
 
-    @override_settings(ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME_EMAIL)
+    @override_settings(
+        ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME_EMAIL
+    )
     def test_login_failed_username_email_validation(self):
         payload = {
             'password': self.PASS,
@@ -151,7 +155,9 @@ class APIBasicTests(TestsMixin, TestCase):
         # test empty payload
         self.post(self.login_url, data={}, status_code=400)
 
-    @override_settings(ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL)
+    @override_settings(
+        ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL
+    )
     def test_allauth_login_with_email(self):
         payload = {
             'email': self.EMAIL,
@@ -462,7 +468,7 @@ class APIBasicTests(TestsMixin, TestCase):
     def test_registration_honors_password_validators(self):
         self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=400)
 
-    @override_api_settings(REGISTER_PERMISSION_CLASSES=(CustomPermissionClass,))
+    @override_api_settings(REGISTER_PERMISSION_CLASSES=('tests.mixins.CustomPermissionClass',))
     def test_registration_with_custom_permission_class(self):
         class CustomRegisterView(RegisterView):
             permission_classes = register_permission_classes()
@@ -472,7 +478,7 @@ class APIBasicTests(TestsMixin, TestCase):
         request = factory.post('/customer/details', self.REGISTRATION_DATA, format='json')
 
         response = CustomRegisterView.as_view()(request)
-        self.assertEqual(response.data['detail'], CustomPermissionClass.message)
+        self.assertEqual(response.data['detail'], api_settings.REGISTER_PERMISSION_CLASSES[0].message)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_registration_allowed_with_custom_no_password_serializer(self):
@@ -1035,6 +1041,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='xxx')
     @override_api_settings(JWT_AUTH_REFRESH_COOKIE='refresh-xxx')
+    @override_api_settings(JWT_AUTH_HTTPONLY=False)
     def test_custom_token_refresh_view(self):
         payload = {
             'username': self.USERNAME,
