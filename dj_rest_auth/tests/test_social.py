@@ -362,6 +362,7 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
         self.post(self.tw_connect_url, data=payload, status_code=403)
 
     @responses.activate
+    @override_api_settings(SESSION_LOGIN=False)
     def test_social_connect(self):
         # register user
         self.post(
