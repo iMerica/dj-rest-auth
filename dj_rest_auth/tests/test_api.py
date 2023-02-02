@@ -1121,10 +1121,10 @@ class APIBasicTests(TestsMixin, TestCase):
         with override_api_settings(SESSION_LOGIN=True,
                                    USE_JWT=False,
                                    TOKEN_MODEL=False):
-            assert get_token_model() is None
+            assert get_token_model() is False
 
         # only jwt authentication is fine
         with override_api_settings(SESSION_LOGIN=False,
                                    USE_JWT=True,
                                    TOKEN_MODEL=False):
-            assert get_token_model() is None
+            assert get_token_model() is False
