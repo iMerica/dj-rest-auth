@@ -482,6 +482,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(response.data['detail'], api_settings.REGISTER_PERMISSION_CLASSES[0].message)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @override_api_settings(SESSION_LOGIN=False)
     def test_registration_allowed_with_custom_no_password_serializer(self):
         payload = {
             "username": "test_username",
