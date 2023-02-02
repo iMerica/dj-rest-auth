@@ -446,6 +446,7 @@ class APIBasicTests(TestsMixin, TestCase):
         user = get_user_model().objects.get(pk=user.pk)
         self.assertEqual(user.email, self.response.json['email'])
 
+    @override_api_settings(SESSION_LOGIN=False)
     def test_registration(self):
         user_count = get_user_model().objects.all().count()
 
