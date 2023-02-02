@@ -1062,6 +1062,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertIn('xxx', refresh_resp.cookies)
 
     @override_api_settings(USE_JWT=True)
+    @override_api_settings(JWT_AUTH_HTTPONLY=False)
     def test_rotate_token_refresh_view(self):
         from rest_framework_simplejwt.settings import api_settings as jwt_settings
         jwt_settings.ROTATE_REFRESH_TOKENS = True
