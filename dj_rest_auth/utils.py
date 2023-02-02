@@ -20,9 +20,3 @@ def format_lazy(s, *args, **kwargs):
 
 
 format_lazy = lazy(format_lazy, str)
-
-
-try:
-    from .jwt_auth import JWTCookieAuthentication
-except ImportError:
-    pass
