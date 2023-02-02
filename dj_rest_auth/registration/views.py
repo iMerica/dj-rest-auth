@@ -6,7 +6,6 @@ from allauth.account.models import EmailAddress
 from allauth.socialaccount import signals
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount
-from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
@@ -26,11 +25,6 @@ from dj_rest_auth.registration.serializers import (
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.views import LoginView
 
-from .app_settings import (
-    RegisterSerializer, register_permission_classes,
-)
-from ..app_settings import api_settings
-
 
 sensitive_post_parameters_m = method_decorator(
     sensitive_post_parameters('password1', 'password2'),
@@ -38,8 +32,8 @@ sensitive_post_parameters_m = method_decorator(
 
 
 class RegisterView(CreateAPIView):
-    serializer_class = RegisterSerializer
-    permission_classes = register_permission_classes()
+    serializer_class = api_settings.REGISTER_SERIALIZER
+    permission_classes = api_settings.REGISTER_PERMISSION_CLASSES
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
 

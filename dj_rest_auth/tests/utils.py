@@ -7,6 +7,7 @@ from dj_rest_auth.app_settings import api_settings
 def override_api_settings(**settings):
     old_settings = {}
     not_exist = []
+
     for k, v in settings.items():
         # Save settings
         try:
@@ -23,21 +24,23 @@ def override_api_settings(**settings):
         except AttributeError:
             pass
 
-    yield
+    try:
+        yield
+    finally:
+        for k in settings.keys():
+            # Delete temporary settings
+            api_settings.user_settings.pop(k)
 
-    for k in settings.keys():
-        # Delete temporary settings
-        api_settings.user_settings.pop(k)
+            # Restore saved settings
+            try:
+                api_settings.user_settings[k] = old_settings[k]
+            except KeyError:
+                if k in not_exist and k in api_settings.user_settings:
+                    api_settings.user_settings.pop(k)
+                    not_exist.remove(k)
 
-        # Restore saved settings
-        try:
-            api_settings.user_settings[k] = old_settings[k]
-        except KeyError:
-            if k in not_exist and k in api_settings.user_settings:
-                api_settings.user_settings.pop(k)
-
-        # Delete any cached settings
-        try:
-            delattr(api_settings, k)
-        except AttributeError:
-            pass
+            # Delete any cached settings
+            try:
+                delattr(api_settings, k)
+            except AttributeError:
+                pass

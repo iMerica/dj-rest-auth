@@ -59,7 +59,6 @@ class TestsMixin:
         self.response.json = {}
         if is_json and self.response.content:
             self.response.json = json.loads(force_str(self.response.content))
-
         if status_code:
             self.assertEqual(self.response.status_code, status_code)
 

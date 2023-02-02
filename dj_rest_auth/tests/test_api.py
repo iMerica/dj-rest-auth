@@ -9,7 +9,7 @@ from django.test import TestCase, modify_settings, override_settings
 from django.utils.encoding import force_str
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
-from dj_rest_auth.registration.app_settings import register_permission_classes, api_settings
+from dj_rest_auth.app_settings import api_settings
 from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.models import get_token_model
 from .mixins import TestsMixin
@@ -471,7 +471,7 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_api_settings(REGISTER_PERMISSION_CLASSES=('tests.mixins.CustomPermissionClass',))
     def test_registration_with_custom_permission_class(self):
         class CustomRegisterView(RegisterView):
-            permission_classes = register_permission_classes()
+            permission_classes = api_settings.REGISTER_PERMISSION_CLASSES
             authentication_classes = ()
 
         factory = APIRequestFactory()
@@ -735,6 +735,7 @@ class APIBasicTests(TestsMixin, TestCase):
         )
 
     @override_api_settings(USE_JWT=True)
+    @override_api_settings(JWT_AUTH_HTTPONLY=False)
     def test_blacklisting(self):
         payload = {
             'username': self.USERNAME,

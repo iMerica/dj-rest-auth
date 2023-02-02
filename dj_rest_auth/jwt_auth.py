@@ -8,6 +8,7 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 
 from .app_settings import api_settings
 
+
 def set_jwt_access_cookie(response, access_token):
     from rest_framework_simplejwt.settings import api_settings as jwt_settings
     cookie_name = api_settings.JWT_AUTH_COOKIE
