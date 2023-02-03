@@ -113,6 +113,7 @@ REST_AUTH = {
     'SESSION_LOGIN': True,
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'auth',
+    'JWT_AUTH_HTTPONLY': False,
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
