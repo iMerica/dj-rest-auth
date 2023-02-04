@@ -16,13 +16,20 @@ DEFAULTS = {
     'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
     'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
     'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
+
     'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+
     'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
+
     'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
     'TOKEN_CREATOR': 'dj_rest_auth.utils.default_create_token',
+
     'PASSWORD_RESET_USE_SITES_DOMAIN': False,
+    'OLD_PASSWORD_FIELD_ENABLED': False,
+    'LOGOUT_ON_PASSWORD_CHANGE': False,
     'SESSION_LOGIN': True,
     'USE_JWT': False,
+
     'JWT_AUTH_COOKIE': None,
     'JWT_AUTH_REFRESH_COOKIE': None,
     'JWT_AUTH_REFRESH_COOKIE_PATH': '/',
@@ -30,8 +37,6 @@ DEFAULTS = {
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_SAMESITE': 'Lax',
     'JWT_AUTH_RETURN_EXPIRATION': False,
-    'OLD_PASSWORD_FIELD_ENABLED': False,
-    'LOGOUT_ON_PASSWORD_CHANGE': False,
     'JWT_AUTH_COOKIE_USE_CSRF': False,
     'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
 }
