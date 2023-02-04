@@ -77,7 +77,7 @@ msgstr "يجب إدخال \"اسم المستخدم\" أو \"البريد الإ
 
 #: serializers.py:98
 msgid "User account is disabled."
-msgstr "الحساب المستخدم معطل."
+msgstr "حساب المستخدم معطل."
 
 #: serializers.py:101
 msgid "Unable to log in with provided credentials."
