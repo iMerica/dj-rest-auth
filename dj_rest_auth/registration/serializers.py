@@ -147,7 +147,10 @@ class SocialLoginSerializer(serializers.Serializer):
         social_token.app = app
 
         try:
-            login = self.get_social_login(adapter, app, social_token, token)
+            if adapter.provider_id == 'google':
+                login = self.get_social_login(adapter, app, social_token, response={'id_token': token})
+            else:
+                login = self.get_social_login(adapter, app, social_token, token)
             ret = complete_social_login(request, login)
         except HTTPError:
             raise serializers.ValidationError(_('Incorrect value'))
