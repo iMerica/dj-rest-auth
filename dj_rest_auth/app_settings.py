@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.test.signals import setting_changed
 from django.utils.translation import gettext_lazy as _
 from rest_framework.settings import APISettings as _APISettings
 
@@ -83,15 +82,3 @@ class APISettings(_APISettings):  # pragma: no cover
 
 
 api_settings = APISettings(USER_SETTINGS, DEFAULTS, IMPORT_STRINGS)
-
-
-def reload_api_settings(*args, **kwargs):  # pragma: no cover
-    global api_settings
-
-    setting, value = kwargs["setting"], kwargs["value"]
-
-    if setting == 'REST_AUTH':
-        api_settings = APISettings(value, DEFAULTS, IMPORT_STRINGS)
-
-
-setting_changed.connect(reload_api_settings)
