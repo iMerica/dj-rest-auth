@@ -73,6 +73,7 @@ FAQ
 
     .. code-block:: python
 
-        REST_AUTH_SERIALIZERS = {
-            'USER_DETAILS_SERIALIZER': 'demo.serializers.UserSerializer'
+        REST_AUTH = {
+            ...
+            'USER_DETAILS_SERIALIZER': 'demo.serializers.UserSerializer',
         }

@@ -39,8 +39,10 @@ urlpatterns = [
 (Optional) Use Http-Only cookies
 
 ```python
-REST_USE_JWT = True
-JWT_AUTH_COOKIE = 'jwt-auth'
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'jwt-auth',
+}
 ```
 
 ### Testing

@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 try:
-    from allauth.account import app_settings as allauth_settings
+    from allauth.account import app_settings as allauth_account_settings
     from allauth.account.adapter import get_adapter
     from allauth.account.utils import setup_user_email
     from allauth.socialaccount.helpers import complete_social_login
@@ -163,7 +163,7 @@ class SocialLoginSerializer(serializers.Serializer):
             # with the same email address: raise an exception.
             # This needs to be handled in the frontend. We can not just
             # link up the accounts due to security constraints
-            if allauth_settings.UNIQUE_EMAIL:
+            if allauth_account_settings.UNIQUE_EMAIL:
                 # Do we have an account already with this email address?
                 account_exists = get_user_model().objects.filter(
                     email=login.user.email,
@@ -212,10 +212,10 @@ class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
-        min_length=allauth_settings.USERNAME_MIN_LENGTH,
-        required=allauth_settings.USERNAME_REQUIRED,
+        min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
+        required=allauth_account_settings.USERNAME_REQUIRED,
     )
-    email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -225,7 +225,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
-        if allauth_settings.UNIQUE_EMAIL:
+        if allauth_account_settings.UNIQUE_EMAIL:
             if email and email_address_exists(email):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
@@ -273,4 +273,4 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)

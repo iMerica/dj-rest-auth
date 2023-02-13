@@ -1,56 +1,84 @@
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
+from rest_framework.settings import APISettings as _APISettings
 
-from dj_rest_auth.serializers import JWTSerializer as DefaultJWTSerializer
-from dj_rest_auth.serializers import (
-    JWTSerializerWithExpiration as DefaultJWTSerializerWithExpiration,
+
+USER_SETTINGS = getattr(settings, "REST_AUTH", None)
+
+DEFAULTS = {
+    'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
+    'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
+    'JWT_SERIALIZER': 'dj_rest_auth.serializers.JWTSerializer',
+    'JWT_SERIALIZER_WITH_EXPIRATION': 'dj_rest_auth.serializers.JWTSerializerWithExpiration',
+    'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+    'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
+    'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
+    'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
+
+    'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
+
+    'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
+
+    'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
+    'TOKEN_CREATOR': 'dj_rest_auth.utils.default_create_token',
+
+    'PASSWORD_RESET_USE_SITES_DOMAIN': False,
+    'OLD_PASSWORD_FIELD_ENABLED': False,
+    'LOGOUT_ON_PASSWORD_CHANGE': False,
+    'SESSION_LOGIN': True,
+    'USE_JWT': False,
+
+    'JWT_AUTH_COOKIE': None,
+    'JWT_AUTH_REFRESH_COOKIE': None,
+    'JWT_AUTH_REFRESH_COOKIE_PATH': '/',
+    'JWT_AUTH_SECURE': False,
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'JWT_AUTH_RETURN_EXPIRATION': False,
+    'JWT_AUTH_COOKIE_USE_CSRF': False,
+    'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
+}
+
+# List of settings that may be in string import notation.
+IMPORT_STRINGS = (
+    'TOKEN_CREATOR',
+    'TOKEN_MODEL',
+    'TOKEN_SERIALIZER',
+    'JWT_SERIALIZER',
+    'JWT_SERIALIZER_WITH_EXPIRATION',
+    'JWT_TOKEN_CLAIMS_SERIALIZER',
+    'USER_DETAILS_SERIALIZER',
+    'LOGIN_SERIALIZER',
+    'PASSWORD_RESET_SERIALIZER',
+    'PASSWORD_RESET_CONFIRM_SERIALIZER',
+    'PASSWORD_CHANGE_SERIALIZER',
+    'REGISTER_SERIALIZER',
+    'REGISTER_PERMISSION_CLASSES',
 )
-from dj_rest_auth.serializers import LoginSerializer as DefaultLoginSerializer
-from dj_rest_auth.serializers import (
-    PasswordChangeSerializer as DefaultPasswordChangeSerializer,
-)
-from dj_rest_auth.serializers import (
-    PasswordResetConfirmSerializer as DefaultPasswordResetConfirmSerializer,
-)
-from dj_rest_auth.serializers import (
-    PasswordResetSerializer as DefaultPasswordResetSerializer,
-)
-from dj_rest_auth.serializers import TokenSerializer as DefaultTokenSerializer
-from dj_rest_auth.serializers import (
-    UserDetailsSerializer as DefaultUserDetailsSerializer,
-)
 
-from .utils import default_create_token, import_callable
+# List of settings that have been removed
+REMOVED_SETTINGS = ( )
 
 
-create_token = import_callable(getattr(settings, 'REST_AUTH_TOKEN_CREATOR', default_create_token))
+class APISettings(_APISettings):  # pragma: no cover
+    def __check_user_settings(self, user_settings):
+        from .utils import format_lazy
+        SETTINGS_DOC = 'https://dj-rest-auth.readthedocs.io/en/latest/configuration.html'
 
-serializers = getattr(settings, 'REST_AUTH_SERIALIZERS', {})
+        for setting in REMOVED_SETTINGS:
+            if setting in user_settings:
+                raise RuntimeError(
+                    format_lazy(
+                        _(
+                            "The '{}' setting has been removed. Please refer to '{}' for available settings."
+                        ),
+                        setting,
+                        SETTINGS_DOC,
+                    )
+                )
 
-TokenSerializer = import_callable(serializers.get('TOKEN_SERIALIZER', DefaultTokenSerializer))
+        return user_settings
 
-JWTSerializer = import_callable(serializers.get('JWT_SERIALIZER', DefaultJWTSerializer))
 
-JWTSerializerWithExpiration = import_callable(serializers.get('JWT_SERIALIZER_WITH_EXPIRATION', DefaultJWTSerializerWithExpiration))
-
-UserDetailsSerializer = import_callable(serializers.get('USER_DETAILS_SERIALIZER', DefaultUserDetailsSerializer))
-
-LoginSerializer = import_callable(serializers.get('LOGIN_SERIALIZER', DefaultLoginSerializer))
-
-PasswordResetSerializer = import_callable(
-    serializers.get(
-        'PASSWORD_RESET_SERIALIZER', DefaultPasswordResetSerializer,
-    ),
-)
-
-PasswordResetConfirmSerializer = import_callable(
-    serializers.get(
-        'PASSWORD_RESET_CONFIRM_SERIALIZER', DefaultPasswordResetConfirmSerializer,
-    ),
-)
-
-PasswordChangeSerializer = import_callable(
-    serializers.get('PASSWORD_CHANGE_SERIALIZER', DefaultPasswordChangeSerializer),
-)
-
-JWT_AUTH_COOKIE = getattr(settings, 'JWT_AUTH_COOKIE', None)
-JWT_AUTH_REFRESH_COOKIE = getattr(settings, 'JWT_AUTH_REFRESH_COOKIE', None)
+api_settings = APISettings(USER_SETTINGS, DEFAULTS, IMPORT_STRINGS)

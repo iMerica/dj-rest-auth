@@ -1,26 +1,27 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.module_loading import import_string
+from rest_framework.authtoken.models import Token as DefaultTokenModel
+
+from .app_settings import api_settings
 
 def get_token_model():
-    default_model = 'rest_framework.authtoken.models.Token'
-    import_path = getattr(settings, 'REST_AUTH_TOKEN_MODEL', default_model)
-    session_login = getattr(settings, 'REST_SESSION_LOGIN', True)
-    use_jwt = getattr(settings, 'REST_USE_JWT', False)
-    
-    if not any((session_login, import_path, use_jwt)):
+    token_model = api_settings.TOKEN_MODEL
+    session_login = api_settings.SESSION_LOGIN
+    use_jwt = api_settings.USE_JWT
+
+    if not any((session_login, token_model, use_jwt)):
         raise ImproperlyConfigured(
             'No authentication is configured for rest auth. You must enable one or '
-            'more of `REST_AUTH_TOKEN_MODEL`, `REST_USE_JWT` or `REST_SESSION_LOGIN`'
-      )
+            'more of `TOKEN_MODEL`, `USE_JWT` or `SESSION_LOGIN`'
+        )
     if (
-        import_path == default_model
+        token_model == DefaultTokenModel
         and 'rest_framework.authtoken' not in settings.INSTALLED_APPS
     ):
         raise ImproperlyConfigured(
             'You must include `rest_framework.authtoken` in INSTALLED_APPS '
-            'or set REST_AUTH_TOKEN_MODEL to None'
+            'or set TOKEN_MODEL to None'
         )
-    return import_string(import_path) if import_path else None
+    return token_model
 
 TokenModel = get_token_model()

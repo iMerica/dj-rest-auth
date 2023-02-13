@@ -13,12 +13,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .app_settings import (
-    JWTSerializer, JWTSerializerWithExpiration, LoginSerializer,
-    PasswordChangeSerializer, PasswordResetConfirmSerializer,
-    PasswordResetSerializer, TokenSerializer, UserDetailsSerializer,
-    create_token,
-)
+from .app_settings import api_settings
 from .models import get_token_model
 from .utils import jwt_encode
 
@@ -41,7 +36,7 @@ class LoginView(GenericAPIView):
     Return the REST Framework Token Object's key.
     """
     permission_classes = (AllowAny,)
-    serializer_class = LoginSerializer
+    serializer_class = api_settings.LOGIN_SERIALIZER
     throttle_scope = 'dj_rest_auth'
 
     user = None
@@ -56,40 +51,40 @@ class LoginView(GenericAPIView):
         django_login(self.request, self.user)
 
     def get_response_serializer(self):
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
 
-            if getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False):
-                response_serializer = JWTSerializerWithExpiration
+            if api_settings.JWT_AUTH_RETURN_EXPIRATION:
+                response_serializer = api_settings.JWT_SERIALIZER_WITH_EXPIRATION
             else:
-                response_serializer = JWTSerializer
+                response_serializer = api_settings.JWT_SERIALIZER
 
         else:
-            response_serializer = TokenSerializer
+            response_serializer = api_settings.TOKEN_SERIALIZER
         return response_serializer
 
     def login(self):
         self.user = self.serializer.validated_data['user']
         token_model = get_token_model()
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             self.access_token, self.refresh_token = jwt_encode(self.user)
         elif token_model:
-            self.token = create_token(token_model, self.user, self.serializer)
+            self.token = api_settings.TOKEN_CREATOR(token_model, self.user, self.serializer)
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if api_settings.SESSION_LOGIN:
             self.process_login()
 
     def get_response(self):
         serializer_class = self.get_response_serializer()
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             from rest_framework_simplejwt.settings import (
                 api_settings as jwt_settings,
             )
             access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
-            return_expiration_times = getattr(settings, 'JWT_AUTH_RETURN_EXPIRATION', False)
-            auth_httponly = getattr(settings, 'JWT_AUTH_HTTPONLY', False)
+            return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
+            auth_httponly = api_settings.JWT_AUTH_HTTPONLY
 
             data = {
                 'user': self.user,
@@ -119,7 +114,7 @@ class LoginView(GenericAPIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         response = Response(serializer.data, status=status.HTTP_200_OK)
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             from .jwt_auth import set_jwt_cookies
             set_jwt_cookies(response, self.access_token, self.refresh_token)
         return response
@@ -160,7 +155,7 @@ class LogoutView(APIView):
         except (AttributeError, ObjectDoesNotExist):
             pass
 
-        if getattr(settings, 'REST_SESSION_LOGIN', True):
+        if api_settings.SESSION_LOGIN:
             django_logout(request)
 
         response = Response(
@@ -168,15 +163,15 @@ class LogoutView(APIView):
             status=status.HTTP_200_OK,
         )
 
-        if getattr(settings, 'REST_USE_JWT', False):
+        if api_settings.USE_JWT:
             # NOTE: this import occurs here rather than at the top level
-            # because JWT support is optional, and if `REST_USE_JWT` isn't
+            # because JWT support is optional, and if `USE_JWT` isn't
             # True we shouldn't need the dependency
             from rest_framework_simplejwt.exceptions import TokenError
             from rest_framework_simplejwt.tokens import RefreshToken
 
             from .jwt_auth import unset_jwt_cookies
-            cookie_name = getattr(settings, 'JWT_AUTH_COOKIE', None)
+            cookie_name = api_settings.JWT_AUTH_COOKIE
 
             unset_jwt_cookies(response)
 
@@ -222,7 +217,7 @@ class UserDetailsView(RetrieveUpdateAPIView):
 
     Returns UserModel fields.
     """
-    serializer_class = UserDetailsSerializer
+    serializer_class = api_settings.USER_DETAILS_SERIALIZER
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
@@ -243,7 +238,7 @@ class PasswordResetView(GenericAPIView):
     Accepts the following POST parameters: email
     Returns the success/fail message.
     """
-    serializer_class = PasswordResetSerializer
+    serializer_class = api_settings.PASSWORD_RESET_SERIALIZER
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
 
@@ -269,7 +264,7 @@ class PasswordResetConfirmView(GenericAPIView):
         new_password1, new_password2
     Returns the success/fail message.
     """
-    serializer_class = PasswordResetConfirmSerializer
+    serializer_class = api_settings.PASSWORD_RESET_CONFIRM_SERIALIZER
     permission_classes = (AllowAny,)
     throttle_scope = 'dj_rest_auth'
 
@@ -293,7 +288,7 @@ class PasswordChangeView(GenericAPIView):
     Accepts the following POST parameters: new_password1, new_password2
     Returns the success/fail message.
     """
-    serializer_class = PasswordChangeSerializer
+    serializer_class = api_settings.PASSWORD_CHANGE_SERIALIZER
     permission_classes = (IsAuthenticated,)
     throttle_scope = 'dj_rest_auth'
 

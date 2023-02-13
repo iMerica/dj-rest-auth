@@ -3,14 +3,19 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 
+from .app_settings import api_settings
+
+
 if 'allauth' in settings.INSTALLED_APPS:
-    from allauth.account import app_settings
+    from allauth.account import app_settings as allauth_account_settings
     from allauth.account.adapter import get_adapter
-    from allauth.account.forms import \
-        ResetPasswordForm as DefaultPasswordResetForm
+    from allauth.account.forms import ResetPasswordForm as DefaultPasswordResetForm
     from allauth.account.forms import default_token_generator
-    from allauth.account.utils import (filter_users_by_email,
-                                       user_pk_to_url_str, user_username)
+    from allauth.account.utils import (
+        filter_users_by_email,
+        user_pk_to_url_str,
+        user_username,
+    )
     from allauth.utils import build_absolute_uri
 
 
@@ -44,7 +49,7 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 args=[user_pk_to_url_str(user), temp_key],
             )
 
-            if getattr(settings, 'REST_AUTH_PW_RESET_USE_SITES_DOMAIN', False) is True:
+            if api_settings.PASSWORD_RESET_USE_SITES_DOMAIN:
                 url = build_absolute_uri(None, path)
             else:
                 url = build_absolute_uri(request, path)
@@ -57,7 +62,10 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'password_reset_url': url,
                 'request': request,
             }
-            if app_settings.AUTHENTICATION_METHOD != app_settings.AuthenticationMethod.EMAIL:
+            if (
+                allauth_account_settings.AUTHENTICATION_METHOD
+                != allauth_account_settings.AuthenticationMethod.EMAIL
+            ):
                 context['username'] = user_username(user)
             get_adapter(request).send_mail(
                 'account/email/password_reset_key', email, context

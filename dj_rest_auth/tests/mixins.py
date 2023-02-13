@@ -5,6 +5,7 @@ from django.test.client import MULTIPART_CONTENT, Client
 from django.utils.encoding import force_str
 from rest_framework import permissions, status
 
+from dj_rest_auth.app_settings import api_settings
 
 try:
     from django.urls import reverse
@@ -47,7 +48,7 @@ class TestsMixin:
 
         # check_headers = kwargs.pop('check_headers', True)
         if hasattr(self, 'token'):
-            if getattr(settings, 'REST_USE_JWT', False):
+            if api_settings.USE_JWT:
                 kwargs['HTTP_AUTHORIZATION'] = f'JWT {self.token}'
             else:
                 kwargs['HTTP_AUTHORIZATION'] = f'Token {self.token}'
@@ -58,7 +59,6 @@ class TestsMixin:
         self.response.json = {}
         if is_json and self.response.content:
             self.response.json = json.loads(force_str(self.response.content))
-
         if status_code:
             self.assertEqual(self.response.status_code, status_code)
 

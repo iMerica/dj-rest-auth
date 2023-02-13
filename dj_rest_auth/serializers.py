@@ -3,10 +3,11 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.forms import SetPasswordForm, PasswordResetForm
 from django.urls import exceptions as url_exceptions
 from django.utils.encoding import force_str
-from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
+
+from .app_settings import api_settings
 
 if 'allauth' in settings.INSTALLED_APPS:
     from .forms import AllAuthPasswordResetForm
@@ -55,14 +56,14 @@ class LoginSerializer(serializers.Serializer):
         return user
 
     def get_auth_user_using_allauth(self, username, email, password):
-        from allauth.account import app_settings
+        from allauth.account import app_settings as allauth_account_settings
 
         # Authentication through email
-        if app_settings.AUTHENTICATION_METHOD == app_settings.AuthenticationMethod.EMAIL:
+        if allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.EMAIL:
             return self._validate_email(email, password)
 
         # Authentication through username
-        if app_settings.AUTHENTICATION_METHOD == app_settings.AuthenticationMethod.USERNAME:
+        if allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.USERNAME:
             return self._validate_username(username, password)
 
         # Authentication through either username or email
@@ -107,9 +108,9 @@ class LoginSerializer(serializers.Serializer):
 
     @staticmethod
     def validate_email_verification_status(user):
-        from allauth.account import app_settings
+        from allauth.account import app_settings as allauth_account_settings
         if (
-            app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY
+            allauth_account_settings.EMAIL_VERIFICATION == allauth_account_settings.EmailVerificationMethod.MANDATORY
             and not user.emailaddress_set.filter(email=user.email, verified=True).exists()
         ):
             raise serializers.ValidationError(_('E-mail is not verified.'))
@@ -193,14 +194,7 @@ class JWTSerializer(serializers.Serializer):
         Required to allow using custom USER_DETAILS_SERIALIZER in
         JWTSerializer. Defining it here to avoid circular imports
         """
-        rest_auth_serializers = getattr(settings, 'REST_AUTH_SERIALIZERS', {})
-
-        JWTUserDetailsSerializer = import_string(
-            rest_auth_serializers.get(
-                'USER_DETAILS_SERIALIZER',
-                'dj_rest_auth.serializers.UserDetailsSerializer',
-            ),
-        )
+        JWTUserDetailsSerializer = api_settings.USER_DETAILS_SERIALIZER
 
         user_data = JWTUserDetailsSerializer(obj['user'], context=self.context).data
         return user_data
@@ -320,12 +314,8 @@ class PasswordChangeSerializer(serializers.Serializer):
     set_password_form = None
 
     def __init__(self, *args, **kwargs):
-        self.old_password_field_enabled = getattr(
-            settings, 'OLD_PASSWORD_FIELD_ENABLED', False,
-        )
-        self.logout_on_password_change = getattr(
-            settings, 'LOGOUT_ON_PASSWORD_CHANGE', False,
-        )
+        self.old_password_field_enabled = api_settings.OLD_PASSWORD_FIELD_ENABLED
+        self.logout_on_password_change = api_settings.LOGOUT_ON_PASSWORD_CHANGE
         super().__init__(*args, **kwargs)
 
         if not self.old_password_field_enabled:
