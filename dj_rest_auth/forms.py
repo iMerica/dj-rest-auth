@@ -49,6 +49,8 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
             else:
                 url = build_absolute_uri(request, path)
 
+            url = url.replace("%3F", "?")
+
             context = {
                 'current_site': current_site,
                 'user': user,
