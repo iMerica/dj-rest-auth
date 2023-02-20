@@ -19,6 +19,22 @@ if 'allauth' in settings.INSTALLED_APPS:
     from allauth.utils import build_absolute_uri
 
 
+def default_url_generator(request, user, temp_key):
+    path = reverse(
+        'password_reset_confirm',
+        args=[user_pk_to_url_str(user), temp_key],
+    )
+
+    if api_settings.PASSWORD_RESET_USE_SITES_DOMAIN:
+        url = build_absolute_uri(None, path)
+    else:
+        url = build_absolute_uri(request, path)
+
+    url = url.replace('%3F', '?')
+
+    return url
+
+
 class AllAuthPasswordResetForm(DefaultPasswordResetForm):
     def clean_email(self):
         """
@@ -44,17 +60,8 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
             # password_reset.save()
 
             # send the password reset email
-            path = reverse(
-                'password_reset_confirm',
-                args=[user_pk_to_url_str(user), temp_key],
-            )
-
-            if api_settings.PASSWORD_RESET_USE_SITES_DOMAIN:
-                url = build_absolute_uri(None, path)
-            else:
-                url = build_absolute_uri(request, path)
-
-            url = url.replace("%3F", "?")
+            url_generator = kwargs.get('url_generator', default_url_generator)
+            url = url_generator(request, user, temp_key)
 
             context = {
                 'current_site': current_site,
