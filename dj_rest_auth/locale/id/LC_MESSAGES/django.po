@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <kiraware@github.com>, 2023.
+# Kira <kiraware@github.com>, 2023.
 #
 #, fuzzy
 msgid ""
@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-13 20:58+0800\n"
-"PO-Revision-Date: 2023-02-13 20:58+0800\n"
+"PO-Revision-Date: 2023-03-12 10:50+0800\n"
 "Last-Translator: Kira <kiraware@github.com>\n"
 "Language-Team: \n"
 "Language: id\n"
@@ -23,7 +23,7 @@ msgid ""
 "settings."
 msgstr ""
 "Pengaturan '{}' telah dihapus. Silakan merujuk ke '{}' untuk pengaturan "
-"pengaturan" yang tersedia."
+"pengaturan yang tersedia."
 
 #: .\dj_rest_auth\jwt_auth.py:70
 msgid "WIll override cookie."
