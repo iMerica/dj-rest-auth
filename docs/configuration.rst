@@ -1,67 +1,243 @@
 Configuration
 =============
 
-- **REST_AUTH_SERIALIZERS**
+dj-rest-auth behaviour can be controlled by adjust settings in ``settings.py``:
 
-    You can define your custom serializers for each endpoint without overriding urls and views by adding ``REST_AUTH_SERIALIZERS`` dictionary in your django settings.
-    Possible key values:
+.. code-block:: python
 
-        - LOGIN_SERIALIZER - serializer class in ``dj_rest_auth.views.LoginView``, default value ``dj_rest_auth.serializers.LoginSerializer``
+    # Django project settings.py
 
-        - TOKEN_SERIALIZER - response for successful authentication in ``dj_rest_auth.views.LoginView``, default value ``dj_rest_auth.serializers.TokenSerializer``
+    ...
 
-        - JWT_SERIALIZER - (Using REST_USE_JWT=True) response for successful authentication in ``dj_rest_auth.views.LoginView``, default value ``dj_rest_auth.serializers.JWTSerializer``
+    REST_AUTH = {
+        'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
+        'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
+        'JWT_SERIALIZER': 'dj_rest_auth.serializers.JWTSerializer',
+        'JWT_SERIALIZER_WITH_EXPIRATION': 'dj_rest_auth.serializers.JWTSerializerWithExpiration',
+        'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+        'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer',
+        'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
+        'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
+        'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
 
-        - JWT_TOKEN_CLAIMS_SERIALIZER - A custom JWT Claim serializer. Default is ``rest_framework_simplejwt.serializers.TokenObtainPairSerializer``
+        'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
 
-        - USER_DETAILS_SERIALIZER - serializer class in ``dj_rest_auth.views.UserDetailsView``, default value ``dj_rest_auth.serializers.UserDetailsSerializer``
+        'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
 
-        - PASSWORD_RESET_SERIALIZER - serializer class in ``dj_rest_auth.views.PasswordResetView``, default value ``dj_rest_auth.serializers.PasswordResetSerializer``
+        'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
+        'TOKEN_CREATOR': 'dj_rest_auth.utils.default_create_token',
 
-        - PASSWORD_RESET_CONFIRM_SERIALIZER - serializer class in ``dj_rest_auth.views.PasswordResetConfirmView``, default value ``dj_rest_auth.serializers.PasswordResetConfirmSerializer``
+        'PASSWORD_RESET_USE_SITES_DOMAIN': False,
+        'OLD_PASSWORD_FIELD_ENABLED': False,
+        'LOGOUT_ON_PASSWORD_CHANGE': False,
+        'SESSION_LOGIN': True,
+        'USE_JWT': False,
 
-        - PASSWORD_CHANGE_SERIALIZER - serializer class in ``dj_rest_auth.views.PasswordChangeView``, default value ``dj_rest_auth.serializers.PasswordChangeSerializer``
+        'JWT_AUTH_COOKIE': None,
+        'JWT_AUTH_REFRESH_COOKIE': None,
+        'JWT_AUTH_REFRESH_COOKIE_PATH': '/',
+        'JWT_AUTH_SECURE': False,
+        'JWT_AUTH_HTTPONLY': True,
+        'JWT_AUTH_SAMESITE': 'Lax',
+        'JWT_AUTH_RETURN_EXPIRATION': False,
+        'JWT_AUTH_COOKIE_USE_CSRF': False,
+        'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
+    }
 
+Above, the default values for these settings are shown.
 
-    Example configuration:
+``LOGIN_SERIALIZER``
+====================
 
-    .. code-block:: python
+The path to the serializer class for the login in
+``dj_rest_auth.views.LoginView``. The value is the dotted path to
+``dj_rest_auth.serializers.LoginSerializer``, which is also the default.
 
-        REST_AUTH_SERIALIZERS = {
-            'LOGIN_SERIALIZER': 'path.to.custom.LoginSerializer',
-            'TOKEN_SERIALIZER': 'path.to.custom.TokenSerializer',
-            ...
-        }
+``TOKEN_SERIALIZER``
+====================
 
-- **REST_AUTH_REGISTER_SERIALIZERS**
+The path to the serializer class for the Token response on successful
+authentication in ``dj_rest_auth.views.LoginView``. The value is the dotted
+path to ``dj_rest_auth.serializers.TokenSerializer``, which is also the
+default.
 
-    You can define your custom serializers for registration endpoint.
-    Possible key values:
+``JWT_SERIALIZER``
+==================
 
-        - REGISTER_SERIALIZER - serializer class in ``dj_rest_auth.registration.views.RegisterView``, default value ``dj_rest_auth.registration.serializers.RegisterSerializer``
-    
-        .. note:: The custom REGISTER_SERIALIZER must define a ``def save(self, request)`` method that returns a user model instance
-- **REST_AUTH_REGISTER_PERMISSION_CLASSES** - A tuple contains paths of another permission classes you wish to be used in ``RegisterView``, ``AllowAny`` is included by default.
+The path to the serializer class for the JWT response on successful
+authentication in ``dj_rest_auth.views.LoginView``. The value is the dotted
+path to ``dj_rest_auth.serializers.JWTSerializer``, which is also the default.
+Requires ``USE_JWT=True`` in settings.
 
-    Example :
+``JWT_SERIALIZER_WITH_EXPIRATION``
+==================================
 
-    .. code-block:: python
+The path to the serializer class for the JWT response with its expiration time
+on successful authentication in ``dj_rest_auth.views.LoginView``. The value is
+the dotted path to ``dj_rest_auth.serializers.JWTSerializerWithExpiration``,
+which is also the default. Requires ``USE_JWT=True`` in settings.
 
-        REST_AUTH_REGISTER_PERMISSION_CLASSES = (
-            'rest_framework.permissions.IsAuthenticated',
-            'path.to.another.permission.class',
-            ...
-        )
-- **REST_AUTH_TOKEN_MODEL** - path to model class for tokens, default value ``'rest_framework.authtoken.models.Token'``
-- **REST_AUTH_TOKEN_CREATOR** - path to callable or callable for creating tokens, default value ``dj_rest_auth.utils.default_create_token``.
-- **REST_SESSION_LOGIN** - Enable session login in Login API view (default: True)
-- **REST_USE_JWT** - Enable JWT Authentication instead of Token/Session based. This is built on top of djangorestframework-simplejwt https://github.com/SimpleJWT/django-rest-framework-simplejwt, which must also be installed. (default: False)
-- **JWT_AUTH_COOKIE** - The cookie name/key.
-- **JWT_AUTH_REFRESH_COOKIE** - The name/key of the refresh token. ``None`` when not set, which disables the refresh token.
-- **JWT_AUTH_SECURE** - If you want the cookie to be only sent to the server when a request is made with the https scheme (default: False).
-- **JWT_AUTH_HTTPONLY** - If you want to prevent client-side JavaScript from having access to the cookie (default: True).
-- **JWT_AUTH_SAMESITE** - To tell the browser not to send this cookie when performing a cross-origin request (default: 'Lax'). SameSite isn’t supported by all browsers.
-- **OLD_PASSWORD_FIELD_ENABLED** - set it to True if you want to have old password verification on password change enpoint (default: False)
-- **LOGOUT_ON_PASSWORD_CHANGE** - set to False if you want to keep the current user logged in after a password change
-- **JWT_AUTH_COOKIE_USE_CSRF** -  Enables CSRF checks for only authenticated views when using the JWT cookie for auth. Does not effect a client's ability to authenticate using a JWT Bearer Auth header without a CSRF token.
-- **JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED** - Enables CSRF checks for authenticated and unauthenticated views when using the JWT cookie for auth. It does not effect a client's ability to authenticate using a JWT Bearer Auth header without a CSRF token (though getting the JWT token in the first place without passing a CSRF token isnt possible).
+``JWT_TOKEN_CLAIMS_SERIALIZER``
+===============================
+
+The path to the serializer class for the JWT Claims on successful
+authentication in ``dj_rest_auth.views.LoginView``. The value is the dotted
+path to ``rest_framework_simplejwt.serializers.TokenObtainPairSerializer``,
+which is also the default. Requires ``USE_JWT=True`` in settings.
+
+``USER_DETAILS_SERIALIZER``
+===========================
+
+The path to the serializer class for the User details in
+``dj_rest_auth.views.UserDetailsView``. The value is the dotted path to
+``dj_rest_auth.serializers.UserDetailsSerializer``, which is also the default.
+
+``PASSWORD_RESET_SERIALIZER``
+=============================
+
+The path to the serializer class for the password reset in
+``dj_rest_auth.views.PasswordResetView``. The value is the dotted path to
+``dj_rest_auth.serializers.PasswordResetSerializer``, which is also the
+default.
+
+``PASSWORD_RESET_CONFIRM_SERIALIZER``
+=====================================
+
+The path to the serializer class for the password reset confirm in
+``dj_rest_auth.views.PasswordResetConfirmView``. The value is the dotted path to
+``dj_rest_auth.serializers.PasswordResetConfirmSerializer``, which is also the
+default.
+
+``PASSWORD_CHANGE_SERIALIZER``
+==============================
+
+The path to the serializer class for the password change in
+``dj_rest_auth.views.PasswordChangeView``. The value is the dotted path to
+``dj_rest_auth.serializers.PasswordChangeSerializer``, which is also the
+default.
+
+``REGISTER_SERIALIZER``
+=======================
+
+The path to the serializer class for the register in
+``dj_rest_auth.registration.views.RegisterView``. The value is the dotted path
+to ``dj_rest_auth.registration.serializers.RegisterSerializer``, which is also
+the default.
+
+.. note:: The custom ``REGISTER_SERIALIZER`` must define a ``def save(self, request)`` method that returns a user model instance.
+
+``REGISTER_PERMISSION_CLASSES``
+===============================
+
+A tuple that contains paths to the permission classes for the register in
+``dj_rest_auth.registration.views.RegisterView``. The value is the dotted path
+to ``path.to.another.permission.class``.
+``rest_framework.permissions.AllowAny`` is included by default.
+
+``TOKEN_MODEL``
+===============
+
+The path to the model class for the token. The value is the dotted path to
+``rest_framework.authtoken.models.Token``, which is also the default. If set to
+``None`` token authentication will be disabled. In this case at least one of
+``SESSION_LOGIN`` or ``USE_JWT`` must be enabled.
+
+``TOKEN_CREATOR``
+=================
+
+The path to callable for creating tokens. The value is the dotted path to
+``dj_rest_auth.utils.default_create_token``, which is also the default.
+
+``PASSWORD_RESET_USE_SITES_DOMAIN``
+===================================
+
+If set to ``True``, the domain in the password reset e-mail will be set to the
+domain you defined in ``django.contrib.sites`` module with ``SITE_ID=1``.
+Default is ``False``.
+
+``OLD_PASSWORD_FIELD_ENABLED``
+==============================
+
+If set to ``True``, old password verification in
+``dj_rest_auth.views.PasswordChangeView`` will be added. Default is ``False``.
+
+``LOGOUT_ON_PASSWORD_CHANGE``
+=============================
+
+If set to ``True``, current user will be logged out after a password change.
+Default is ``False``.
+
+``SESSION_LOGIN``
+=================
+
+If set to ``True``, session login in ``dj_rest_auth.views.LoginView`` will be
+enabled. Default is ``True``.
+
+``USE_JWT``
+===========
+
+If set to ``True``, JWT Authentication in ``dj_rest_auth.views.LoginView`` will
+be used instead of Token or Session based login. Default is ``False``.
+
+.. note:: JWT Authentication in dj-rest-auth is built on top of djangorestframework-simplejwt https://github.com/SimpleJWT/django-rest-framework-simplejwt. You must install it in order to be able to use JWT Authentication in dj-rest-auth.
+
+``JWT_AUTH_COOKIE``
+===================
+
+The cookie name for ``access_token`` from JWT Authentication. Default is
+``None``.
+
+``JWT_AUTH_REFRESH_COOKIE``
+===========================
+
+The cookie name for ``refresh_token`` from JWT Authentication. Default is
+``None``.
+
+``JWT_AUTH_REFRESH_COOKIE_PATH``
+================================
+
+The cookie path for ``refresh_token`` from JWT Authentication. Default is
+``'/'``.
+
+``JWT_AUTH_SECURE``
+===================
+
+If set to ``True``, the cookie will only be sent through https scheme. Default
+is ``False``.
+
+``JWT_AUTH_HTTPONLY``
+=====================
+
+If set to ``True``, the client-side JavaScript will not be able to access the
+cookie. Default is ``True``.
+
+.. note:: ``refresh_token`` will not be sent if ``JWT_AUTH_HTTPONLY`` set to ``True``, set it to ``False`` if you need ``refresh_token``.
+
+``JWT_AUTH_SAMESITE``
+=====================
+
+To tell the browser not to send this cookie when performing a cross-origin
+request. Default is ``'Lax'``. SameSite isn't supported by all browsers.
+
+``JWT_AUTH_RETURN_EXPIRATION``
+==============================
+
+If set to ``True``, the ``access_token`` and ``refresh_token`` expiration time
+will be included in response on successful JWT Authentication in
+``dj_rest_auth.views.LoginView``. Default is ``False``.
+
+``JWT_AUTH_COOKIE_USE_CSRF``
+============================
+
+If set to ``True``, enable CSRF checks for only authenticated views when using
+the JWT cookie for auth. Does not effect a client's ability to authenticate
+using a JWT Bearer Auth header without a CSRF token. Default is ``False``.
+
+``JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED``
+===================================================
+
+If set to ``True``, enables CSRF checks for authenticated and unauthenticated
+views when using the JWT cookie for auth. It does not effect a client's ability
+to authenticate using a JWT Bearer Auth header without a CSRF token (though
+getting the JWT token in the first place without passing a CSRF token isnt
+possible). Default is ``False``.

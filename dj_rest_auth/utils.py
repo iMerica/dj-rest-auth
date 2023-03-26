@@ -1,15 +1,4 @@
-from importlib import import_module
-
-from django.conf import settings
-
-
-def import_callable(path_or_callable):
-    if hasattr(path_or_callable, '__call__'):
-        return path_or_callable
-    else:
-        assert isinstance(path_or_callable, str)
-        package, attr = path_or_callable.rsplit('.', 1)
-        return getattr(import_module(package), attr)
+from django.utils.functional import lazy
 
 
 def default_create_token(token_model, user, serializer):
@@ -18,20 +7,16 @@ def default_create_token(token_model, user, serializer):
 
 
 def jwt_encode(user):
-    from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-    rest_auth_serializers = getattr(settings, 'REST_AUTH_SERIALIZERS', {})
+    from dj_rest_auth.app_settings import api_settings
 
-    JWTTokenClaimsSerializer = rest_auth_serializers.get(
-        'JWT_TOKEN_CLAIMS_SERIALIZER',
-        TokenObtainPairSerializer,
-    )
+    JWTTokenClaimsSerializer = api_settings.JWT_TOKEN_CLAIMS_SERIALIZER
 
-    TOPS = import_callable(JWTTokenClaimsSerializer)
-    refresh = TOPS.get_token(user)
+    refresh = JWTTokenClaimsSerializer.get_token(user)
     return refresh.access_token, refresh
 
 
-try:
-    from .jwt_auth import JWTCookieAuthentication
-except ImportError:
-    pass
+def format_lazy(s, *args, **kwargs):
+    return s.format(*args, **kwargs)
+
+
+format_lazy = lazy(format_lazy, str)

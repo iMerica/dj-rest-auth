@@ -1,6 +1,7 @@
+from allauth.socialaccount.providers.oauth2.client import OAuth2Error
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponseBadRequest
 from django.urls.exceptions import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 from requests.exceptions import HTTPError
@@ -8,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 try:
-    from allauth.account import app_settings as allauth_settings
+    from allauth.account import app_settings as allauth_account_settings
     from allauth.account.adapter import get_adapter
     from allauth.account.utils import setup_user_email
     from allauth.socialaccount.helpers import complete_social_login
@@ -130,7 +131,12 @@ class SocialLoginSerializer(serializers.Serializer):
                 headers=adapter.headers,
                 basic_auth=adapter.basic_auth,
             )
-            token = client.get_access_token(code)
+            try:
+                token = client.get_access_token(code)
+            except OAuth2Error as ex:
+                raise serializers.ValidationError(
+                    _('Failed to exchange code for access token')
+                ) from ex
             access_token = token['access_token']
             tokens_to_parse = {'access_token': access_token}
 
@@ -147,17 +153,23 @@ class SocialLoginSerializer(serializers.Serializer):
         social_token.app = app
 
         try:
-            login = self.get_social_login(adapter, app, social_token, token)
-            complete_social_login(request, login)
+            if adapter.provider_id == 'google' and not code:
+                login = self.get_social_login(adapter, app, social_token, response={'id_token': token})
+            else:
+                login = self.get_social_login(adapter, app, social_token, token)
+            ret = complete_social_login(request, login)
         except HTTPError:
             raise serializers.ValidationError(_('Incorrect value'))
+
+        if isinstance(ret, HttpResponseBadRequest):
+            raise serializers.ValidationError(ret.content)
 
         if not login.is_existing:
             # We have an account already signed up in a different flow
             # with the same email address: raise an exception.
             # This needs to be handled in the frontend. We can not just
             # link up the accounts due to security constraints
-            if allauth_settings.UNIQUE_EMAIL:
+            if allauth_account_settings.UNIQUE_EMAIL:
                 # Do we have an account already with this email address?
                 account_exists = get_user_model().objects.filter(
                     email=login.user.email,
@@ -169,10 +181,22 @@ class SocialLoginSerializer(serializers.Serializer):
 
             login.lookup()
             login.save(request, connect=True)
+            self.post_signup(login, attrs)
 
         attrs['user'] = login.account.user
 
         return attrs
+
+    def post_signup(self, login, attrs):
+        """
+        Inject behavior when the user signs up with a social account.
+
+        :param login: The social login instance being registered.
+        :type login: allauth.socialaccount.models.SocialLogin
+        :param attrs: The attributes of the serializer.
+        :type attrs: dict
+        """
+        pass
 
 
 class SocialConnectMixin:
@@ -194,10 +218,10 @@ class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
-        min_length=allauth_settings.USERNAME_MIN_LENGTH,
-        required=allauth_settings.USERNAME_REQUIRED,
+        min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
+        required=allauth_account_settings.USERNAME_REQUIRED,
     )
-    email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -207,7 +231,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
-        if allauth_settings.UNIQUE_EMAIL:
+        if allauth_account_settings.UNIQUE_EMAIL:
             if email and email_address_exists(email):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
@@ -237,11 +261,12 @@ class RegisterSerializer(serializers.Serializer):
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user = adapter.save_user(request, user, self, commit=False)
-        try:
-            adapter.clean_password(self.cleaned_data['password1'], user=user)
-        except DjangoValidationError as exc:
-            raise serializers.ValidationError(
-                detail=serializers.as_serializer_error(exc)
+        if "password1" in self.cleaned_data:
+            try:
+                adapter.clean_password(self.cleaned_data['password1'], user=user)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(
+                    detail=serializers.as_serializer_error(exc)
             )
         user.save()
         self.custom_signup(request, user)
@@ -250,8 +275,8 @@ class RegisterSerializer(serializers.Serializer):
 
 
 class VerifyEmailSerializer(serializers.Serializer):
-    key = serializers.CharField()
+    key = serializers.CharField(write_only=True)
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)

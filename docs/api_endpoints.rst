@@ -53,7 +53,7 @@ Basic
 
     Returns an empty JSON object.
 
-    .. note:: ``REST_USE_JWT = True`` to use token/verify/ route.
+    .. note:: ``USE_JWT = True`` to use token/verify/ route.
     .. note:: Takes a token and indicates if it is valid.  This view provides no information about a token's fitness for a particular use. Will return a ``HTTP 200 OK`` in case of a valid token and ``HTTP 401 Unauthorized`` with ``{"detail": "Token is invalid or expired", "code": "token_not_valid"}`` in case of a invalid or expired token.
 
 
@@ -63,7 +63,7 @@ Basic
 
     Returns access
 
-    .. note:: ``REST_USE_JWT = True`` to use token/refresh/ route.
+    .. note:: ``USE_JWT = True`` to use token/refresh/ route.
     .. note:: Takes a refresh type JSON web token and returns an access type JSON web token if the refresh token is valid. ``HTTP 401 Unauthorized`` with ``{"detail": "Token is invalid or expired", "code": "token_not_valid"}`` in case of a invalid or expired token.
 
 Registration

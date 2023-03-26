@@ -169,7 +169,7 @@ If you are using GitHub for your social authentication, it uses code and not Acc
     from allauth.socialaccount.providers.oauth2.client import OAuth2Client
     from dj_rest_auth.registration.views import SocialLoginView
 
-    class GithubLogin(SocialLoginView):
+    class GitHubLogin(SocialLoginView):
         adapter_class = GitHubOAuth2Adapter
         callback_url = CALLBACK_URL_YOU_SET_ON_GITHUB
         client_class = OAuth2Client
@@ -182,6 +182,74 @@ If you are using GitHub for your social authentication, it uses code and not Acc
         ...,
         path('dj-rest-auth/github/', GitHubLogin.as_view(), name='github_login')
     ]
+    
+    
+Google
+######
+If you are using Google for your social authentication, you can choose ``Authorization Code Grant`` or ``Implicit Grant`` (deprecated).
+Serializer of dj-rest-auth accepts both ``code`` and ``token`` 
+
+1. Add ``allauth.socialaccount`` and ``allauth.socialaccount.providers.google`` apps to INSTALLED_APPS in your django settings.py:
+
+.. code-block:: python
+
+    INSTALLED_APPS = (
+        ...,
+        'rest_framework',
+        'rest_framework.authtoken',
+        'dj_rest_auth'
+        ...,
+        'django.contrib.sites',
+        'allauth',
+        'allauth.account',
+        'dj_rest_auth.registration',
+        ...,
+        'allauth.socialaccount',
+        'allauth.socialaccount.providers.google',
+
+    )
+    
+3. Create new view as a subclass of ``dj_rest_auth.views.SocialLoginView`` with ``GoogleOAuth2Adapter`` adapter, an ``OAuth2Client`` and a callback_url as attributes:
+
+.. code-block:: python
+
+    from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+    from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+    from dj_rest_auth.registration.views import SocialLoginView
+    
+    class GoogleLogin(SocialLoginView): # if you want to use Authorization Code Grant, use this
+        adapter_class = GoogleOAuth2Adapter
+        callback_url = CALLBACK_URL_YOU_SET_ON_GOOGLE
+        client_class = OAuth2Client
+        
+    class GoogleLogin(SocialLoginView): # if you want to use Implicit Grant, use this
+        adapter_class = GoogleOAuth2Adapter
+
+4. Create url for GoogleLogin view:
+
+.. code-block:: python
+
+    urlpatterns += [
+        ...,
+        path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login')
+    ]
+
+5. Retrive code (or token)
+By accessing Google's endpoint, you can get ``code`` or ``token``
+
+If you're using Authorization Code Grant, you can get code from following URL
+
+
+``https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=<CALLBACK_URL_YOU_SET_ON_GOOGLE>&prompt=consent&response_type=code&client_id=<YOUR CLIENT ID>&scope=openid%20email%20profile&access_type=offline``
+
+
+If you're using Implicit Grant, you can get token from following URL
+
+
+``https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=<CALLBACK_URL_YOU_SET_ON_GOOGLE>&prompt=consent&response_type=token&client_id=<YOUR CLIENT ID>&scope=openid%20email%20profile``
+
+6. POST code or token to specified URL(/dj-rest-auth/google/)
+
 
 Additional Social Connect Views
 ###############################
@@ -269,14 +337,20 @@ By default ``dj-rest-auth`` uses Django's Token-based authentication. If you wan
 
 .. code-block:: python
 
-    REST_USE_JWT = True
+    REST_AUTH = {
+        ...
+        'USE_JWT': True,
+    }
 
 4. Declare what you want the cookie key to be called. If you want to use the refresh token feature, also be sure to set that variable.
 
 .. code-block:: python
 
-    JWT_AUTH_COOKIE = 'my-app-auth'
-    JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+    REST_AUTH = {
+        ...
+        'JWT_AUTH_COOKIE': 'my-app-auth',
+        'JWT_AUTH_REFRESH_COOKIE': 'my-refresh-token',
+    }
 
 
 This example value above will cause dj-rest-auth to return a `Set-Cookie` header that looks like this:
@@ -285,4 +359,4 @@ This example value above will cause dj-rest-auth to return a `Set-Cookie` header
 
     Set-Cookie: my-app-auth=xxxxxxxxxxxxx; expires=Sat, 28 Mar 2020 18:59:00 GMT; HttpOnly; Max-Age=300; Path=/
 
-If ``JWT_AUTH_REFRESH_COOKIE`` is also set, it will also set a comperable cookie for that. ``JWT_AUTH_COOKIE`` is also used while authenticating each request against protected views.
+If ``JWT_AUTH_REFRESH_COOKIE`` is also set, it will also set a comparable cookie for that. ``JWT_AUTH_COOKIE`` is also used while authenticating each request against protected views.
