@@ -49,8 +49,8 @@ class RegisterView(CreateAPIView):
         if api_settings.USE_JWT:
             data = {
                 'user': user,
-                'access_token': self.access_token,
-                'refresh_token': self.refresh_token,
+                'access': self.access_token,
+                'refresh': self.refresh_token,
             }
             return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
         elif api_settings.SESSION_LOGIN:
