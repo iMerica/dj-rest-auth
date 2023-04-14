@@ -185,8 +185,8 @@ class JWTSerializer(serializers.Serializer):
     """
     Serializer for JWT authentication.
     """
-    access_token = serializers.CharField()
-    refresh_token = serializers.CharField()
+    access = serializers.CharField()
+    refresh = serializers.CharField()
     user = serializers.SerializerMethodField()
 
     def get_user(self, obj):
@@ -204,8 +204,8 @@ class JWTSerializerWithExpiration(JWTSerializer):
     """
     Serializer for JWT authentication with expiration times.
     """
-    access_token_expiration = serializers.DateTimeField()
-    refresh_token_expiration = serializers.DateTimeField()
+    access_expiration = serializers.DateTimeField()
+    refresh_expiration = serializers.DateTimeField()
 
 
 class PasswordResetSerializer(serializers.Serializer):

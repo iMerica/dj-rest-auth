@@ -88,18 +88,18 @@ class LoginView(GenericAPIView):
 
             data = {
                 'user': self.user,
-                'access_token': self.access_token,
+                'access': self.access_token,
             }
 
             if not auth_httponly:
-                data['refresh_token'] = self.refresh_token
+                data['refresh'] = self.refresh_token
             else:
                 # Wasnt sure if the serializer needed this
-                data['refresh_token'] = ""
+                data['refresh'] = ""
 
             if return_expiration_times:
-                data['access_token_expiration'] = access_token_expiration
-                data['refresh_token_expiration'] = refresh_token_expiration
+                data['access_expiration'] = access_token_expiration
+                data['refresh_expiration'] = refresh_token_expiration
 
             serializer = serializer_class(
                 instance=data,
