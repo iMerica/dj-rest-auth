@@ -1061,6 +1061,10 @@ class APIBasicTests(TestsMixin, TestCase):
         )
         self.assertIn('xxx', refresh_resp.cookies)
 
+        # Ensure access keys are provided in response
+        self.assertIn('access', refresh_resp.data)
+        self.assertIn('access_expiration', refresh_resp.data)
+
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_HTTPONLY=False)
     def test_rotate_token_refresh_view(self):
@@ -1081,7 +1085,10 @@ class APIBasicTests(TestsMixin, TestCase):
             data=dict(refresh=refresh),
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Ensure access keys are provided in response
         self.assertIn('refresh', resp.data)
+        self.assertIn('refresh_expiration', resp.data)
 
     @override_api_settings(TOKEN_MODEL=None)
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
