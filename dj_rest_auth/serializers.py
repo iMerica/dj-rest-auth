@@ -107,7 +107,7 @@ class LoginSerializer(serializers.Serializer):
             raise exceptions.ValidationError(msg)
 
     @staticmethod
-    def validate_email_verification_status(user):
+    def validate_email_verification_status(user, email=None):
         from allauth.account import app_settings as allauth_account_settings
         if (
             allauth_account_settings.EMAIL_VERIFICATION == allauth_account_settings.EmailVerificationMethod.MANDATORY
@@ -130,7 +130,7 @@ class LoginSerializer(serializers.Serializer):
 
         # If required, is the email verified?
         if 'dj_rest_auth.registration' in settings.INSTALLED_APPS:
-            self.validate_email_verification_status(user)
+            self.validate_email_verification_status(user, email=email)
 
         attrs['user'] = user
         return attrs
