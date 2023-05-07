@@ -1,7 +1,7 @@
 __title__ = 'dj-rest-auth'
 __description__ = 'Authentication and Registration in Django Rest Framework.'
 __url__ = 'http://github.com/iMerica/dj-rest-auth'
-__version__ = '3.0.0'
+__version__ = '4.0.0'
 __author__ = '@iMerica https://github.com/iMerica'
 __author_email__ = 'imichael@pm.me'
 __license__ = 'MIT'
