@@ -182,8 +182,8 @@ class APIBasicTests(TestsMixin, TestCase):
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
 
         self.post(self.login_url, data=payload, status_code=200)
-        self.assertEqual('access_token' in self.response.json.keys(), True)
-        self.token = self.response.json['access_token']
+        self.assertEqual('access' in self.response.json.keys(), True)
+        self.token = self.response.json['access']
 
     @modify_settings(INSTALLED_APPS={'remove': ['allauth', 'allauth.account']})
     def test_login_by_email(self):
@@ -278,7 +278,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.token = self.response.json['key']
         new_password_payload = {"new_password1": 123, "new_password2": 123}
         self.post(self.password_change_url, data=new_password_payload, status_code=400)
-    
+
     @override_api_settings(OLD_PASSWORD_FIELD_ENABLED=True)
     def test_password_change_with_old_password(self):
         login_payload = {
@@ -439,7 +439,7 @@ class APIBasicTests(TestsMixin, TestCase):
             'password': self.PASS,
         }
         self.post(self.login_url, data=payload, status_code=200)
-        self.token = self.response.json['access_token']
+        self.token = self.response.json['access']
         self.get(self.user_url, status_code=200)
 
         self.patch(self.user_url, data=self.BASIC_USER_DATA, status_code=200)
@@ -522,7 +522,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.post(self.register_url, data={}, status_code=400)
 
         result = self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=201)
-        self.assertIn('access_token', result.data)
+        self.assertIn('access', result.data)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
 
         self._login()
@@ -727,7 +727,7 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
-        token = resp.data['refresh_token']
+        token = resp.data['refresh']
         resp = self.post(self.logout_url, status=200, data={'refresh': token})
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(
@@ -745,7 +745,7 @@ class APIBasicTests(TestsMixin, TestCase):
         }
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
-        token = resp.data['refresh_token']
+        token = resp.data['refresh']
         # test refresh token not included in request data
         self.post(self.logout_url, status_code=401)
         # test token is invalid or expired
@@ -776,8 +776,8 @@ class APIBasicTests(TestsMixin, TestCase):
         get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
 
         self.post(self.login_url, data=payload, status_code=200)
-        self.assertEqual('access_token' in self.response.json.keys(), True)
-        self.token = self.response.json['access_token']
+        self.assertEqual('access' in self.response.json.keys(), True)
+        self.token = self.response.json['access']
         claims = decode_jwt(self.token, settings.SECRET_KEY, algorithms='HS256')
         self.assertEquals(claims['user_id'], 1)
         self.assertEquals(claims['name'], 'person')
@@ -839,7 +839,7 @@ class APIBasicTests(TestsMixin, TestCase):
 
         ## TEST WITH JWT AUTH HEADER
         jwtclient = APIClient(enforce_csrf_checks=True)
-        token = resp.data['access_token']
+        token = resp.data['access']
         resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
         self.assertEquals(resp.status_code, 200)
         resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer ' + token)
@@ -885,7 +885,7 @@ class APIBasicTests(TestsMixin, TestCase):
 
         ## TEST WITH JWT AUTH HEADER
         jwtclient = APIClient(enforce_csrf_checks=True)
-        token = resp.data['access_token']
+        token = resp.data['access']
         resp = jwtclient.get('/protected-view/')
         self.assertEquals(resp.status_code, 403)
         resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
@@ -1017,8 +1017,8 @@ class APIBasicTests(TestsMixin, TestCase):
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
 
         resp = self.post(self.login_url, data=payload, status_code=200)
-        self.assertIn('access_token_expiration', resp.data.keys())
-        self.assertIn('refresh_token_expiration', resp.data.keys())
+        self.assertIn('access_expiration', resp.data.keys())
+        self.assertIn('refresh_expiration', resp.data.keys())
 
     @override_api_settings(JWT_AUTH_RETURN_EXPIRATION=True)
     @override_api_settings(USE_JWT=True)
@@ -1053,13 +1053,17 @@ class APIBasicTests(TestsMixin, TestCase):
 
         get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         resp = self.post(self.login_url, data=payload, status_code=200)
-        refresh = resp.data.get('refresh_token')
+        refresh = resp.data.get('refresh')
         refresh_resp = self.post(
             reverse('token_refresh'),
             data=dict(refresh=refresh),
             status_code=200,
         )
         self.assertIn('xxx', refresh_resp.cookies)
+
+        # Ensure access keys are provided in response
+        self.assertIn('access', refresh_resp.data)
+        self.assertIn('access_expiration', refresh_resp.data)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_HTTPONLY=False)
@@ -1075,13 +1079,16 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.login_url, data=payload)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-        refresh = resp.data.get('refresh_token', None)
+        refresh = resp.data.get('refresh', None)
         resp = self.post(
             reverse('token_refresh'),
             data=dict(refresh=refresh),
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        # Ensure access keys are provided in response
         self.assertIn('refresh', resp.data)
+        self.assertIn('refresh_expiration', resp.data)
 
     @override_api_settings(TOKEN_MODEL=None)
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework.authtoken']})
