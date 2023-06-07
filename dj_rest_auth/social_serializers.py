@@ -106,9 +106,6 @@ class MicrosoftLoginSerializer(SocialLoginSerializer):
 
         access_token = attrs.get('accessToken')
 
-        request.session['oauth_api.twitter.com_access_token'] = {
-            'oauth_token': access_token,
-        }
         token = SocialToken(token=access_token)
         token.app = app
 
