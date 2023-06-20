@@ -10,7 +10,7 @@ if 'allauth.socialaccount' in settings.INSTALLED_APPS:
     from allauth.socialaccount.models import SocialToken
     from allauth.socialaccount.providers.oauth.client import OAuthError
 
-    from dj_rest_auth.registration.serializers import SocialConnectMixin, SocialLoginSerializer
+    from dj_rest_auth.registration.serializers import SocialConnectMixin
 
 
 class TwitterLoginSerializer(serializers.Serializer):
