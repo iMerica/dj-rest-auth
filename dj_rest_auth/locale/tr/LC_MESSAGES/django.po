@@ -60,7 +60,7 @@ msgstr "\"email\" ve \"password\" içermelidir."
 
 #: serializers.py:44
 msgid "Must include \"username\" and \"password\"."
-msgstr "“username\" und \"password\" içermelidir."
+msgstr "“username\" ve \"password\" içermelidir."
 
 #: serializers.py:57
 msgid "Must include either \"username\" or \"email\" and \"password\"."
