@@ -6,9 +6,11 @@ from allauth.account.models import EmailAddress
 from allauth.socialaccount import signals
 from allauth.socialaccount.adapter import get_adapter as get_social_adapter
 from allauth.socialaccount.models import SocialAccount
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
+from django.contrib.auth import login as django_login
 from rest_framework import status
 from rest_framework.exceptions import MethodNotAllowed, NotFound
 from rest_framework.generics import CreateAPIView, GenericAPIView, ListAPIView
@@ -47,28 +49,69 @@ class RegisterView(CreateAPIView):
             return {'detail': _('Verification e-mail sent.')}
 
         if api_settings.USE_JWT:
+            from rest_framework_simplejwt.settings import (
+                api_settings as jwt_settings,
+            )
+            access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+            refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+            return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
+            auth_httponly = api_settings.JWT_AUTH_HTTPONLY
+
             data = {
                 'user': user,
                 'access': self.access_token,
-                'refresh': self.refresh_token,
             }
-            return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
+
+            if not auth_httponly:
+                data['refresh'] = self.refresh_token
+            else:
+                # Wasnt sure if the serializer needed this
+                data['refresh'] = ""
+
+            if return_expiration_times:
+                data['access_expiration'] = access_token_expiration
+                data['refresh_expiration'] = refresh_token_expiration
+                return api_settings.JWT_SERIALIZER_WITH_EXPIRATION(data, context=self.get_serializer_context()).data
+            else:
+                return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
+            
         elif api_settings.SESSION_LOGIN:
             return None
         else:
             return api_settings.TOKEN_SERIALIZER(user.auth_token, context=self.get_serializer_context()).data
+
+
+    def get_response(self, data, serializer, *args, **kwargs):
+
+        if api_settings.USE_JWT:
+            serializer.instance = data,
+            serializer._context = self.get_serializer_context(),
+        elif self.token:
+            serializer.instance = self.token,
+            serializer._context = self.get_serializer_context(),
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        response = Response(data, status=status.HTTP_201_CREATED)
+        if api_settings.USE_JWT:
+            from dj_rest_auth.jwt_auth import set_jwt_cookies
+            set_jwt_cookies(response, self.access_token, self.refresh_token)
+        return response
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        data = self.get_response_data(user)
 
-        if data:
+        data = self.get_response_data(user)
+        if api_settings.LOGIN_ON_REGISTER:
+            response = self.get_response(data, serializer)
+            response.headers = headers
+            django_login(self.request, user)
+        elif data:
             response = Response(
                 data,
-                status=status.HTTP_201_CREATED,
                 headers=headers,
             )
         else:
@@ -85,7 +128,7 @@ class RegisterView(CreateAPIView):
             elif not api_settings.SESSION_LOGIN:
                 # Session authentication isn't active either, so this has to be
                 #  token authentication
-                api_settings.TOKEN_CREATOR(self.token_model, user, serializer)
+                self.token = api_settings.TOKEN_CREATOR(self.token_model, user, serializer)
 
         complete_signup(
             self.request._request, user,
