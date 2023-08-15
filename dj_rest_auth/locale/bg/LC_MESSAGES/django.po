@@ -83,7 +83,7 @@ msgstr "Успешно излязохте."
 
 #: views.py:174
 msgid "Password reset e-mail has been sent."
-msgstr "Изпратено е имейл за нулиране на паролата."
+msgstr "Изпратен е имейл за нулиране на паролата."
 
 #: views.py:200
 msgid "Password has been reset with the new password."
