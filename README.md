@@ -3,10 +3,10 @@
 
 
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
-with SPAs (e.g React, Vue, Angular), and Mobile applications. 
+with SPAs (e.g., React, Vue, Angular), and Mobile applications. 
 
 ## Requirements
-- Django 2, 3 or 4 (See Unit Test Coverage in CI)
+- Django 2, 3, or 4 (See Unit Test Coverage in CI)
 - Python 3
 
 ## Quick Setup
@@ -57,7 +57,7 @@ within a virtualenv, run `coverage run ./runtests.py` from the repository direct
 #### Tox
 
 Testing may also be done using [`tox`](https://pypi.org/project/tox/), which
-will run the tests against all supported combinations of python and django.
+will run the tests against all supported combinations of Python and Django.
 
 Install tox, either globally or within a virtualenv, and then simply run `tox`
 from the repository directory. As there are many combinations, you may run them
@@ -81,4 +81,4 @@ This project began as a fork of `django-rest-auth`. Big thanks to everyone who c
 
 #### A note on Django AllAuth from @iMerica
 
-This project has an optional and very narrow support for Django-AllAuth. As maintainer I have no intererest in making this package support every and all use case in Django All Auth. I would rather focus on improving the quality of the base funtionality or focus on OIDC support instead. Pull requests that extend or add more support for Django AllAuth will most likely be declined. Do you disagreee? Feel free to fork this repo!
+This project has optional and very narrow support for Django-AllAuth. As the maintainer, I have no interest in making this package support all use cases in Django-AllAuth. I would rather focus on improving the quality of the base functionality or focus on OIDC support instead. Pull requests that extend or add more support for Django-AllAuth will most likely be declined. Do you disagree? Feel free to fork this repo!
