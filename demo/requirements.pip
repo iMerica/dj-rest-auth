@@ -1,8 +1,8 @@
-django==4.2.4
+django>=2.2,<4.0
 dj-rest-auth @ git+https://github.com/brandon-kong/dj-rest-auth.git@master
 djangorestframework>=3.11.0
 djangorestframework-simplejwt==4.7.1
-django-allauth>=0.55.0
+django-allauth>=0.24.1
 drf-yasg==1.21.4
 django-cors-headers==3.2.1
 coreapi==2.3.3
