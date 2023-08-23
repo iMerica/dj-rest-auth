@@ -17,6 +17,7 @@ try:
     from allauth.socialaccount.models import SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
     from allauth.utils import get_username_max_length
+    from allauth.account.models import EmailAddress
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
@@ -233,7 +234,7 @@ class RegisterSerializer(serializers.Serializer):
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
         if allauth_account_settings.UNIQUE_EMAIL:
-            if email and email_address_exists(email):
+            if email and EmailAddress.objects.is_verified(email):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
                 )
