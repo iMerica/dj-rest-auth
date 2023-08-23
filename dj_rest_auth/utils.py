@@ -1,4 +1,13 @@
 from django.utils.functional import lazy
+from allauth.account.models import EmailAddress
+
+def email_address_exists(email: str) -> bool:
+    """Check if an email address exists in the EmailAddress table."""
+    try:
+        EmailAddress.objects.get(email=email)
+    except EmailAddress.DoesNotExist:
+        return False
+    return True
 
 
 def default_create_token(token_model, user, serializer):

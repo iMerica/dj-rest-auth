@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from requests.exceptions import HTTPError
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from dj_rest_auth.utils import email_address_exists
 
 try:
     from allauth.account import app_settings as allauth_account_settings
@@ -15,7 +16,7 @@ try:
     from allauth.socialaccount.helpers import complete_social_login
     from allauth.socialaccount.models import SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
-    from allauth.utils import email_address_exists, get_username_max_length
+    from allauth.utils import get_username_max_length
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
