@@ -1,13 +1,30 @@
 from django.utils.functional import lazy
+from django.contrib.auth import get_user_model
 from allauth.account.models import EmailAddress
 
-def email_address_exists(email: str) -> bool:
-    """Check if an email address exists in the EmailAddress table."""
+def email_address_exists(email: str, exclude_user=None) -> str:
+    """
+    Slightly modified version of allauth.account.utils.email_address_exists
+    """
     try:
-        EmailAddress.objects.get(email=email)
-    except EmailAddress.DoesNotExist:
-        return False
-    return True
+        from allauth.account import app_settings as account_settings
+    except ImportError:
+        return ImportError(
+            "allauth needs to be added to INSTALLED_APPS."
+        )    
+
+    emailaddresses = EmailAddress.objects
+    if exclude_user:
+        emailaddresses = emailaddresses.exclude(user=exclude_user)
+    ret = emailaddresses.filter(email__iexact=email).exists()
+    if not ret:
+        email_field = account_settings.USER_MODEL_EMAIL_FIELD
+        if email_field:
+            users = get_user_model().objects
+            if exclude_user:
+                users = users.exclude(pk=exclude_user.pk)
+            ret = users.filter(**{email_field + "__iexact": email}).exists()
+    return ret
 
 
 def default_create_token(token_model, user, serializer):
