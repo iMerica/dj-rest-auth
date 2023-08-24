@@ -15,7 +15,7 @@ try:
     from allauth.socialaccount.helpers import complete_social_login
     from allauth.socialaccount.models import SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
-    from allauth.utils import validate_unique_email, get_username_max_length
+    from allauth.utils import get_username_max_length
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
