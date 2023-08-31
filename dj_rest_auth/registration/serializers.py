@@ -13,9 +13,9 @@ try:
     from allauth.account.adapter import get_adapter
     from allauth.account.utils import setup_user_email
     from allauth.socialaccount.helpers import complete_social_login
-    from allauth.socialaccount.models import SocialAccount
+    from allauth.socialaccount.models import SocialAccount, EmailAddress
     from allauth.socialaccount.providers.base import AuthProcess
-    from allauth.utils import email_address_exists, get_username_max_length
+    from allauth.utils import get_username_max_length
 except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
@@ -91,7 +91,7 @@ class SocialLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(_('Define adapter_class in view'))
 
         adapter = adapter_class(request)
-        app = adapter.get_provider().get_app(request)
+        app = adapter.get_provider().app
 
         # More info on code vs access_token
         # http://stackoverflow.com/questions/8666316/facebook-oauth-2-0-code-and-token
@@ -232,7 +232,7 @@ class RegisterSerializer(serializers.Serializer):
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
         if allauth_account_settings.UNIQUE_EMAIL:
-            if email and email_address_exists(email):
+            if email and EmailAddress.objects.is_verified(email):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
                 )
