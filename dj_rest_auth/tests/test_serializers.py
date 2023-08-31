@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 from dj_rest_auth.serializers import PasswordChangeSerializer, UserDetailsSerializer
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.models import SocialApp
 
 
 User = get_user_model()
