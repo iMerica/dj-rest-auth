@@ -267,7 +267,7 @@ class RegisterSerializer(serializers.Serializer):
             except DjangoValidationError as exc:
                 raise serializers.ValidationError(
                     detail=serializers.as_serializer_error(exc)
-            )
+                )
         user.save()
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
