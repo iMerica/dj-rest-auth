@@ -232,7 +232,7 @@ class RegisterSerializer(serializers.Serializer):
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
         if allauth_account_settings.UNIQUE_EMAIL:
-            if email and EmailAddress.objects.is_verified(email):
+            if email and self._email_address_exists(email):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
                 )
@@ -272,6 +272,15 @@ class RegisterSerializer(serializers.Serializer):
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
         return user
+
+    def _email_address_exists(self, email):
+        # `EmailAddressManager.is_verified` was introduced in django-allauth==0.55.2
+        # so if it's not available we're filtering the queryset ourselves;
+        try:
+            retval = EmailAddress.objects.is_verified(email)
+        except AttributeError:
+            retval = EmailAddress.objects.filter(email__iexact=email, verified=True).exists()
+        return retval
 
 
 class VerifyEmailSerializer(serializers.Serializer):
