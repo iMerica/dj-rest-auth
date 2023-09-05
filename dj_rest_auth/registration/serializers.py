@@ -157,6 +157,9 @@ class SocialLoginSerializer(serializers.Serializer):
                 login = self.get_social_login(adapter, app, social_token, response={'id_token': id_token})
             else:
                 login = self.get_social_login(adapter, app, social_token, token)
+            # Storing the original value of `is_existing` before calling `complete_social_login`,
+            # which may store the SocialLogin into the database
+            login_is_existing = login.is_existing   
             ret = complete_social_login(request, login)
         except HTTPError:
             raise serializers.ValidationError(_('Incorrect value'))
@@ -164,7 +167,7 @@ class SocialLoginSerializer(serializers.Serializer):
         if isinstance(ret, HttpResponseBadRequest):
             raise serializers.ValidationError(ret.content)
 
-        if not login.is_existing:
+        if not login_is_existing:
             # We have an account already signed up in a different flow
             # with the same email address: raise an exception.
             # This needs to be handled in the frontend. We can not just
