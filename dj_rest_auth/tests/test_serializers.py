@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 from dj_rest_auth.serializers import PasswordChangeSerializer, UserDetailsSerializer
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.models import SocialApp
 
 
 User = get_user_model()
@@ -130,7 +129,7 @@ class TestSocialLoginSerializer(TestCase):
         social_app.sites.add(site)
 
         cls.fb_response = {
-            "id": 56527456,
+            "id": "56527456",
             "first_name": "Alice",
             "last_name": "Test",
             "name": "Alcie Test",
@@ -155,7 +154,7 @@ class TestSocialLoginSerializer(TestCase):
         dummy_view = SocialLoginView()
         dummy_view.adapter_class = FacebookOAuth2Adapter
         mock_pre_social_login.side_effect = lambda request, social_login: exec('raise ImmediateHttpResponse(HttpResponseBadRequest("Bad Request"))')
-        mock_fb_complete_login.return_value = FacebookProvider(self.request).sociallogin_from_response(self.request, self.fb_response)
+        mock_fb_complete_login.return_value = FacebookProvider(self.request, app=FacebookOAuth2Adapter).sociallogin_from_response(self.request, self.fb_response)
         serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
         serializer.is_valid()
         self.assertDictEqual(serializer.errors, self.HTTP_BAD_REQUEST_MESSAGE)
