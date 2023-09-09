@@ -123,7 +123,7 @@ class ResendEmailVerificationView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = EmailAddress.objects.filter(**serializer.validated_data).first()
+        email = self.get_queryset().filter(**serializer.validated_data).first()
         if email and not email.verified:
             email.send_confirmation(request)
 
