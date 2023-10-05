@@ -62,12 +62,15 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
             # send the password reset email
             url_generator = kwargs.get('url_generator', default_url_generator)
             url = url_generator(request, user, temp_key)
+            uid = user.id
 
             context = {
                 'current_site': current_site,
                 'user': user,
                 'password_reset_url': url,
                 'request': request,
+                'key': temp_key,
+                'uid': uid,
             }
             if (
                 allauth_account_settings.AUTHENTICATION_METHOD
