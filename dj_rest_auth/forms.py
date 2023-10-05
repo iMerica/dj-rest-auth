@@ -69,7 +69,7 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'user': user,
                 'password_reset_url': url,
                 'request': request,
-                'key': temp_key,
+                'token': temp_key,
                 'uid': uid,
             }
             if (
