@@ -17,9 +17,9 @@ with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
 setup(
     name='dj-rest-auth',
     version=about['__version__'],
-    author='iMerica',
-    author_email='imichael@pm.me',
-    url='http://github.com/iMerica/dj-rest-auth',
+    author='vecchp',
+    author_email='paul@solidangle.net',
+    url='https://github.com/Solidangle-net/dj-rest-auth',
     description='Authentication and Registration in Django Rest Framework',
     license='MIT',
     packages=find_packages(),

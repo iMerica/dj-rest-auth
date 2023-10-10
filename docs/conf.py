@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'dj-rest-auth'
-copyright = u'2020, @iMerica'
+copyright = u'2020, @vecchp'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -201,7 +201,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'dj-rest-auth.tex', u'dj-rest-auth Documentation',
-   u'iMerica Inc.', 'manual'),
+   u'Solidangle-net Inc.', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -231,7 +231,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'dj-rest-auth', u'dj-rest-auth Documentation',
-     [u'@iMerica'], 1)
+     [u'@vecchp'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -245,7 +245,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'dj-rest-auth', u'dj-rest-auth Documentation',
-   u'@iMerica', 'dj-rest-auth', 'One line description of project.',
+   u'@vecchp', 'dj-rest-auth', 'One line description of project.',
    'Miscellaneous'),
 ]
 
