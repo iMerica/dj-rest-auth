@@ -1,9 +1,21 @@
 # Dj-Rest-Auth
-[![<iMerica>](https://circleci.com/gh/iMerica/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/iMerica/dj-rest-auth)
-
-
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
-with SPAs (e.g., React, Vue, Angular), and Mobile applications. 
+with SPAs (e.g., React, Vue, Angular), and Mobile applications.
+
+  _This fork has implemented the Proof Key for Code Exchange (PKCE) protocol for enhanced security during OAuth 2.0 authentication flows. It is especially important for public clients like Single Page Applications and mobile apps.  Upstream attempts to integarte this important security enhancement have been [rejected by the maintainer](https://github.com/iMerica/dj-rest-auth/pull/470)._
+
+Furthe PKCE Reading: https://curity.io/resources/learn/oauth-pkce/
+
+
+## Why is PKCE Important?
+
+* **Protect Against Authorization Code Interception:** PKCE was designed primarily to prevent an attacker from intercepting the authorization code in a public client, where the client secret cannot be kept confidential (like mobile or single-page applications).
+
+* **No Fixed Client Secret:** Public clients, which can't maintain the confidentiality of a client secret, use PKCE to dynamically generate a secret for each authorization request. This ensures that even if an authorization code is intercepted, it cannot be used without the original secret created by the client.
+
+* **Mitigate Man-in-the-Middle Attacks:** Without PKCE, if an attacker intercepts the authorization code, they might exploit it to obtain an access token. With PKCE, even if they have the code, they wouldn't have the necessary code_verifier to get the token.
+
+* **Industry Recommendation:** Many industry experts and standards, including OAuth 2.0 for Native Apps (RFC 8252), recommend using PKCE, especially for public clients.
 
 ## Requirements
 - Django 2, 3, or 4 (See Unit Test Coverage in CI)
@@ -79,6 +91,3 @@ View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/
 
 This project began as a fork of `django-rest-auth`. Big thanks to everyone who contributed to that repo!
 
-#### A note on Django AllAuth from @iMerica
-
-This project has optional and very narrow support for Django-AllAuth. As the maintainer, I have no interest in making this package support all use cases in Django-AllAuth. I would rather focus on improving the quality of the base functionality or focus on OIDC support instead. Pull requests that extend or add more support for Django-AllAuth will most likely be declined. Do you disagree? Feel free to fork this repo!

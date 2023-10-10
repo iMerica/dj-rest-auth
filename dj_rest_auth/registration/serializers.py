@@ -39,6 +39,7 @@ class SocialAccountSerializer(serializers.ModelSerializer):
 class SocialLoginSerializer(serializers.Serializer):
     access_token = serializers.CharField(required=False, allow_blank=True)
     code = serializers.CharField(required=False, allow_blank=True)
+    code_verifier = serializers.CharField(required=False, allow_blank=True)
     id_token = serializers.CharField(required=False, allow_blank=True)
 
     def _get_request(self):
@@ -98,6 +99,7 @@ class SocialLoginSerializer(serializers.Serializer):
 
         access_token = attrs.get('access_token')
         code = attrs.get('code')
+        code_verifier = attrs.get('code_verifier')
         # Case 1: We received the access_token
         if access_token:
             tokens_to_parse = {'access_token': access_token}
@@ -132,7 +134,7 @@ class SocialLoginSerializer(serializers.Serializer):
                 basic_auth=adapter.basic_auth,
             )
             try:
-                token = client.get_access_token(code)
+                token = client.get_access_token(code, pkce_code_verifier=code_verifier)
             except OAuth2Error as ex:
                 raise serializers.ValidationError(
                     _('Failed to exchange code for access token')
