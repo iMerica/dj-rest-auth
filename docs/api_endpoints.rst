@@ -14,7 +14,7 @@ Basic
 
 - /dj-rest-auth/logout/ (POST)
 
-    .. note:: ``ACCOUNT_LOGOUT_ON_GET = True`` to allow logout using GET - this is the exact same configuration from allauth. NOT recommended, see: http://django-allauth.readthedocs.io/en/latest/views.html#logout
+    .. note:: ``ACCOUNT_LOGOUT_ON_GET = True`` to allow logout using GET - this is the exact same configuration from allauth. NOT recommended, see: https://django-allauth.readthedocs.io/en/latest/account/views.html#logout
 
 - /dj-rest-auth/password/reset/ (POST)
 
