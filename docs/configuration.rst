@@ -39,6 +39,7 @@ dj-rest-auth behaviour can be controlled by adjust settings in ``settings.py``:
         'JWT_AUTH_SECURE': False,
         'JWT_AUTH_HTTPONLY': True,
         'JWT_AUTH_SAMESITE': 'Lax',
+        'JWT_AUTH_COOKIE_DOMAIN' : None,
         'JWT_AUTH_RETURN_EXPIRATION': False,
         'JWT_AUTH_COOKIE_USE_CSRF': False,
         'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
@@ -218,6 +219,11 @@ cookie. Default is ``True``.
 
 To tell the browser not to send this cookie when performing a cross-origin
 request. Default is ``'Lax'``. SameSite isn't supported by all browsers.
+
+``JWT_AUTH_COOKIE_DOMAIN``
+==========================
+Sets the cookie domain for the ``access_token`` and ``refresh_token``. Default is ``None``.
+
 
 ``JWT_AUTH_RETURN_EXPIRATION``
 ==============================
