@@ -177,12 +177,21 @@ class LogoutView(APIView):
 
             if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
+                token: RefreshToken = RefreshToken(None)
+                if api_settings.JWT_AUTH_HTTPONLY:
+                    try:
+                        token = RefreshToken(request.COOKIES[api_settings.JWT_AUTH_REFRESH_COOKIE])
+                    except KeyError:
+                        response.data = {'detail': _('Refresh token was not included in cookie data.')}
+                        response.status_code =status.HTTP_401_UNAUTHORIZED
+                else:
+                    try:
+                        token = RefreshToken(request.data['refresh'])
+                    except KeyError:
+                        response.data = {'detail': _('Refresh token was not included in request data.')}
+                        response.status_code =status.HTTP_401_UNAUTHORIZED
                 try:
-                    token = RefreshToken(request.data['refresh'])
                     token.blacklist()
-                except KeyError:
-                    response.data = {'detail': _('Refresh token was not included in request data.')}
-                    response.status_code =status.HTTP_401_UNAUTHORIZED
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, 'args'):
                         if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
