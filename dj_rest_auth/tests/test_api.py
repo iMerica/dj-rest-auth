@@ -328,7 +328,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(len(mail.outbox), mail_count + 1)
 
         url_kwargs = self._generate_uid_and_token(user)
-        url = reverse('rest_password_reset_confirm')
+        url = reverse('password_reset_confirm')
 
         # wrong token
         data = {
@@ -364,7 +364,7 @@ class APIBasicTests(TestsMixin, TestCase):
             'uid': force_str(url_kwargs['uid']),
             'token': url_kwargs['token'],
         }
-        url = reverse('rest_password_reset_confirm')
+        url = reverse('password_reset_confirm')
         self.post(url, data=data, status_code=200)
 
         payload = {
