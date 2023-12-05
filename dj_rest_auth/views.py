@@ -12,6 +12,7 @@ from rest_framework.generics import GenericAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.models import TokenUser
 
 from .app_settings import api_settings
 from .models import get_token_model
@@ -231,6 +232,8 @@ class UserDetailsView(RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_object(self):
+        if isinstance(self.request.user, TokenUser):
+            return get_user_model().objects.get(id=self.request.user.id)
         return self.request.user
 
     def get_queryset(self):

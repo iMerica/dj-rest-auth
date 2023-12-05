@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.models import TokenUser
 
 from .app_settings import api_settings
 
@@ -284,6 +285,9 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         try:
             uid = force_str(uid_decoder(attrs['uid']))
             self.user = UserModel._default_manager.get(pk=uid)
+            if isinstance(self.user, TokenUser):
+                self.user = get_user_model().objects.get(id=self.user.id)
+
         except (TypeError, ValueError, OverflowError, UserModel.DoesNotExist):
             raise ValidationError({'uid': [_('Invalid value')]})
 
@@ -323,6 +327,8 @@ class PasswordChangeSerializer(serializers.Serializer):
 
         self.request = self.context.get('request')
         self.user = getattr(self.request, 'user', None)
+        if isinstance(self.user, TokenUser):
+            self.user = get_user_model().objects.get(id=self.user.id)
 
     def validate_old_password(self, value):
         invalid_password_conditions = (
