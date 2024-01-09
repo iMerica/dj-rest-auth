@@ -101,13 +101,10 @@ def get_refresh_view():
 
         def finalize_response(self, request, response, *args, **kwargs):
             if response.status_code == status.HTTP_200_OK and 'access' in response.data:
-                if api_settings.JWT_AUTH_COOKIE:
-                    set_jwt_access_cookie(response, response.data['access'])
-                    del response.data['access']
-                else:
-                    response.data['access_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+                set_jwt_access_cookie(response, response.data['access'])
+                response.data['access_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             if response.status_code == status.HTTP_200_OK and 'refresh' in response.data:
-                if api_settings.JWT_AUTH_REFRESH_COOKIE:
+                if api_settings.JWT_AUTH_REFRESH_COOKIE and api_settings.JWT_AUTH_HTTPONLY:
                     set_jwt_refresh_cookie(response, response.data['refresh'])
                     del response.data['refresh']
                 else:
