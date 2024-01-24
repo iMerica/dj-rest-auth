@@ -47,6 +47,7 @@ INSTALLED_APPS = (
 )
 
 MIDDLEWARE = (
+    'allauth.account.middleware.AccountMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
