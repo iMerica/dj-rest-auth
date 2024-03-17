@@ -150,6 +150,11 @@ class LogoutView(APIView):
         return self.logout(request)
 
     def logout(self, request):
+        if not request.auth:
+            return Response(
+                {'detail': _('You should be logged in to logout. Check whether the token is passed.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             request.user.auth_token.delete()
         except (AttributeError, ObjectDoesNotExist):
