@@ -150,7 +150,7 @@ class LogoutView(APIView):
         return self.logout(request)
 
     def logout(self, request):
-        if not request.auth:
+        if not (request.auth or api_settings.USE_JWT or api_settings.SESSION_LOGIN):
             return Response(
                 {'detail': _('You should be logged in to logout. Check whether the token is passed.')},
                 status=status.HTTP_400_BAD_REQUEST,
