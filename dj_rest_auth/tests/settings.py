@@ -98,6 +98,10 @@ INSTALLED_APPS = [
 
 SECRET_KEY = '38dh*skf8sjfhs287dh&^hd8&3hdg*j2&sd'
 ACCOUNT_ACTIVATION_DAYS = 1
+# With the default rate limits of allauth only one email confirmation per 180s is supported
+ACCOUNT_RATE_LIMITS = {
+    'confirm_email': None
+}
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = (
