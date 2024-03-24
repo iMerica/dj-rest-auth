@@ -1,0 +1,99 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR lucacitta@gmail.com, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dj-rest-auth\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-01-19 11:41+0800\n"
+"PO-Revision-Date: 2024-01-19 21:36+0300\n"
+"Last-Translators: lucacitta@gmail.com"
+"Language-Team: \n"
+"Language: ma\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: registration/serializers.py:53
+msgid "View is not defined, pass it as a context variable"
+msgstr "视图未定义，请将其作为上下文变量传递"
+
+#: registration/serializers.py:58
+msgid "Define \"adapter_class\" in view"
+msgstr "在视图中定义\"adapter_class\""
+
+#: registration/serializers.py:77
+msgid "Define \"callback_url\" in view"
+msgstr "在视图中定义\"callback_url\""
+
+#: registration/serializers.py:81
+msgid "Define \"client_class\" in view"
+msgstr "在视图中定义\"client_class\""
+
+#: registration/serializers.py:102
+msgid "Incorrect input. \"access_token\" or \"code\" is required."
+msgstr "输入有误。需要\"access_token\"或\"code\"。"
+
+#: registration/serializers.py:111
+msgid "Incorrect value"
+msgstr "值不正确"
+
+#: registration/serializers.py:140
+msgid "A user is already registered with this e-mail address."
+msgstr "已有用户使用此电子邮件地址注册。"
+
+#: registration/serializers.py:148
+msgid "The two password fields didn't match."
+msgstr "两个密码字段不匹配。"
+
+#: registration/views.py:44
+msgid "Verification e-mail sent."
+msgstr "已发送验证电子邮件。"
+
+#: registration/views.py:91
+msgid "ok"
+msgstr "好的"
+
+#: serializers.py:30
+msgid "Must include \"email\" and \"password\"."
+msgstr "必须包含\"电子邮件\"和\"密码\"。"
+
+#: serializers.py:41
+msgid "Must include \"username\" and \"password\"."
+msgstr "必须包含\"用户名\"和\"密码\"。"
+
+#: serializers.py:54
+msgid "Must include either \"username\" or \"email\" and \"password\"."
+msgstr "必须包含\"用户名\"或\"电子邮件\"和\"密码\"之一。"
+
+#: serializers.py:95
+msgid "User account is disabled."
+msgstr "用户帐户已禁用。"
+
+#: serializers.py:98
+msgid "Unable to log in with provided credentials."
+msgstr "无法使用提供的凭据登录。"
+
+#: serializers.py:107
+msgid "E-mail is not verified."
+msgstr "电子邮件未经验证。"
+
+#: views.py:126
+msgid "Successfully logged out."
+msgstr "成功注销。"
+
+#: views.py:174
+msgid "Password reset e-mail has been sent."
+msgstr "已发送密码重置电子邮件。"
+
+#: views.py:200
+msgid "Password has been reset with the new password."
+msgstr "已使用新密码重置密码。"
+
+#: views.py:222
+msgid "New password has been saved."
+msgstr "新密码已保存。"
