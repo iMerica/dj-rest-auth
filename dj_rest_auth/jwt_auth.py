@@ -105,7 +105,10 @@ def get_refresh_view():
                 response.data['access_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             if response.status_code == status.HTTP_200_OK and 'refresh' in response.data:
                 set_jwt_refresh_cookie(response, response.data['refresh'])
-                response.data['refresh_expiration'] = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+                if api_settings.JWT_AUTH_HTTPONLY:
+                    del response.data['refresh']
+                else:
+                    response.data['refresh_expiration'] = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return super().finalize_response(request, response, *args, **kwargs)
     return RefreshViewWithCookieSupport
 

@@ -1064,6 +1064,37 @@ class APIBasicTests(TestsMixin, TestCase):
         # Ensure access keys are provided in response
         self.assertIn('access', refresh_resp.data)
         self.assertIn('access_expiration', refresh_resp.data)
+    
+    @override_api_settings(JWT_AUTH_RETURN_EXPIRATION=True)
+    @override_api_settings(USE_JWT=True)
+    @override_api_settings(JWT_AUTH_COOKIE='xxx')
+    @override_api_settings(JWT_AUTH_REFRESH_COOKIE='refresh-xxx')
+    @override_api_settings(JWT_AUTH_HTTPONLY=True)
+    def test_custom_token_refresh_view_with_http_only_cookie_and_refresh_token_rotation(self):
+        from rest_framework_simplejwt.settings import api_settings as jwt_settings
+        jwt_settings.ROTATE_REFRESH_TOKENS = True
+        payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        refresh_cookie_name = 'refresh-xxx'
+
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        resp = self.post(self.login_url, data=payload, status_code=200)
+        refresh = resp.cookies[refresh_cookie_name].value
+        refresh_resp = self.post(
+            reverse('token_refresh'),
+            data=dict(refresh=refresh),
+            status_code=200,
+        )
+        self.assertIn('xxx', refresh_resp.cookies)
+
+        # Ensure access keys are provided in response
+        self.assertIn('access', refresh_resp.data)
+        self.assertIn('access_expiration', refresh_resp.data)
+        # ensure refresh token is removed from response
+        self.assertNotIn('refresh', refresh_resp.data)
+        self.assertNotIn('refresh_expiration', refresh_resp.data)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_HTTPONLY=False)
