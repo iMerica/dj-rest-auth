@@ -22,7 +22,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install tox coveralls
       - name: Build
         run: python3 setup.py sdist
       - name: Store artifacts
@@ -30,3 +29,31 @@ jobs:
         with:
           name: dist
           path: dist/
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox coveralls
+      - name: Run Tox on All Supported Django and Python Versions
+        run: tox
+      - name: Generate Coverage Report
+        run: |
+          mkdir -p test-results/
+          tox -e coverage
+      - name: Send results to Coveralls
+        run: COVERALLS_REPO_TOKEN=Q58WdUuZOi89XHyDeDsGE2lxUGQ2IfqP3 coveralls
+      - name: Store test results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: test-results/
