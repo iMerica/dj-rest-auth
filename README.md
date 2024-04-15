@@ -1,13 +1,13 @@
 # Dj-Rest-Auth
-[![<iMerica>](https://circleci.com/gh/iMerica/dj-rest-auth.svg?style=svg)](https://app.circleci.com/pipelines/github/iMerica/dj-rest-auth)
+[![<iMerica>](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/)
 
 
 Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
 with SPAs (e.g., React, Vue, Angular), and Mobile applications. 
 
 ## Requirements
-- Django 2, 3, or 4 (See Unit Test Coverage in CI)
-- Python 3
+- Django 3, 4 and 5 (See Unit Test Coverage in CI)
+- Python >= 3.8
 
 ## Quick Setup
 

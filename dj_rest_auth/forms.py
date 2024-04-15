@@ -73,8 +73,7 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'uid': uid,
             }
             if (
-                allauth_account_settings.AUTHENTICATION_METHOD
-                != allauth_account_settings.AuthenticationMethod.EMAIL
+                allauth_account_settings.AUTHENTICATION_METHOD != allauth_account_settings.AuthenticationMethod.EMAIL
             ):
                 context['username'] = user_username(user)
             get_adapter(request).send_mail(

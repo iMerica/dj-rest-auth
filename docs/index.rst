@@ -7,11 +7,8 @@ Welcome to dj-rest-auth's documentation!
 ============================================
 
 
-.. note:: dj-rest-auth version 1.0.0 now uses Django Simple JWT.
-
-
-.. image:: https://circleci.com/gh/iMerica/dj-rest-auth.svg?style=svg
-    :target: https://circleci.com/gh/iMerica/dj-rest-auth
+.. image:: https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg
+    :target: https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml
 
 Contents
 --------
