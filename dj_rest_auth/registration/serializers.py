@@ -242,6 +242,16 @@ class RegisterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     _('A user is already registered with this e-mail address.'),
                 )
+        else:
+            query = EmailAddress.objects.filter(email__iexact=email)
+            if query.exists():
+                email_address = query.first()
+                if email_address.user.has_usable_password():
+                    raise serializers.ValidationError(
+                        _(
+                            "A user is already registered with this e-mail address but hasn't been verified their email yet."
+                        ),
+                    )
         return email
 
     def validate_password1(self, password):
