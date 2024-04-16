@@ -35,7 +35,7 @@ DEFAULTS = {
     'JWT_AUTH_SECURE': False,
     'JWT_AUTH_HTTPONLY': True,
     'JWT_AUTH_SAMESITE': 'Lax',
-    'JWT_AUTH_COOKIE_DOMAIN' : None,
+    'JWT_AUTH_COOKIE_DOMAIN': None,
     'JWT_AUTH_RETURN_EXPIRATION': False,
     'JWT_AUTH_COOKIE_USE_CSRF': False,
     'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
@@ -59,7 +59,7 @@ IMPORT_STRINGS = (
 )
 
 # List of settings that have been removed
-REMOVED_SETTINGS = ( )
+REMOVED_SETTINGS = []
 
 
 class APISettings(_APISettings):  # pragma: no cover

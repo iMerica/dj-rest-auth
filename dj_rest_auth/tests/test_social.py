@@ -3,7 +3,6 @@ import json
 import responses
 from allauth.socialaccount.models import SocialApp
 from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.test import TestCase

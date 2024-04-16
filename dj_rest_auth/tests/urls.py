@@ -71,6 +71,7 @@ class NoPassowrdRegisterSerializer(RegisterSerializer):
             return super().validate_password1(password)
         return None
 
+
 class NoPasswordRegisterView(RegisterView):
     serializer_class = NoPassowrdRegisterSerializer
 

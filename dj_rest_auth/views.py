@@ -189,13 +189,13 @@ class LogoutView(APIView):
                             token = RefreshToken(request.COOKIES[api_settings.JWT_AUTH_REFRESH_COOKIE])
                         except KeyError:
                             response.data = {'detail': _('Refresh token was not included in cookie data.')}
-                            response.status_code =status.HTTP_401_UNAUTHORIZED
+                            response.status_code = status.HTTP_401_UNAUTHORIZED
                     else:
                         try:
                             token = RefreshToken(request.data['refresh'])
                         except KeyError:
                             response.data = {'detail': _('Refresh token was not included in request data.')}
-                            response.status_code =status.HTTP_401_UNAUTHORIZED
+                            response.status_code = status.HTTP_401_UNAUTHORIZED
 
                     token.blacklist()
                 except (TokenError, AttributeError, TypeError) as error:

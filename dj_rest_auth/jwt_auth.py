@@ -18,7 +18,6 @@ def set_jwt_access_cookie(response, access_token):
     cookie_samesite = api_settings.JWT_AUTH_SAMESITE
     cookie_domain = api_settings.JWT_AUTH_COOKIE_DOMAIN
 
-
     if cookie_name:
         response.set_cookie(
             cookie_name,
@@ -139,7 +138,7 @@ class JWTCookieAuthentication(JWTAuthentication):
         if header is None:
             if cookie_name:
                 raw_token = request.COOKIES.get(cookie_name)
-                if api_settings.JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED: #True at your own risk
+                if api_settings.JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED:  # True at your own risk
                     self.enforce_csrf(request)
                 elif raw_token is not None and api_settings.JWT_AUTH_COOKIE_USE_CSRF:
                     self.enforce_csrf(request)
