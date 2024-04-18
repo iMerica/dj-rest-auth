@@ -32,6 +32,11 @@ sensitive_post_parameters_m = method_decorator(
 
 
 class RegisterView(CreateAPIView):
+    """
+    Registers a new user.
+
+    Accepts the following POST parameters: username, email, password1, password2.
+    """
     serializer_class = api_settings.REGISTER_SERIALIZER
     permission_classes = api_settings.REGISTER_PERMISSION_CLASSES
     token_model = TokenModel
@@ -96,6 +101,12 @@ class RegisterView(CreateAPIView):
 
 
 class VerifyEmailView(APIView, ConfirmEmailView):
+    """
+    Verifies the email associated with the provided key.
+
+    Accepts the following POST parameter: key.
+    """
+    
     permission_classes = (AllowAny,)
     allowed_methods = ('POST', 'OPTIONS', 'HEAD')
 
@@ -115,6 +126,11 @@ class VerifyEmailView(APIView, ConfirmEmailView):
 
 
 class ResendEmailVerificationView(CreateAPIView):
+    """
+    Resends another email to an unverified email.
+
+    Accepts the following POST parameter: email.
+    """
     permission_classes = (AllowAny,)
     serializer_class = ResendEmailVerificationSerializer
     queryset = EmailAddress.objects.all()
