@@ -119,7 +119,7 @@ class SocialLoginSerializer(serializers.Serializer):
                 )
 
             provider = adapter.get_provider()
-            scope = provider.get_scope(request)
+            scope = provider.get_scope_from_request(request)
             client = self.client_class(
                 request,
                 app.client_id,
