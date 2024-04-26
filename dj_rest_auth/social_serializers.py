@@ -65,7 +65,8 @@ class TwitterLoginSerializer(serializers.Serializer):
             'oauth_token_secret': token_secret,
         }
         token = SocialToken(token=access_token, token_secret=token_secret)
-        token.app = app
+        if app.id: # Otherwise app is from the settings and it cannot be saved into the database
+            token.app = app
 
         try:
             login = self.get_social_login(adapter, app, token, access_token)
