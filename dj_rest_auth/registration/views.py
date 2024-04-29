@@ -105,8 +105,7 @@ class VerifyEmailView(APIView, ConfirmEmailView):
     Verifies the email associated with the provided key.
 
     Accepts the following POST parameter: key.
-    """
-    
+    """    
     permission_classes = (AllowAny,)
     allowed_methods = ('POST', 'OPTIONS', 'HEAD')
 
