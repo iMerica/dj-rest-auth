@@ -182,12 +182,12 @@ If you are using GitHub for your social authentication, it uses code and not Acc
         ...,
         path('dj-rest-auth/github/', GitHubLogin.as_view(), name='github_login')
     ]
-    
-    
+
+
 Google
 ######
 If you are using Google for your social authentication, you can choose ``Authorization Code Grant`` or ``Implicit Grant`` (deprecated).
-Serializer of dj-rest-auth accepts both ``code`` and ``token`` 
+Serializer of dj-rest-auth accepts both ``code`` and ``token``
 
 1. Add ``allauth.socialaccount`` and ``allauth.socialaccount.providers.google`` apps to INSTALLED_APPS in your django settings.py:
 
@@ -208,7 +208,7 @@ Serializer of dj-rest-auth accepts both ``code`` and ``token``
         'allauth.socialaccount.providers.google',
 
     )
-    
+
 3. Create new view as a subclass of ``dj_rest_auth.views.SocialLoginView`` with ``GoogleOAuth2Adapter`` adapter, an ``OAuth2Client`` and a callback_url as attributes:
 
 .. code-block:: python
@@ -216,12 +216,12 @@ Serializer of dj-rest-auth accepts both ``code`` and ``token``
     from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
     from allauth.socialaccount.providers.oauth2.client import OAuth2Client
     from dj_rest_auth.registration.views import SocialLoginView
-    
+
     class GoogleLogin(SocialLoginView): # if you want to use Authorization Code Grant, use this
         adapter_class = GoogleOAuth2Adapter
         callback_url = CALLBACK_URL_YOU_SET_ON_GOOGLE
         client_class = OAuth2Client
-        
+
     class GoogleLogin(SocialLoginView): # if you want to use Implicit Grant, use this
         adapter_class = GoogleOAuth2Adapter
 
@@ -234,7 +234,7 @@ Serializer of dj-rest-auth accepts both ``code`` and ``token``
         path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login')
     ]
 
-5. Retrive code (or token)
+5. Retrieve code (or token)
 By accessing Google's endpoint, you can get ``code`` or ``token``
 
 If you're using Authorization Code Grant, you can get code from following URL
