@@ -135,7 +135,7 @@ class LogoutView(APIView):
 
     Accepts/Returns nothing.
     """
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     throttle_scope = 'dj_rest_auth'
 
     def get(self, request, *args, **kwargs):
