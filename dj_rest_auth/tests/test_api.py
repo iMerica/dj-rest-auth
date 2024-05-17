@@ -530,12 +530,28 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_api_settings(SESSION_LOGIN=True)
     @override_api_settings(TOKEN_MODEL=None)
     def test_registration_with_session(self):
+        import sys
+        from importlib import reload
+        from django.contrib.sessions.middleware import SessionMiddleware
+        from django.contrib.messages.middleware import MessageMiddleware
+        reload(sys.modules['dj_rest_auth.models'])
+        reload(sys.modules['dj_rest_auth.registration.views'])
+        from dj_rest_auth.registration.views import RegisterView
+
         user_count = get_user_model().objects.all().count()
 
         self.post(self.register_url, data={}, status_code=400)
 
-        result = self.post(self.register_url, data=self.REGISTRATION_DATA, status_code=204)
-        self.assertEqual(result.data, None)
+        factory = APIRequestFactory()
+        request = factory.post(self.register_url, self.REGISTRATION_DATA)
+
+        for middleware_class in (SessionMiddleware, MessageMiddleware):
+            middleware = middleware_class(lambda request: None)
+            middleware.process_request(request)
+
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.data, None)
         self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
 
         self._login(status.HTTP_204_NO_CONTENT)
