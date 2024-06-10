@@ -34,6 +34,7 @@ sensitive_post_parameters_m = method_decorator(
 class RegisterView(CreateAPIView):
     serializer_class = api_settings.REGISTER_SERIALIZER
     permission_classes = api_settings.REGISTER_PERMISSION_CLASSES
+    authentication_classes = ()
     token_model = TokenModel
     throttle_scope = 'dj_rest_auth'
 
