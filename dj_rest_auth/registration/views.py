@@ -53,10 +53,10 @@ class RegisterView(CreateAPIView):
                 'refresh': self.refresh_token,
             }
             return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
-        elif api_settings.SESSION_LOGIN:
-            return None
-        else:
+        elif self.token_model:
             return api_settings.TOKEN_SERIALIZER(user.auth_token, context=self.get_serializer_context()).data
+        
+        return None
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -82,9 +82,7 @@ class RegisterView(CreateAPIView):
                 allauth_account_settings.EmailVerificationMethod.MANDATORY:
             if api_settings.USE_JWT:
                 self.access_token, self.refresh_token = jwt_encode(user)
-            elif not api_settings.SESSION_LOGIN:
-                # Session authentication isn't active either, so this has to be
-                #  token authentication
+            elif self.token_model:
                 api_settings.TOKEN_CREATOR(self.token_model, user, serializer)
 
         complete_signup(
