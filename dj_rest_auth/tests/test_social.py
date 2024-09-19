@@ -16,7 +16,7 @@ from .utils import override_api_settings
 try:
     from django.urls import reverse
 except ImportError:
-    from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse  # noqa
 
 
 @override_settings(ROOT_URLCONF='tests.urls')

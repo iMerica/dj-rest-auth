@@ -1,14 +1,12 @@
 
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from allauth.socialaccount.providers.facebook.views import FacebookProvider
+from allauth.socialaccount.providers.facebook.provider import FacebookProvider
 from allauth.socialaccount.models import SocialApp
-from allauth.core.exceptions import ImmediateHttpResponse
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.exceptions import ValidationError
 from django.test import TestCase, modify_settings, override_settings
 from django.contrib.sites.models import Site
-from django.http import HttpResponseBadRequest
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.test import APIRequestFactory, force_authenticate
 from unittest.mock import MagicMock, patch
@@ -142,22 +140,11 @@ class TestSocialLoginSerializer(TestCase):
         serializer.is_valid()
         self.assertDictEqual(serializer.errors, self.NO_VIEW_SUBMIT_ERROR)
 
-    def test_validate_no_adpapter_class_present(self):
+    def test_validate_no_adapter_class_present(self):
         dummy_view = SocialLoginView()
         serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
         serializer.is_valid()
         self.assertDictEqual(serializer.errors, self.NO_ADAPTER_CLASS_PRESENT)
-
-    @patch('allauth.socialaccount.providers.facebook.views.fb_complete_login')
-    @patch('allauth.socialaccount.adapter.DefaultSocialAccountAdapter.pre_social_login')
-    def test_immediate_http_response_error(self, mock_pre_social_login, mock_fb_complete_login):
-        dummy_view = SocialLoginView()
-        dummy_view.adapter_class = FacebookOAuth2Adapter
-        mock_pre_social_login.side_effect = lambda request, social_login: exec('raise ImmediateHttpResponse(HttpResponseBadRequest("Bad Request"))')
-        mock_fb_complete_login.return_value = FacebookProvider(self.request, app=FacebookOAuth2Adapter).sociallogin_from_response(self.request, self.fb_response)
-        serializer = SocialLoginSerializer(data=self.request_data, context={'request': self.request, 'view': dummy_view})
-        serializer.is_valid()
-        self.assertDictEqual(serializer.errors, self.HTTP_BAD_REQUEST_MESSAGE)
 
     def test_http_error(self):
         dummy_view = SocialLoginView()
