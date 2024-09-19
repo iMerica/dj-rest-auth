@@ -55,7 +55,6 @@ class RegisterView(CreateAPIView):
             return api_settings.JWT_SERIALIZER(data, context=self.get_serializer_context()).data
         elif self.token_model:
             return api_settings.TOKEN_SERIALIZER(user.auth_token, context=self.get_serializer_context()).data
-        
         return None
 
     def create(self, request, *args, **kwargs):
