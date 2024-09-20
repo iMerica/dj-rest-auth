@@ -47,7 +47,7 @@ REST_AUTH = {
 
 ### Testing
 
-Install required modules with `pip install -r  dj_rest_auth/tests/requirements.pip`
+Install required modules with `pip install -r  dj_rest_auth/tests/requirements.txt`
 
 To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
 The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
