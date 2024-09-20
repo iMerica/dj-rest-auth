@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework import exceptions, serializers
@@ -12,7 +12,7 @@ from .app_settings import api_settings
 def set_jwt_access_cookie(response, access_token):
     from rest_framework_simplejwt.settings import api_settings as jwt_settings
     cookie_name = api_settings.JWT_AUTH_COOKIE
-    access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+    access_token_expiration = (datetime.utcnow() + jwt_settings.ACCESS_TOKEN_LIFETIME)
     cookie_secure = api_settings.JWT_AUTH_SECURE
     cookie_httponly = api_settings.JWT_AUTH_HTTPONLY
     cookie_samesite = api_settings.JWT_AUTH_SAMESITE
@@ -32,7 +32,7 @@ def set_jwt_access_cookie(response, access_token):
 
 def set_jwt_refresh_cookie(response, refresh_token):
     from rest_framework_simplejwt.settings import api_settings as jwt_settings
-    refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+    refresh_token_expiration = (datetime.utcnow() + jwt_settings.REFRESH_TOKEN_LIFETIME)
     refresh_cookie_name = api_settings.JWT_AUTH_REFRESH_COOKIE
     refresh_cookie_path = api_settings.JWT_AUTH_REFRESH_COOKIE_PATH
     cookie_secure = api_settings.JWT_AUTH_SECURE
@@ -101,13 +101,13 @@ def get_refresh_view():
         def finalize_response(self, request, response, *args, **kwargs):
             if response.status_code == status.HTTP_200_OK and 'access' in response.data:
                 set_jwt_access_cookie(response, response.data['access'])
-                response.data['access_expiration'] = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+                response.data['access_expiration'] = (datetime.utcnow() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             if response.status_code == status.HTTP_200_OK and 'refresh' in response.data:
                 set_jwt_refresh_cookie(response, response.data['refresh'])
                 if api_settings.JWT_AUTH_HTTPONLY:
                     del response.data['refresh']
                 else:
-                    response.data['refresh_expiration'] = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+                    response.data['refresh_expiration'] = (datetime.utcnow() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return super().finalize_response(request, response, *args, **kwargs)
     return RefreshViewWithCookieSupport
 
