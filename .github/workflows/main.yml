@@ -67,7 +67,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          pip install -r dj_rest_auth/tests/requirements.pip
+          pip install -r dj_rest_auth/tests/requirements.txt
           pip install "Django~=${{ matrix.django-version }}.0"
       - name: Run Tests
         run: |
