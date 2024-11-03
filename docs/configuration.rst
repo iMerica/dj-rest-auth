@@ -62,6 +62,8 @@ authentication in ``dj_rest_auth.views.LoginView``. The value is the dotted
 path to ``dj_rest_auth.serializers.TokenSerializer``, which is also the
 default.
 
+.. note:: This should be set to ``None`` together with ``TOKEN_MODEL`` if you don't want to use Token Authentication.
+
 ``JWT_SERIALIZER``
 ==================
 
@@ -142,6 +144,8 @@ The path to the model class for the token. The value is the dotted path to
 ``rest_framework.authtoken.models.Token``, which is also the default. If set to
 ``None`` token authentication will be disabled. In this case at least one of
 ``SESSION_LOGIN`` or ``USE_JWT`` must be enabled.
+
+.. note:: ``TOKEN_SERIALIZER`` should also be set to `None` if you don't want to use Token Authentication.
 
 ``TOKEN_CREATOR``
 =================
