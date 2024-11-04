@@ -351,5 +351,9 @@ class PasswordChangeSerializer(serializers.Serializer):
     def save(self):
         self.set_password_form.save()
         if not self.logout_on_password_change:
+            # Get current user
+            user = self.context['request'].user
+            # Invalidate the token
+            user.auth_token.delete()
             from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(self.request, self.user)
