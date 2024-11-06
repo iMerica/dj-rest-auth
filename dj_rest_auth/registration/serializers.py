@@ -187,7 +187,7 @@ class SocialLoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     _('User is already registered with this e-mail address.'),
                 ) from ex
-            self.post_signup(login, attrs)
+        self.post_signup(login, attrs)
 
         attrs['user'] = login.account.user
 
