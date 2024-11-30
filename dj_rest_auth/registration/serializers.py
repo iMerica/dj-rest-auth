@@ -14,7 +14,7 @@ try:
     from allauth.account.adapter import get_adapter
     from allauth.account.utils import setup_user_email
     from allauth.socialaccount.helpers import complete_social_login
-    from allauth.socialaccount.models import SocialAccount, EmailAddress
+    from allauth.socialaccount.models import EmailAddress, SocialAccount
     from allauth.socialaccount.providers.base import AuthProcess
     from allauth.utils import get_username_max_length
 except ImportError:
@@ -119,7 +119,7 @@ class SocialLoginSerializer(serializers.Serializer):
                 )
 
             provider = adapter.get_provider()
-            scope = provider.get_scope(request)
+            scope = provider.get_scope_from_request(request)
             client = self.client_class(
                 request,
                 app.client_id,
