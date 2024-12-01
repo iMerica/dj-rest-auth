@@ -1,5 +1,0 @@
-[flake8]
-per-file-ignores =
-    dj_rest_auth/tests/test_serializers.py:E501,F401
-    dj_rest_auth/serializers.py:E501
-    dj_rest_auth/jwt_auth.py:E501
