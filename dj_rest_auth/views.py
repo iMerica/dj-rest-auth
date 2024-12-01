@@ -180,24 +180,34 @@ class LogoutView(APIView):
 
             unset_jwt_cookies(response)
 
-            if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+            if "rest_framework_simplejwt.token_blacklist" in settings.INSTALLED_APPS:
                 # add refresh token to blacklist
                 try:
-                    token: RefreshToken = RefreshToken(None)
                     if api_settings.JWT_AUTH_HTTPONLY:
-                        try:
-                            token = RefreshToken(request.COOKIES[api_settings.JWT_AUTH_REFRESH_COOKIE])
-                        except KeyError:
-                            response.data = {'detail': _('Refresh token was not included in cookie data.')}
+                        token = request.COOKIES.get(
+                            api_settings.JWT_AUTH_REFRESH_COOKIE
+                        )
+                        if token:
+                            RefreshToken(token).blacklist()
+                        else:
+                            response.data = {
+                                "detail": _(
+                                    "Refresh token was not included in cookie data."
+                                )
+                            }
                             response.status_code = status.HTTP_401_UNAUTHORIZED
                     else:
-                        try:
-                            token = RefreshToken(request.data['refresh'])
-                        except KeyError:
-                            response.data = {'detail': _('Refresh token was not included in request data.')}
+                        token = request.data.get("refresh")
+                        if token:
+                            RefreshToken(token).blacklist()
+                        else:
+                            response.data = {
+                                "detail": _(
+                                    "Refresh token was not included in request data."
+                                )
+                            }
                             response.status_code = status.HTTP_401_UNAUTHORIZED
 
-                    token.blacklist()
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, 'args'):
                         if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
