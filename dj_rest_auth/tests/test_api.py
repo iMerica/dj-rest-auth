@@ -527,7 +527,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self._login()
         self._logout()
 
-
     def test_registration_with_invalid_password(self):
         data = self.REGISTRATION_DATA.copy()
         data['password2'] = 'foobar'

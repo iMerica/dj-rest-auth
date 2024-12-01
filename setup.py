@@ -40,7 +40,7 @@ setup(
         'djangorestframework-simplejwt==5.3.1',
         'responses==0.12.1',
         'unittest-xml-reporting==3.2.0',
-        'flake8==3.8.4',
+        'flake8==7.1.1',
     ],
     test_suite='runtests.runtests',
     include_package_data=True,

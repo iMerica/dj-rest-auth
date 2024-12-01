@@ -1,6 +1,5 @@
 
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
-from allauth.socialaccount.providers.facebook.provider import FacebookProvider
 from allauth.socialaccount.models import SocialApp
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -9,7 +8,7 @@ from django.test import TestCase, modify_settings, override_settings
 from django.contrib.sites.models import Site
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.test import APIRequestFactory, force_authenticate
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from dj_rest_auth.serializers import PasswordChangeSerializer, UserDetailsSerializer
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
