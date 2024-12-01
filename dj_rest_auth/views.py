@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login as django_login
 from django.contrib.auth import logout as django_logout
 from django.core.exceptions import ObjectDoesNotExist
-from datetime import datetime
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
@@ -81,8 +81,8 @@ class LoginView(GenericAPIView):
             from rest_framework_simplejwt.settings import (
                 api_settings as jwt_settings,
             )
-            access_token_expiration = (datetime.utcnow() + jwt_settings.ACCESS_TOKEN_LIFETIME)
-            refresh_token_expiration = (datetime.utcnow() + jwt_settings.REFRESH_TOKEN_LIFETIME)
+            access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
+            refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
             auth_httponly = api_settings.JWT_AUTH_HTTPONLY
 
