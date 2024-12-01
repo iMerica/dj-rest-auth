@@ -32,14 +32,15 @@ setup(
         'djangorestframework>=3.13.0',
     ],
     extras_require={
-        'with-social': ['django-allauth>=64.0.0'],
+        'with-social': ['django-allauth[socialaccount]>=64.0.0'],
     },
     tests_require=[
         'coveralls>=1.11.1',
         'django-allauth>=64.0.0',
-        'djangorestframework-simplejwt==4.6.0',
+        'djangorestframework-simplejwt==5.3.1',
         'responses==0.12.1',
-        'unittest-xml-reporting==3.0.4',
+        'unittest-xml-reporting==3.2.0',
+        'flake8==3.8.4',
     ],
     test_suite='runtests.runtests',
     include_package_data=True,

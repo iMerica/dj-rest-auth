@@ -1,12 +1,9 @@
 django>=5.0.0
 djangorestframework>=3.11.0
 djangorestframework-simplejwt==5.3.1
-django-allauth>=64.0.0
+django-allauth[socialaccount]>=64.0.0
 drf-yasg==1.21.7
 django-cors-headers==4.4.0
 coreapi==2.3.3
-PyJWT~=2.9.0
-responses~=0.12.1
-requests~=2.32.3
 setuptools==75.1.0
 -e ./..
