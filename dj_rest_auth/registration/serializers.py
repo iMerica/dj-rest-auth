@@ -72,7 +72,7 @@ class SocialLoginSerializer(serializers.Serializer):
                 )
             except NoReverseMatch:
                 raise serializers.ValidationError(
-                    _('Define callback_url in view'),
+                ({'callback_url': _('Define callback_url in view or ensure URL name exists.')})
                 )
 
     def validate(self, attrs):
@@ -104,60 +104,75 @@ class SocialLoginSerializer(serializers.Serializer):
             id_token = attrs.get('id_token')
             if id_token:
                 tokens_to_parse['id_token'] = id_token
-
-        # Case 2: We received the authorization code
+                tokens_to_parse['id_token'] = id_token
         elif code:
-            self.set_callback_url(view=view, adapter_class=adapter_class)
-            self.client_class = getattr(view, 'client_class', None)
-
-            if not self.client_class:
-                raise serializers.ValidationError(
-                    _('Define client_class in view'),
-                )
-
-            provider = adapter.get_provider()
-            scope = provider.get_scope_from_request(request)
-            client = self.client_class(
-                request,
-                app.client_id,
-                app.secret,
-                adapter.access_token_method,
-                adapter.access_token_url,
-                self.callback_url,
-                scope,
-                scope_delimiter=adapter.scope_delimiter,
-                headers=adapter.headers,
-                basic_auth=adapter.basic_auth,
-            )
-            try:
-                token = client.get_access_token(code)
-            except OAuth2Error as ex:
-                raise serializers.ValidationError(
-                    _('Failed to exchange code for access token')
-                ) from ex
-            access_token = token['access_token']
-            tokens_to_parse = {'access_token': access_token}
-
-            # If available we add additional data to the dictionary
-            for key in ['refresh_token', 'id_token', adapter.expires_in_key]:
-                if key in token:
-                    tokens_to_parse[key] = token[key]
+            self._handle_code_flow(view, adapter_class, adapter, app, code, request, tokens_to_parse)
         else:
-            raise serializers.ValidationError(
-                _('Incorrect input. access_token or code is required.'),
-            )
-
+            raise serializers.ValidationError(_('Incorrect input. access_token or code is required.'))
+        
         social_token = adapter.parse_token(tokens_to_parse)
         social_token.app = app
 
         try:
+            login = self._attempt_login(adapter, app, social_token, code, attrs)
+        except HTTPError:
+            raise serializers.ValidationError(_('Incorrect value'))
+        
+
+        if isinstance(login, HttpResponseBadRequest):
+            raise serializers.ValidationError(login.content)
+
+        if not login.is_existing:
+            self._handle_new_user_registration(login, request, attrs)
+
+        attrs['user'] = login.account.user
+
+        return attrs
+       
+    def _handle_code_flow(self, view, adapter_class, adapter, app, code, request, tokens_to_parse):
+        """Handles the auth flow when an authorization code is provided."""
+        self.set_callback_url(view=view, adapter_class=adapter_class)
+        self.client_class = getattr(view, 'client_class', None)
+
+        if not self.client_class:
+            raise serializers.ValidationError(_('Define client_class in view'))
+        
+        provider = adapter.get_provider()
+        scope = provider.get_scope_from_request(request)
+        client = self.client_class(
+             request,
+             app.client_id,
+             app.secret,
+             adapter.access_token_method,
+             adapter.access_token_url,
+             self.callback_url,
+             scope,
+             scope_delimiter=adapter.scope_delimiter,
+             headers=adapter.headers,
+             basic_auth=adapter.basic_auth,
+        )   
+        try:
+            token = client.get_access_token(code)
+        except OAuth2Error as ex:
+            raise serializers.ValidationError(
+                ('Failed to exchange code for access token')
+                ) from ex
+
+        access_token = token['access_token']
+        tokens_to_parse = {'access_token': access_token}
+        for key in ['refresh_token', 'id_token', adapter.expires_in_key]:
+            if key in token:
+                tokens_to_parse[key] = token[key]
+        
+           
+     
             if adapter.provider_id == 'google' and not code:
                 login = self.get_social_login(adapter, app, social_token, response={'id_token': id_token})
             else:
                 login = self.get_social_login(adapter, app, social_token, token)
             ret = complete_social_login(request, login)
-        except HTTPError:
-            raise serializers.ValidationError(_('Incorrect value'))
+            except HTTPError:
+                 raise serializers.ValidationError(_('Incorrect value'))
 
         if isinstance(ret, HttpResponseBadRequest):
             raise serializers.ValidationError(ret.content)
