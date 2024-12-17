@@ -96,11 +96,11 @@ class SocialLoginSerializer(serializers.Serializer):
 
         access_token = attrs.get('access_token')
         code = attrs.get('code')
-        # Case 1: We received the access_token
+
         if access_token:
             tokens_to_parse = {'access_token': access_token}
             token = access_token
-            # For sign in with apple
+    
             id_token = attrs.get('id_token')
             if id_token:
                 tokens_to_parse['id_token'] = id_token
@@ -165,18 +165,14 @@ class SocialLoginSerializer(serializers.Serializer):
                 tokens_to_parse[key] = token[key]
         
            
-     
-            if adapter.provider_id == 'google' and not code:
-                login = self.get_social_login(adapter, app, social_token, response={'id_token': id_token})
-            else:
-                login = self.get_social_login(adapter, app, social_token, token)
-            ret = complete_social_login(request, login)
-            except HTTPError:
-                 raise serializers.ValidationError(_('Incorrect value'))
+    
+    def _attempt_login(self, adapter, app, social_token, code, attrs):
+        """Attempts to log in the user using the adapter."""
+        if adapter.provider_id == 'google' and not code:
+            return self.get_social_login(adapter, app, social_token, response={'id_token': attrs.get('id_token')})
+        return self.get_social_login(adapter, app, social_token, token=attrs.get('access_token'))
 
-        if isinstance(ret, HttpResponseBadRequest):
-            raise serializers.ValidationError(ret.content)
-
+       
         if not login.is_existing:
             # We have an account already signed up in a different flow
             # with the same email address: raise an exception.
