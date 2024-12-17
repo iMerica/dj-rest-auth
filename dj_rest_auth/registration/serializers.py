@@ -43,10 +43,7 @@ class SocialLoginSerializer(serializers.Serializer):
     id_token = serializers.CharField(required=False, allow_blank=True)
 
     def _get_request(self):
-        request = self.context.get('request')
-        if not isinstance(request, HttpRequest):
-            request = request._request
-        return request
+         return self.context.get('request', getattr(self.context.get('request'), '_request', None))
 
     def get_social_login(self, adapter, app, token, response):
         """
