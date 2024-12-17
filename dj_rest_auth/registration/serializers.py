@@ -252,13 +252,6 @@ class RegisterSerializer(serializers.Serializer):
                 )
         return email
 
-    def validate_password1(self, password):
-        return get_adapter().clean_password(password)
-
-    def validate(self, data):
-        if data['password1'] != data['password2']:
-            raise serializers.ValidationError(_("The two password fields didn't match."))
-        return data
 
     def custom_signup(self, request, user):
         pass
@@ -266,7 +259,6 @@ class RegisterSerializer(serializers.Serializer):
     def get_cleaned_data(self):
         return {
             'username': self.validated_data.get('username', ''),
-            'password1': self.validated_data.get('password1', ''),
             'email': self.validated_data.get('email', ''),
         }
 
@@ -275,13 +267,6 @@ class RegisterSerializer(serializers.Serializer):
         user = adapter.new_user(request)
         self.cleaned_data = self.get_cleaned_data()
         user = adapter.save_user(request, user, self, commit=False)
-        if "password1" in self.cleaned_data:
-            try:
-                adapter.clean_password(self.cleaned_data['password1'], user=user)
-            except DjangoValidationError as exc:
-                raise serializers.ValidationError(
-                    detail=serializers.as_serializer_error(exc)
-                )
         user.save()
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
