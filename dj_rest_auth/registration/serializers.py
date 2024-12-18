@@ -123,7 +123,7 @@ class SocialLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(login.content)
 
         if not login.is_existing:
-            self._handle_new_user_registration(login, request, attrs)
+            self._new_user_registration(login, request, attrs)
 
         attrs['user'] = login.account.user
 
@@ -172,7 +172,7 @@ class SocialLoginSerializer(serializers.Serializer):
             return self.get_social_login(adapter, app, social_token, response={'id_token': attrs.get('id_token')})
         return self.get_social_login(adapter, app, social_token, token=attrs.get('access_token'))
 
-    def _handle_new_user_registration(self, login, request, attrs):
+    def _new_user_registration(self, login, request, attrs):
         """Handles user registration if the user does not exist."""
         if allauth_account_settings.UNIQUE_EMAIL:
             account_exists = get_user_model().objects.filter(email=login.user.email).exists()
