@@ -172,34 +172,21 @@ class SocialLoginSerializer(serializers.Serializer):
             return self.get_social_login(adapter, app, social_token, response={'id_token': attrs.get('id_token')})
         return self.get_social_login(adapter, app, social_token, token=attrs.get('access_token'))
 
-       
-        if not login.is_existing:
-            # We have an account already signed up in a different flow
-            # with the same email address: raise an exception.
-            # This needs to be handled in the frontend. We can not just
-            # link up the accounts due to security constraints
-            if allauth_account_settings.UNIQUE_EMAIL:
-                # Do we have an account already with this email address?
-                account_exists = get_user_model().objects.filter(
-                    email=login.user.email,
-                ).exists()
-                if account_exists:
-                    raise serializers.ValidationError(
-                        _('User is already registered with this e-mail address.'),
-                    )
-
-            login.lookup()
-            try:
-                login.save(request, connect=True)
-            except IntegrityError as ex:
-                raise serializers.ValidationError(
-                    _('User is already registered with this e-mail address.'),
+    def _handle_new_user_registration(self, login, request, attrs):
+        """Handles user registration if the user does not exist."""
+        if allauth_account_settings.UNIQUE_EMAIL:
+            account_exists = get_user_model().objects.filter(email=login.user.email).exists()
+            if account_exists:
+                raise serializers.ValidationError(_('User is already registered with this e-mail address.'))
+        login.lookup()
+        try:
+            login.save(request, connect=True)
+        except IntegrityError as ex:
+            raise serializers.ValidationError(
+                _('User is already registered with this e-mail address.'),
                 ) from ex
-            self.post_signup(login, attrs)
+        self.post_signup(login, attrs)
 
-        attrs['user'] = login.account.user
-
-        return attrs
 
     def post_signup(self, login, attrs):
         """
