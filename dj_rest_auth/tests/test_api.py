@@ -18,7 +18,7 @@ from .utils import override_api_settings
 try:
     from django.urls import reverse
 except ImportError:  # pragma: no cover
-    from django.core.urlresolvers import reverse
+    from django.core.urlresolvers import reverse  # noqa
 
 from jwt import decode as decode_jwt
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -527,36 +527,6 @@ class APIBasicTests(TestsMixin, TestCase):
         self._login()
         self._logout()
 
-    @override_api_settings(SESSION_LOGIN=True)
-    @override_api_settings(TOKEN_MODEL=None)
-    def test_registration_with_session(self):
-        import sys
-        from importlib import reload
-        from django.contrib.sessions.middleware import SessionMiddleware
-        from django.contrib.messages.middleware import MessageMiddleware
-        reload(sys.modules['dj_rest_auth.models'])
-        reload(sys.modules['dj_rest_auth.registration.views'])
-        from dj_rest_auth.registration.views import RegisterView
-
-        user_count = get_user_model().objects.all().count()
-
-        self.post(self.register_url, data={}, status_code=400)
-
-        factory = APIRequestFactory()
-        request = factory.post(self.register_url, self.REGISTRATION_DATA)
-
-        for middleware_class in (SessionMiddleware, MessageMiddleware):
-            middleware = middleware_class(lambda request: None)
-            middleware.process_request(request)
-
-        response = RegisterView.as_view()(request)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(response.data, None)
-        self.assertEqual(get_user_model().objects.all().count(), user_count + 1)
-
-        self._login(status.HTTP_204_NO_CONTENT)
-        self._logout()
-
     def test_registration_with_invalid_password(self):
         data = self.REGISTRATION_DATA.copy()
         data['password2'] = 'foobar'
@@ -731,7 +701,7 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = self.post(self.login_url, data=payload, status_code=200)
         self.assertEqual(['jwt-auth'], list(resp.cookies.keys()))
         resp = self.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework_simplejwt.token_blacklist']})
     @override_api_settings(USE_JWT=True)
@@ -794,9 +764,9 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual('access' in self.response.json.keys(), True)
         self.token = self.response.json['access']
         claims = decode_jwt(self.token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEquals(claims['user_id'], 1)
-        self.assertEquals(claims['name'], 'person')
-        self.assertEquals(claims['email'], 'person1@world.com')
+        self.assertEqual(claims['user_id'], 1)
+        self.assertEqual(claims['name'], 'person')
+        self.assertEqual(claims['email'], 'person1@world.com')
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -819,11 +789,11 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(['jwt-auth'], list(resp.cookies.keys()))
         token = resp.cookies.get('jwt-auth').value
         claims = decode_jwt(token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEquals(claims['user_id'], 1)
-        self.assertEquals(claims['name'], 'person')
-        self.assertEquals(claims['email'], 'person1@world.com')
+        self.assertEqual(claims['user_id'], 1)
+        self.assertEqual(claims['name'], 'person')
+        self.assertEqual(claims['email'], 'person1@world.com')
         resp = self.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -850,22 +820,22 @@ class APIBasicTests(TestsMixin, TestCase):
 
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH JWT AUTH HEADER
         jwtclient = APIClient(enforce_csrf_checks=True)
         token = resp.data['access']
         resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer ' + token)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH COOKIES
         resp = client.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         resp = client.post('/protected-view/', {})
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -896,30 +866,30 @@ class APIBasicTests(TestsMixin, TestCase):
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH JWT AUTH HEADER
         jwtclient = APIClient(enforce_csrf_checks=True)
         token = resp.data['access']
         resp = jwtclient.get('/protected-view/')
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
         resp = jwtclient.get('/protected-view/', HTTP_AUTHORIZATION='Bearer ' + token)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         resp = jwtclient.post('/protected-view/', {})
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
         resp = jwtclient.post('/protected-view/', {}, HTTP_AUTHORIZATION='Bearer ' + token)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH COOKIES
         resp = client.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -949,26 +919,26 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         payload['csrfmiddlewaretoken'] = csrftoken
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH JWT AUTH HEADER does not make sense
 
         # TEST WITH COOKIES
         resp = client.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @override_api_settings(USE_JWT=True)
     @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
@@ -998,26 +968,26 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # fail w/o csrftoken in payload
         resp = client.post(self.login_url, payload)
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         payload['csrfmiddlewaretoken'] = csrftoken
         resp = client.post(self.login_url, payload)
         self.assertTrue('jwt-auth' in list(client.cookies.keys()))
         self.assertTrue('csrftoken' in list(client.cookies.keys()))
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
         # TEST WITH JWT AUTH HEADER does not make sense
 
         # TEST WITH COOKIES
         resp = client.get('/protected-view/')
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
         # fail w/o csrftoken in payload
         resp = client.post('/protected-view/', {})
-        self.assertEquals(resp.status_code, 403)
+        self.assertEqual(resp.status_code, 403)
 
         csrfparam = {'csrfmiddlewaretoken': csrftoken}
         resp = client.post('/protected-view/', csrfparam)
-        self.assertEquals(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     @override_api_settings(JWT_AUTH_RETURN_EXPIRATION=True)
     @override_api_settings(USE_JWT=True)

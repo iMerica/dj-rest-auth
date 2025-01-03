@@ -6,7 +6,7 @@ Drop-in API endpoints for handling authentication securely in Django Rest Framew
 with SPAs (e.g., React, Vue, Angular), and Mobile applications. 
 
 ## Requirements
-- Django 3, 4 and 5 (See Unit Test Coverage in CI)
+- Django >= 4.2 (See Unit Test Coverage in CI)
 - Python >= 3.8
 
 ## Quick Setup
@@ -47,7 +47,7 @@ REST_AUTH = {
 
 ### Testing
 
-Install required modules with `pip install -r  dj_rest_auth/tests/requirements.pip`
+Install required modules with `pip install -r  dj_rest_auth/tests/requirements.txt`
 
 To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
 The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
