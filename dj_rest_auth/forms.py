@@ -73,8 +73,14 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'uid': uid,
             }
             if (
+                getattr(allauth_account_settings, "LOGIN_METHODS", None) and  # noqa: W504
+                allauth_account_settings.AuthenticationMethod.EMAIL not in allauth_account_settings.LOGIN_METHODS
+            ):
+                context['username'] = user_username(user)
+            elif (
                 allauth_account_settings.AUTHENTICATION_METHOD != allauth_account_settings.AuthenticationMethod.EMAIL
             ):
+                # AUTHENTICATION_METHOD is deprecated
                 context['username'] = user_username(user)
             get_adapter(request).send_mail(
                 'account/email/password_reset_key', email, context
