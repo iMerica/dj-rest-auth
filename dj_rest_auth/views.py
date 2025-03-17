@@ -200,7 +200,18 @@ class LogoutView(APIView):
                     token.blacklist()
                 except (TokenError, AttributeError, TypeError) as error:
                     if hasattr(error, 'args'):
-                        if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
+                        if any(
+                            msg in error.args
+                            for msg in (
+                                # blacklist
+                                'Token is blacklisted',
+                                # djangorestframework-simplejwt >= v5.5.0
+                                'Token is invalid',
+                                'Token is expired',
+                                # djangorestframework-simplejwt < v5.5.0
+                                'Token is invalid or expired',
+                            )
+                        ):
                             response.data = {'detail': _(error.args[0])}
                             response.status_code = status.HTTP_401_UNAUTHORIZED
                         else:
