@@ -222,12 +222,24 @@ class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
 
 
 class RegisterSerializer(serializers.Serializer):
+    using_signup_fields = hasattr(allauth_account_settings, "SIGNUP_FIELDS")
+    username_required = (
+        allauth_account_settings.SIGNUP_FIELDS["username"]["required"]
+        if using_signup_fields
+        else allauth_account_settings.USERNAME_REQUIRED
+    )
+    email_required = (
+        allauth_account_settings.SIGNUP_FIELDS["email"]["required"]
+        if using_signup_fields
+        else allauth_account_settings.EMAIL_REQUIRED
+    )
+
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=allauth_account_settings.USERNAME_REQUIRED,
+        required=username_required,
     )
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=email_required)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -285,4 +297,10 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    using_signup_fields = hasattr(allauth_account_settings, "SIGNUP_FIELDS")
+    email_required = (
+        allauth_account_settings.SIGNUP_FIELDS["email"]["required"]
+        if using_signup_fields
+        else allauth_account_settings.EMAIL_REQUIRED
+    )
+    email = serializers.EmailField(required=email_required)
