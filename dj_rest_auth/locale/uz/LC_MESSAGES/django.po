@@ -1,0 +1,99 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-27 13:13+0500\n"
+"PO-Revision-Date: 2025-05-27 13:13+0500\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: uz@latin\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.6\n"
+
+#: registration/serializers.py:53
+msgid "View is not defined, pass it as a context variable"
+msgstr "View aniqlanmadi, uni context o'zgaruvchisi sifatida uzating"
+
+#: registration/serializers.py:58
+msgid "Define adapter_class in view"
+msgstr "View'da adapter_class yarating"
+
+#: registration/serializers.py:77
+msgid "Define callback_url in view"
+msgstr "View'da callback_url yarating"
+
+#: registration/serializers.py:81
+msgid "Define client_class in view"
+msgstr "View'da client_class yarating"
+
+#: registration/serializers.py:102
+msgid "Incorrect input. access_token or code is required."
+msgstr "Noto'g'ri kiritish. access_token yoki code talab qilinadi."
+
+#: registration/serializers.py:111
+msgid "Incorrect value"
+msgstr "Noto'g'ri qiymat"
+
+#: registration/serializers.py:140
+msgid "A user is already registered with this e-mail address."
+msgstr "Foydalanuvchi allaqachon ushbu elektron pochta manzili orqali ro'yxatdan o'tgan."
+
+#: registration/serializers.py:148
+msgid "The two password fields didn't match."
+msgstr "Ikkita parol maydoni mos kelmadi."
+
+#: registration/views.py:44
+msgid "Verification e-mail sent."
+msgstr "Tasdiqlash xabari e-mail orqali yuborildi."
+
+#: registration/views.py:91
+msgid "ok"
+msgstr "ok"
+
+#: serializers.py:30
+msgid "Must include \"email\" and \"password\"."
+msgstr "\"email\" va \"parol\" ni o'z ichiga olishi kerak."
+
+#: serializers.py:41
+msgid "Must include \"username\" and \"password\"."
+msgstr "\"username\" va \"parol\" ni o'z ichiga olishi kerak."
+
+#: serializers.py:54
+msgid "Must include either \"username\" or \"email\" and \"password\"."
+msgstr "“username” yoki “email” va “parol”ni o‘z ichiga olishi kerak."
+
+#: serializers.py:95
+msgid "User account is disabled."
+msgstr "Foydalanuvchi hisobi o'chirib qo'yilgan."
+
+#: serializers.py:98
+msgid "Unable to log in with provided credentials."
+msgstr "Taqdim etilgan hisob ma’lumotlari bilan tizimga kirib bo‘lmadi."
+
+#: serializers.py:107
+msgid "E-mail is not verified."
+msgstr "E-mail tasdiqlanmagan."
+
+#: views.py:126
+msgid "Successfully logged out."
+msgstr "Tizimdan muvaffaqiyatli chiqildi."
+
+#: views.py:174
+msgid "Password reset e-mail has been sent."
+msgstr "Parolni tiklash xabari e-mail orqali yuborildi."
+
+#: views.py:200
+msgid "Password has been reset with the new password."
+msgstr "Parol yangi parol bilan almashtirildi."
+
+#: views.py:222
+msgid "New password has been saved."
+msgstr "Yangi parol saqlandi."
