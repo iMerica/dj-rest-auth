@@ -1,0 +1,162 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-27 14:47+0500\n"
+"PO-Revision-Date: 2025-05-27 13:13+0500\n"
+"Last-Translator: Jahongir Qurbonov <qurbonovjahongir17@gmail.com>\n"
+"Language-Team: \n"
+"Language: uz\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.6\n"
+
+#: app_settings.py:75
+msgid ""
+"The '{}' setting has been removed. Please refer to '{}' for available "
+"settings."
+msgstr "'{}' sozlamasi olib tashlandi. Mavjud sozlamalar uchun '{}' ga qarang."
+
+#: jwt_auth.py:75
+msgid "WIll override cookie."
+msgstr "Cookie-ni bekor qiladi."
+
+#: jwt_auth.py:86
+msgid "No valid refresh token found."
+msgstr "Yaroqli refresh token topilmadi"
+
+#: registration/serializers.py:78
+msgid "Define callback_url in view"
+msgstr "View-da callback_url yarating"
+
+#: registration/serializers.py:87
+msgid "View is not defined, pass it as a context variable"
+msgstr "View aniqlanmadi, uni context o'zgaruvchisi sifatida uzating"
+
+#: registration/serializers.py:92
+msgid "Define adapter_class in view"
+msgstr "View-da adapter_class yarating"
+
+#: registration/serializers.py:118
+msgid "Define client_class in view"
+msgstr "View-da client_class yarating"
+
+#: registration/serializers.py:139
+msgid "Failed to exchange code for access token"
+msgstr "Code-ni access token-ga almashtirib bo‘lmadi"
+
+#: registration/serializers.py:150
+msgid "Incorrect input. access_token or code is required."
+msgstr "Noto'g'ri kiritish. access_token yoki code talab qilinadi."
+
+#: registration/serializers.py:163
+msgid "Incorrect value"
+msgstr "Noto'g'ri qiymat"
+
+#: registration/serializers.py:180
+#: registration/serializers.py:188
+#, fuzzy
+#| msgid "A user is already registered with this e-mail address."
+msgid "User is already registered with this e-mail address."
+msgstr ""
+"Foydalanuvchi allaqachon ushbu e-mail manzili orqali ro'yxatdan o'tgan."
+
+#: registration/serializers.py:243
+msgid "A user is already registered with this e-mail address."
+msgstr ""
+"Foydalanuvchi allaqachon ushbu e-mail manzili orqali ro'yxatdan o'tgan."
+
+#: registration/serializers.py:252
+msgid "The two password fields didn't match."
+msgstr "Ikkita parol maydoni mos kelmadi."
+
+#: registration/views.py:52
+msgid "Verification e-mail sent."
+msgstr "Tasdiqlash xabari e-mail orqali yuborildi."
+
+#: registration/views.py:121
+#: registration/views.py:142
+msgid "ok"
+msgstr "ok"
+
+#: serializers.py:33
+msgid "Must include \"email\" and \"password\"."
+msgstr "\"email\" va \"parol\"-ni o'z ichiga olishi kerak."
+
+#: serializers.py:42
+msgid "Must include \"username\" and \"password\"."
+msgstr "\"username\" va \"parol\"-ni o'z ichiga olishi kerak."
+
+#: serializers.py:53
+msgid "Must include either \"username\" or \"email\" and \"password\"."
+msgstr "\"username\" yoki \"email\" va \"parol\"-ni o‘z ichiga olishi kerak."
+
+#: serializers.py:99 serializers.py:124
+msgid "Unable to log in with provided credentials."
+msgstr "Taqdim etilgan hisob ma’lumotlari bilan tizimga kirib bo‘lmadi."
+
+#: serializers.py:106
+msgid "User account is disabled."
+msgstr "Foydalanuvchi hisobi o'chirib qo'yilgan."
+
+#: serializers.py:115
+msgid "E-mail is not verified."
+msgstr "E-mail tasdiqlanmagan."
+
+#: serializers.py:287 serializers.py:290
+msgid "Invalid value"
+msgstr "Yaroqsiz qiymat"
+
+#: serializers.py:334
+msgid "Your old password was entered incorrectly. Please enter it again."
+msgstr "Eski parolingiz noto'g'ri kiritilgan. Iltimos, yana kiriting."
+
+#: views.py:155
+msgid "You should be logged in to logout. Check whether the token is passed."
+msgstr ""
+"Chiqish uchun tizimga kirgan bo'lishingiz kerak. Token o'tganligini "
+"tekshiring."
+
+#: views.py:167
+msgid "Successfully logged out."
+msgstr "Tizimdan muvaffaqiyatli chiqildi."
+
+#: views.py:191
+msgid "Refresh token was not included in cookie data."
+msgstr "Refresh token cookie maʼlumotlariga kiritilmagan."
+
+#: views.py:197
+msgid "Refresh token was not included in request data."
+msgstr "Refresh token soʻrov maʼlumotlariga kiritilmagan"
+
+#: views.py:207 views.py:211
+msgid "An error has occurred."
+msgstr "Xatolik yuz berdi."
+
+#: views.py:216
+msgid ""
+"Neither cookies or blacklist are enabled, so the token has not been deleted "
+"server side. Please make sure the token is deleted client side."
+msgstr ""
+"Cookie fayllari ham, qora roʻyxat ham yoqilmagan, shuning uchun token server "
+"tomonidan oʻchirilmagan. Token mijoz tomonidan oʻchirilganligiga ishonch "
+"hosil qiling."
+
+#: views.py:268
+msgid "Password reset e-mail has been sent."
+msgstr "Parolni tiklash xabari e-mail orqali yuborildi."
+
+#: views.py:295
+msgid "Password has been reset with the new password."
+msgstr "Parol yangi parol bilan almashtirildi."
+
+#: views.py:318
+msgid "New password has been saved."
+msgstr "Yangi parol saqlandi."
