@@ -248,7 +248,7 @@ class RegisterSerializer(serializers.Serializer):
                         _('This email is already in use but has not been verified.')
                     )
                 raise serializers.ValidationError(
-                    _('A user is already registered with this email address.')
+                    _('A user is already registered with this e-mail address.')
                 )
 
         return email
