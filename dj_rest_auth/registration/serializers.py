@@ -237,11 +237,20 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
+
         if allauth_account_settings.UNIQUE_EMAIL:
-            if email and EmailAddress.objects.is_verified(email):
+            existing_email = EmailAddress.objects.filter(email=email).first()
+            
+            if existing_email:
+                if not existing_email.verified and allauth_account_settings.EMAIL_VERIFICATION == \
+                    allauth_account_settings.EmailVerificationMethod.MANDATORY:
+                    raise serializers.ValidationError(
+                        _('This email is already in use but has not been verified.')
+                    )
                 raise serializers.ValidationError(
-                    _('A user is already registered with this e-mail address.'),
+                    _('A user is already registered with this e-mail address.')
                 )
+
         return email
 
     def validate_password1(self, password):
