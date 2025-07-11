@@ -240,7 +240,7 @@ class RegisterSerializer(serializers.Serializer):
         if allauth_account_settings.UNIQUE_EMAIL:
             if email and EmailAddress.objects.is_verified(email):
                 raise serializers.ValidationError(
-                    _('A user is already registered with this e-mail address.'),
+                    _('User is already registered with this e-mail address.'),
                 )
         return email
 
