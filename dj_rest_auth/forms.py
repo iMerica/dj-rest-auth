@@ -25,7 +25,7 @@ def default_url_generator(request, user, temp_key):
         args=[user_pk_to_url_str(user), temp_key],
     )
 
-    url = api_settings.PASSWORD_RESET_DOMAIN + "/" + path
+    url = api_settings.PASSWORD_RESET_DOMAIN + path
 
     if api_settings.PASSWORD_RESET_DOMAIN == "":
         if api_settings.PASSWORD_RESET_USE_SITES_DOMAIN:
@@ -83,4 +83,5 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'account/email/password_reset_key', email, context
             )
         return self.cleaned_data['email']
+
 
