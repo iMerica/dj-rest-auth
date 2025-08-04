@@ -24,6 +24,7 @@ DEFAULTS = {
     'TOKEN_CREATOR': 'dj_rest_auth.utils.default_create_token',
 
     'PASSWORD_RESET_USE_SITES_DOMAIN': False,
+    'PASSWORD_RESET_DOMAIN': "",
     'OLD_PASSWORD_FIELD_ENABLED': False,
     'LOGOUT_ON_PASSWORD_CHANGE': False,
     'SESSION_LOGIN': True,
