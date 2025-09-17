@@ -222,9 +222,9 @@ class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=allauth_account_settings.USERNAME_REQUIRED,
+        required=allauth_account_settings.SIGNUP_FIELDS['username']['required'],
     )
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.SIGNUP_FIELDS['email']['required'])
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -282,4 +282,4 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=allauth_account_settings.SIGNUP_FIELDS['email']['required'])
