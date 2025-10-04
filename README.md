@@ -7,7 +7,7 @@ with SPAs (e.g., React, Vue, Angular), and Mobile applications.
 
 ## Requirements
 - Django >= 4.2 (See Unit Test Coverage in CI)
-- Python >= 3.8
+- Python >= 3.10
 
 ## Quick Setup
 
