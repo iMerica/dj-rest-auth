@@ -46,7 +46,7 @@ jobs:
           name: dist
           path: dist/
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     name: Test Python ${{ matrix.python-version }} + Django ~= ${{ matrix.django-version }}
     needs: [ build ]
     strategy:
