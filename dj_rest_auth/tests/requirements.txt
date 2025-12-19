@@ -1,5 +1,5 @@
 coveralls==1.11.1
-django-allauth[socialaccount]>=64.0.0
+django-allauth[socialaccount]==65.4.1
 djangorestframework-simplejwt>=5.3.1
 flake8==7.1.1
 responses==0.12.1
