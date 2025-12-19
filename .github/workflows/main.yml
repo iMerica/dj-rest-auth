@@ -52,13 +52,18 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.10', '3.11', '3.12', '3.13', '3.14' ]
-        django-version: [ '4.2', '5.2' ]
+        django-version: [ '4.2', '5.2', '6.0' ]
         exclude:
           # Django 4.2 only supports Python up to 3.12.
           - python-version: 3.13
             django-version: 4.2
           - python-version: 3.14
             django-version: 4.2
+          # Django 6 supports Python 3.12+.
+          - python-version: 3.10
+            django-version: 6.0
+          - python-version: 3.11
+            django-version: 6.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
