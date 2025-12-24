@@ -365,6 +365,9 @@ class PasswordChangeSerializer(serializers.Serializer):
 class TokenWithCustomClaimsSerializer(TokenObtainPairSerializer):
 
     @classmethod
-    def get_token(cls, user, *args, **kwargs):
+    def get_token(cls, user, custom_claims={}):
         token = super().get_token(user)
+        if custom_claims:
+            for key, value in custom_claims.items():
+                token[key] = value
         return token
