@@ -6,7 +6,7 @@ def default_create_token(token_model, user, serializer):
     return token
 
 
-def jwt_encode(user, *args, **kwargs):
+def jwt_encode(user, **kwargs):
     from dj_rest_auth.app_settings import api_settings
 
     JWTTokenClaimsSerializer = api_settings.JWT_TOKEN_CLAIMS_SERIALIZER

@@ -67,7 +67,7 @@ class LoginView(GenericAPIView):
         token_model = get_token_model()
 
         if api_settings.USE_JWT:
-            self.access_token, self.refresh_token = jwt_encode(self.user, *args, **kwargs)
+            self.access_token, self.refresh_token = jwt_encode(self.user, **kwargs)
         elif token_model:
             self.token = api_settings.TOKEN_CREATOR(token_model, self.user, self.serializer)
 
