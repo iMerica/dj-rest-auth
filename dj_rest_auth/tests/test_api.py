@@ -89,6 +89,20 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(
         ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL
     )
+    def test_login_failed_email_validation_deprecated_setting(self):
+        # Remove this test when django-allauth drops
+        # support for ACCOUNT_AUTHENTICATION_METHOD
+        payload = {
+            'email': '',
+            'password': self.PASS,
+        }
+
+        resp = self.post(self.login_url, data=payload, status_code=400)
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include "email" and "password".')
+
+    @override_settings(
+        ACCOUNT_LOGIN_METHODS={allauth_account_settings.AuthenticationMethod.EMAIL},
+    )
     def test_login_failed_email_validation(self):
         payload = {
             'email': '',
@@ -101,6 +115,20 @@ class APIBasicTests(TestsMixin, TestCase):
     @override_settings(
         ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME
     )
+    def test_login_failed_username_validation_deprecated_setting(self):
+        # Remove this test when django-allauth drops
+        # support for ACCOUNT_AUTHENTICATION_METHOD
+        payload = {
+            'username': '',
+            'password': self.PASS,
+        }
+
+        resp = self.post(self.login_url, data=payload, status_code=400)
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include "username" and "password".')
+
+    @override_settings(
+        ACCOUNT_LOGIN_METHODS={allauth_account_settings.AuthenticationMethod.USERNAME},
+    )
     def test_login_failed_username_validation(self):
         payload = {
             'username': '',
@@ -112,6 +140,22 @@ class APIBasicTests(TestsMixin, TestCase):
 
     @override_settings(
         ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.USERNAME_EMAIL
+    )
+    def test_login_failed_username_email_validation_deprecated_setting(self):
+        # Remove this test when django-allauth drops
+        # support for ACCOUNT_AUTHENTICATION_METHOD
+        payload = {
+            'password': self.PASS,
+        }
+
+        resp = self.post(self.login_url, data=payload, status_code=400)
+        self.assertEqual(resp.json['non_field_errors'][0], 'Must include either "username" or "email" and "password".')
+
+    @override_settings(
+        ACCOUNT_LOGIN_METHODS={
+            allauth_account_settings.AuthenticationMethod.USERNAME,
+            allauth_account_settings.AuthenticationMethod.EMAIL,
+        },
     )
     def test_login_failed_username_email_validation(self):
         payload = {
@@ -157,6 +201,26 @@ class APIBasicTests(TestsMixin, TestCase):
 
     @override_settings(
         ACCOUNT_AUTHENTICATION_METHOD=allauth_account_settings.AuthenticationMethod.EMAIL
+    )
+    def test_allauth_login_with_email_deprecated_setting(self):
+        # Remove this test when django-allauth drops
+        # support for ACCOUNT_AUTHENTICATION_METHOD
+        payload = {
+            'email': self.EMAIL,
+            'password': self.PASS,
+        }
+        # there is no users in db so it should throw error (400)
+        self.post(self.login_url, data=payload, status_code=400)
+
+        self.post(self.password_change_url, status_code=403)
+
+        # create user
+        get_user_model().objects.create_user(self.EMAIL, email=self.EMAIL, password=self.PASS)
+
+        self.post(self.login_url, data=payload, status_code=200)
+
+    @override_settings(
+        ACCOUNT_LOGIN_METHODS={allauth_account_settings.AuthenticationMethod.EMAIL},
     )
     def test_allauth_login_with_email(self):
         payload = {
