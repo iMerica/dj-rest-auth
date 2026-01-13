@@ -21,7 +21,7 @@ if 'allauth' in settings.INSTALLED_APPS:
 
 def default_url_generator(request, user, temp_key):
     path = reverse(
-        'password_reset_confirm',
+        'rest_password_reset_confirm',
         args=[user_pk_to_url_str(user), temp_key],
     )
 
