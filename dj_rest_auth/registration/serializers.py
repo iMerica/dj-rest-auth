@@ -118,8 +118,6 @@ class SocialLoginSerializer(serializers.Serializer):
                     _('Define client_class in view'),
                 )
 
-            provider = adapter.get_provider()
-            scope = provider.get_scope_from_request(request)
             client = self.client_class(
                 request,
                 app.client_id,
@@ -127,7 +125,6 @@ class SocialLoginSerializer(serializers.Serializer):
                 adapter.access_token_method,
                 adapter.access_token_url,
                 self.callback_url,
-                scope,
                 scope_delimiter=adapter.scope_delimiter,
                 headers=adapter.headers,
                 basic_auth=adapter.basic_auth,
@@ -252,7 +249,7 @@ class RegisterSerializer(serializers.Serializer):
         if allauth_account_settings.UNIQUE_EMAIL:
             if email and EmailAddress.objects.is_verified(email):
                 raise serializers.ValidationError(
-                    _('A user is already registered with this e-mail address.'),
+                    _('User is already registered with this e-mail address.'),
                 )
         return email
 
