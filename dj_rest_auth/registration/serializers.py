@@ -233,7 +233,7 @@ class RegisterSerializer(serializers.Serializer):
     password2 = serializers.CharField(write_only=True)
 
     def validate_username(self, username):
-        username = get_adapter().clean_usern ame(username)
+        username = get_adapter().clean_username(username)
         return username
 
     def validate_email(self, email):
