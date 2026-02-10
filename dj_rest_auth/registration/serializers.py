@@ -221,10 +221,14 @@ class SocialConnectSerializer(SocialConnectMixin, SocialLoginSerializer):
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
-        min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=allauth_account_settings.USERNAME_REQUIRED,
-    )
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+        min_length=allauth_account_settings.SIGNUP_FIELDS['username'].get('min_length', 1),
+        required=allauth_account_settings.SIGNUP_FIELDS.get('username', {}).get('required', False)
+    ) if 'username' in allauth_account_settings.SIGNUP_FIELDS else None
+
+    email = serializers.EmailField(
+        required=allauth_account_settings.SIGNUP_FIELDS.get('email', {}).get('required', False)
+    ) if 'email' in allauth_account_settings.SIGNUP_FIELDS else None
+
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -282,4 +286,6 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(
+        required=allauth_account_settings.SIGNUP_FIELDS.get('email', {}).get('required', False)
+    ) if 'email' in allauth_account_settings.SIGNUP_FIELDS else None
