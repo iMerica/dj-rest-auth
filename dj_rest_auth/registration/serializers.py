@@ -21,6 +21,18 @@ except ImportError:
     raise ImportError('allauth needs to be added to INSTALLED_APPS.')
 
 
+def _signup_field_required(field_name, default=True):
+    """Get field 'required' from SIGNUP_FIELDS (allauth>=65.5) with fallback."""
+    if hasattr(allauth_account_settings, 'SIGNUP_FIELDS'):
+        return allauth_account_settings.SIGNUP_FIELDS.get(field_name, {}).get('required', default)
+    # Fallback for older allauth versions
+    if field_name == 'username':
+        return allauth_account_settings.USERNAME_REQUIRED
+    if field_name == 'email':
+        return allauth_account_settings.EMAIL_REQUIRED
+    return default
+
+
 class SocialAccountSerializer(serializers.ModelSerializer):
     """
     serialize allauth SocialAccounts for use with a REST API
@@ -225,9 +237,9 @@ class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=get_username_max_length(),
         min_length=allauth_account_settings.USERNAME_MIN_LENGTH,
-        required=allauth_account_settings.SIGNUP_FIELDS.get('username', {}).get('required', True),
+        required=_signup_field_required('username'),
     )
-    email = serializers.EmailField(required=allauth_account_settings.SIGNUP_FIELDS.get('email', {}).get('required', True))
+    email = serializers.EmailField(required=_signup_field_required('email'))
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
@@ -285,4 +297,4 @@ class VerifyEmailSerializer(serializers.Serializer):
 
 
 class ResendEmailVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=allauth_account_settings.EMAIL_REQUIRED)
+    email = serializers.EmailField(required=_signup_field_required('email'))
