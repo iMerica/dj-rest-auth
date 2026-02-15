@@ -2,7 +2,6 @@ import pyotp
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings, modify_settings
 
-from dj_rest_auth.mfa.models import Authenticator
 from dj_rest_auth.mfa.totp import TOTP, generate_totp_secret, validate_totp_code
 from dj_rest_auth.mfa.recovery_codes import RecoveryCodes
 from dj_rest_auth.mfa.utils import create_ephemeral_token, verify_ephemeral_token, is_mfa_enabled
@@ -223,7 +222,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
 
     def test_mfa_verify_invalid_token(self):
         """Verify MFA with invalid ephemeral token should fail."""
-        response = self.post(
+        self.post(
             self.mfa_verify_url,
             data={'ephemeral_token': 'invalid-token', 'code': '123456'},
             status_code=400,
@@ -277,7 +276,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
 
         totp = pyotp.TOTP(secret)
         code = totp.now()
-        response = self.post(
+        self.post(
             self.totp_deactivate_url,
             data={'code': code},
             status_code=200,
@@ -290,7 +289,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         TOTP.activate(self.user, secret)
         self._mfa_login_get_token(secret)
 
-        response = self.post(
+        self.post(
             self.totp_deactivate_url,
             data={'code': '000000'},
             status_code=400,
@@ -321,7 +320,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
     def test_recovery_codes_regenerate_without_mfa(self):
         """Should fail to regenerate when MFA is not enabled."""
         self._login_get_token()
-        response = self.post(self.recovery_codes_regenerate_url, status_code=400)
+        self.post(self.recovery_codes_regenerate_url, status_code=400)
 
     def test_full_mfa_flow(self):
         """End-to-end: activate MFA, login with TOTP, login with recovery code,
