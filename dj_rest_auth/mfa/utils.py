@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.core.signing import TimestampSigner
 
 from dj_rest_auth.app_settings import api_settings
 

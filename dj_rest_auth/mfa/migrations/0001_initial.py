@@ -17,12 +17,22 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Authenticator',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('totp', 'TOTP'), ('recovery_codes', 'Recovery codes')], max_length=20)),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True,
+                    serialize=False, verbose_name='ID',
+                )),
+                ('type', models.CharField(
+                    choices=[('totp', 'TOTP'), ('recovery_codes', 'Recovery codes')],
+                    max_length=20,
+                )),
                 ('data', models.JSONField(default=dict)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('last_used_at', models.DateTimeField(blank=True, null=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='mfa_authenticators', to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='mfa_authenticators',
+                    to=settings.AUTH_USER_MODEL,
+                )),
             ],
             options={
                 'unique_together': {('user', 'type')},
