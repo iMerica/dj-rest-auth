@@ -33,6 +33,7 @@ setup(
     ],
     extras_require={
         'with-social': ['django-allauth[socialaccount]>=64.0.0'],
+        'with-mfa': ['pyotp>=2.9.0', 'qrcode>=8.0'],
     },
     tests_require=[
         'coveralls>=1.11.1',
