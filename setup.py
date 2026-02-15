@@ -37,7 +37,7 @@ setup(
     tests_require=[
         'coveralls>=1.11.1',
         'django-allauth>=64.0.0',
-        'djangorestframework-simplejwt==5.3.1',
+        'djangorestframework-simplejwt==5.5.1',
         'responses==0.12.1',
         'unittest-xml-reporting==3.2.0',
         'flake8==7.1.1',
