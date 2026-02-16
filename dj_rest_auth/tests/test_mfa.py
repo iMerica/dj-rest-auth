@@ -5,7 +5,10 @@ from unittest.mock import patch
 
 from dj_rest_auth.mfa.totp import TOTP, generate_totp_secret, validate_totp_code
 from dj_rest_auth.mfa.recovery_codes import RecoveryCodes
-from dj_rest_auth.mfa.utils import create_ephemeral_token, verify_ephemeral_token, is_mfa_enabled
+from dj_rest_auth.mfa.utils import (
+    create_ephemeral_token, create_totp_activation_token, verify_ephemeral_token,
+    verify_totp_activation_token, is_mfa_enabled,
+)
 
 from .mixins import TestsMixin, APIClient
 
@@ -95,6 +98,13 @@ class MFAUnitTests(TestCase):
         token = create_ephemeral_token(self.user)
         with self.assertRaises(SignatureExpired):
             verify_ephemeral_token(token, max_age=0)
+
+    def test_totp_activation_token(self):
+        secret = generate_totp_secret()
+        token = create_totp_activation_token(self.user, secret)
+        payload = verify_totp_activation_token(token)
+        self.assertEqual(payload['uid'], self.user.pk)
+        self.assertEqual(payload['secret'], secret)
 
     def test_is_mfa_enabled(self):
         self.assertFalse(is_mfa_enabled(self.user))
@@ -279,12 +289,14 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         response = self.get(self.totp_activate_url, status_code=200)
         self.assertIn('secret', response.json)
         self.assertIn('totp_url', response.json)
+        self.assertIn('activation_token', response.json)
 
     def test_totp_activate_post(self):
         """POST TOTP activate should activate TOTP and return recovery codes."""
         self._login_get_token()
         response = self.get(self.totp_activate_url, status_code=200)
         secret = response.json['secret']
+        activation_token = response.json['activation_token']
 
         totp = pyotp.TOTP(secret)
         code = totp.now()
@@ -292,7 +304,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
             response = self.post(
                 self.totp_activate_url,
-                data={'secret': secret, 'code': code},
+                data={'activation_token': activation_token, 'code': code},
                 status_code=200,
             )
         self.assertIn('recovery_codes', response.json)
@@ -300,6 +312,22 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         self.assertTrue(is_mfa_enabled(self.user))
         log_mock.assert_called_once()
         self.assertEqual(log_mock.call_args.args[2], 'activated')
+
+    def test_totp_activate_post_with_invalid_activation_token(self):
+        """POST TOTP activate should reject invalid activation tokens."""
+        self._login_get_token()
+
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(
+                self.totp_activate_url,
+                data={'activation_token': 'invalid-token', 'code': '123456'},
+                status_code=400,
+            )
+
+        self.assertIn('activation_token', response.json)
+        self.assertFalse(is_mfa_enabled(self.user))
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'activation_failed')
 
     def test_totp_activate_post_when_already_enabled(self):
         """POST TOTP activate should not overwrite an existing MFA secret."""
@@ -398,6 +426,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         # 3. Get TOTP activation secret
         response = self.get(self.totp_activate_url, status_code=200)
         secret = response.json['secret']
+        activation_token = response.json['activation_token']
         self.assertIn('totp_url', response.json)
         self.assertIn('qr_code_data_uri', response.json)
 
@@ -406,7 +435,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         code = totp.now()
         response = self.post(
             self.totp_activate_url,
-            data={'secret': secret, 'code': code},
+            data={'activation_token': activation_token, 'code': code},
             status_code=200,
         )
         recovery_codes = response.json['recovery_codes']

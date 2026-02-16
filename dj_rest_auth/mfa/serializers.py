@@ -7,7 +7,7 @@ from rest_framework import serializers
 from .audit import log_mfa_event
 from .recovery_codes import RecoveryCodes
 from .totp import TOTP, validate_totp_code
-from .utils import verify_ephemeral_token
+from .utils import verify_ephemeral_token, verify_totp_activation_token
 
 
 class MFAVerifySerializer(serializers.Serializer):
@@ -59,24 +59,54 @@ class TOTPActivateInitSerializer(serializers.Serializer):
     secret = serializers.CharField(read_only=True)
     totp_url = serializers.CharField(read_only=True)
     qr_code_data_uri = serializers.CharField(read_only=True)
+    activation_token = serializers.CharField(read_only=True)
 
 
 class TOTPActivateConfirmSerializer(serializers.Serializer):
-    secret = serializers.CharField(required=True)
+    activation_token = serializers.CharField(required=True)
     code = serializers.CharField(required=True)
 
     def validate(self, attrs):
-        if not validate_totp_code(attrs['secret'], attrs['code']):
+        request = self.context['request']
+        try:
+            payload = verify_totp_activation_token(attrs['activation_token'])
+        except (BadSignature, SignatureExpired):
             log_mfa_event(
                 'activation_failed',
-                user=self.context['request'].user,
-                request=self.context.get('request'),
+                user=request.user,
+                request=request,
+                level=logging.WARNING,
+                reason='invalid_or_expired_activation_token',
+            )
+            raise serializers.ValidationError(
+                {'activation_token': _('Invalid or expired activation token.')},
+            )
+
+        if payload.get('uid') != request.user.pk:
+            log_mfa_event(
+                'activation_failed',
+                user=request.user,
+                request=request,
+                level=logging.WARNING,
+                reason='activation_token_user_mismatch',
+            )
+            raise serializers.ValidationError(
+                {'activation_token': _('Invalid activation token for this user.')},
+            )
+
+        secret = payload.get('secret')
+        if not secret or not validate_totp_code(secret, attrs['code']):
+            log_mfa_event(
+                'activation_failed',
+                user=request.user,
+                request=request,
                 level=logging.WARNING,
                 reason='invalid_totp_code',
             )
             raise serializers.ValidationError(
                 {'code': _('Invalid code. Please check your authenticator app and try again.')},
             )
+        attrs['secret'] = secret
         return attrs
 
 
