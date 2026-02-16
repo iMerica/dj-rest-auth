@@ -1,27 +1,36 @@
+import inspect
 import json
 import unittest
 
 import responses
 from allauth.socialaccount.models import SocialApp
-try:
-    from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL
-except ImportError:
-    from allauth.socialaccount.providers.facebook.views import GRAPH_API_URL
+from allauth.socialaccount.providers.oauth.client import OAuth
 from allauth.socialaccount.providers.twitter.views import TwitterAPI
-
-TWITTER_VERIFY_CREDENTIALS_URL = TwitterAPI._base_url
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.test.utils import override_settings
 from rest_framework import status
 
+from .mixins import TestsMixin
+from .utils import override_api_settings
+
+try:
+    from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL
+except ImportError:
+    from allauth.socialaccount.providers.facebook.views import GRAPH_API_URL
+
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse  # noqa
+
+TWITTER_VERIFY_CREDENTIALS_URL = TwitterAPI._base_url
+
 
 def _has_oauth_query_bug():
     """Check if allauth's OAuth.query() has a broken sess.request() call signature."""
     try:
-        import inspect
-        from allauth.socialaccount.providers.oauth.client import OAuth
         source = inspect.getsource(OAuth.query)
         # The bug passes url as positional first arg instead of method
         return 'sess.request(\n                url,' in source or 'sess.request(url,' in source
@@ -33,15 +42,6 @@ _skip_twitter_oauth = unittest.skipIf(
     _has_oauth_query_bug(),
     'allauth has a bug in OAuth.query() that breaks Twitter OAuth1 flow',
 )
-
-from .mixins import TestsMixin
-from .utils import override_api_settings
-
-
-try:
-    from django.urls import reverse
-except ImportError:
-    from django.core.urlresolvers import reverse  # noqa
 
 
 @override_settings(ROOT_URLCONF='tests.urls')
