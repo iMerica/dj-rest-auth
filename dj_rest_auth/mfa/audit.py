@@ -1,6 +1,5 @@
 import logging
 
-
 logger = logging.getLogger('dj_rest_auth.mfa')
 
 

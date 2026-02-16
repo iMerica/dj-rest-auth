@@ -1,13 +1,7 @@
 from django.urls import re_path
 
-from .views import (
-    MFAVerifyView,
-    TOTPActivateView,
-    TOTPDeactivateView,
-    MFAStatusView,
-    RecoveryCodesView,
-    RecoveryCodesRegenerateView,
-)
+from .views import (MFAStatusView, MFAVerifyView, RecoveryCodesRegenerateView,
+                    RecoveryCodesView, TOTPActivateView, TOTPDeactivateView)
 
 urlpatterns = [
     re_path(r'^mfa/verify/?$', MFAVerifyView.as_view(), name='mfa_verify'),

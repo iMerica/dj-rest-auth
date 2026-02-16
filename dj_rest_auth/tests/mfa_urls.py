@@ -1,10 +1,9 @@
 from django.urls import include, re_path
 
 from dj_rest_auth.mfa.views import MFALoginView
-from dj_rest_auth.views import (
-    LogoutView, PasswordChangeView, PasswordResetConfirmView,
-    PasswordResetView, UserDetailsView,
-)
+from dj_rest_auth.views import (LogoutView, PasswordChangeView,
+                                PasswordResetConfirmView, PasswordResetView,
+                                UserDetailsView)
 
 urlpatterns = [
     re_path(r'password/reset/?$', PasswordResetView.as_view(), name='rest_password_reset'),
