@@ -14,7 +14,7 @@ from .audit import log_mfa_event
 from .models import Authenticator
 from .recovery_codes import RecoveryCodes
 from .totp import TOTP, generate_totp_secret, build_totp_uri
-from .utils import create_ephemeral_token, is_mfa_enabled
+from .utils import create_ephemeral_token, create_totp_activation_token, is_mfa_enabled
 
 
 class MFALoginView(LoginView):
@@ -92,7 +92,7 @@ class MFAVerifyView(GenericAPIView):
 class TOTPActivateView(GenericAPIView):
     """
     GET: Generate a new TOTP secret + provisioning URI + QR code.
-    POST: Confirm TOTP activation with the secret and a valid code.
+    POST: Confirm TOTP activation with activation_token and a valid code.
     """
     permission_classes = (IsAuthenticated,)
     throttle_scope = 'dj_rest_auth'
@@ -106,11 +106,13 @@ class TOTPActivateView(GenericAPIView):
         secret = generate_totp_secret()
         totp_url = build_totp_uri(request.user, secret)
         qr_data_uri = self._generate_qr_data_uri(totp_url)
+        activation_token = create_totp_activation_token(request.user, secret)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance={
             'secret': secret,
             'totp_url': totp_url,
             'qr_code_data_uri': qr_data_uri,
+            'activation_token': activation_token,
         })
         return Response(serializer.data)
 
