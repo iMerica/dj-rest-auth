@@ -419,9 +419,12 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         old_codes = RecoveryCodes.activate(self.user)
         self._mfa_login_get_token(secret)
 
-        response = self.post(self.recovery_codes_regenerate_url, status_code=200)
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(self.recovery_codes_regenerate_url, status_code=200)
         self.assertEqual(len(response.json['codes']), 10)
         self.assertNotEqual(response.json['codes'], old_codes)
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'recovery_codes_regenerated')
 
     def test_recovery_codes_regenerate_without_mfa(self):
         """Should fail to regenerate when MFA is not enabled."""

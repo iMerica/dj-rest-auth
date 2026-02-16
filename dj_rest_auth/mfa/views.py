@@ -1,6 +1,8 @@
 import io
 import logging
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -45,6 +47,10 @@ class MFALoginView(LoginView):
         return super().get_response()
 
 
+@method_decorator(
+    sensitive_post_parameters('code'),
+    name='dispatch',
+)
 class MFAVerifyView(GenericAPIView):
     """Exchange ephemeral_token + TOTP/recovery code for a real auth token."""
     permission_classes = (AllowAny,)
@@ -89,6 +95,10 @@ class MFAVerifyView(GenericAPIView):
         return login_view.get_response()
 
 
+@method_decorator(
+    sensitive_post_parameters('code'),
+    name='dispatch',
+)
 class TOTPActivateView(GenericAPIView):
     """
     GET: Generate a new TOTP secret + provisioning URI + QR code.
@@ -167,6 +177,10 @@ class TOTPActivateView(GenericAPIView):
             return ''
 
 
+@method_decorator(
+    sensitive_post_parameters('code'),
+    name='dispatch',
+)
 class TOTPDeactivateView(GenericAPIView):
     """Deactivate TOTP MFA. Requires a valid TOTP code to confirm."""
     permission_classes = (IsAuthenticated,)
@@ -265,6 +279,12 @@ class RecoveryCodesRegenerateView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         codes = RecoveryCodes.activate(request.user)
+        log_mfa_event(
+            'recovery_codes_regenerated',
+            user=request.user,
+            request=request,
+            recovery_codes_count=len(codes),
+        )
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance={'codes': codes})
         return Response(serializer.data)
