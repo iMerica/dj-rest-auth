@@ -14,6 +14,7 @@ Secure drop-in authentication endpoints for Django REST Framework. Works seamles
 
 - Login, logout, password change, password reset
 - User registration with email verification
+- Built-in MFA/2FA support (TOTP + recovery codes)
 - JWT authentication with HTTP-only cookies
 - Social auth (Google, GitHub, Facebook) via django-allauth
 - Fully customizable serializers
@@ -129,6 +130,21 @@ urlpatterns = [
 ]
 ```
 
+## MFA / 2FA
+
+```bash
+pip install 'dj-rest-auth[with-mfa]'
+```
+
+MFA ships as an opt-in sub-package (`dj_rest_auth.mfa`) with:
+
+- TOTP login challenge flow
+- Recovery codes
+- Security-focused defaults (short-lived MFA tokens, activation confirmation)
+
+See the guide for setup and endpoint details:  
+[MFA Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/mfa/)
+
 ## Documentation
 
 Full documentation at **[dj-rest-auth.readthedocs.io](https://dj-rest-auth.readthedocs.io/)**
@@ -137,6 +153,7 @@ Full documentation at **[dj-rest-auth.readthedocs.io](https://dj-rest-auth.readt
 - [API Endpoints](https://dj-rest-auth.readthedocs.io/en/latest/api/endpoints/)
 - [JWT & Cookies Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/jwt-cookies/)
 - [Social Authentication](https://dj-rest-auth.readthedocs.io/en/latest/guides/social-auth/)
+- [MFA Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/mfa/)
 
 ## Contributing
 
