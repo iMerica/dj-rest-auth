@@ -49,7 +49,7 @@ class MFALoginView(LoginView):
 
 
 @method_decorator(
-    sensitive_post_parameters('code'),
+    sensitive_post_parameters('code', 'ephemeral_token'),
     name='dispatch',
 )
 class MFAVerifyView(GenericAPIView):
