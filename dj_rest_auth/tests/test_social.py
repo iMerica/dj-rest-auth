@@ -7,6 +7,9 @@ try:
     from allauth.socialaccount.providers.facebook.provider import GRAPH_API_URL
 except ImportError:
     from allauth.socialaccount.providers.facebook.views import GRAPH_API_URL
+from allauth.socialaccount.providers.twitter.views import TwitterAPI
+
+TWITTER_VERIFY_CREDENTIALS_URL = TwitterAPI._base_url
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.test import TestCase
@@ -140,7 +143,7 @@ class TestSocialAuth(TestsMixin, TestCase):
 
         responses.add(
             responses.GET,
-            'https://api.x.com/1.1/account/verify_credentials.json',
+            TWITTER_VERIFY_CREDENTIALS_URL,
             body=json.dumps(resp_body),
             status=200,
             content_type='application/json',
@@ -184,7 +187,7 @@ class TestSocialAuth(TestsMixin, TestCase):
 
         responses.add(
             responses.GET,
-            'https://api.x.com/1.1/account/verify_credentials.json',
+            TWITTER_VERIFY_CREDENTIALS_URL,
             body=json.dumps(resp_body),
             status=400,
             content_type='application/json',
@@ -209,7 +212,7 @@ class TestSocialAuth(TestsMixin, TestCase):
 
         responses.add(
             responses.GET,
-            'https://api.x.com/1.1/account/verify_credentials.json',
+            TWITTER_VERIFY_CREDENTIALS_URL,
             body=json.dumps(resp_body),
             status=400,
             content_type='application/json',
@@ -233,7 +236,7 @@ class TestSocialAuth(TestsMixin, TestCase):
 
         responses.add(
             responses.GET,
-            'https://api.x.com/1.1/account/verify_credentials.json',
+            TWITTER_VERIFY_CREDENTIALS_URL,
             body=json.dumps(resp_body),
             status=400,
             content_type='application/json',
@@ -367,7 +370,7 @@ class TestSocialConnectAuth(TestsMixin, TestCase):
         facebook_social_app.sites.add(site)
         twitter_social_app.sites.add(site)
         self.graph_api_url = GRAPH_API_URL + '/me'
-        self.twitter_url = 'https://api.x.com/1.1/account/verify_credentials.json'
+        self.twitter_url = TWITTER_VERIFY_CREDENTIALS_URL
 
     @responses.activate
     def test_social_connect_no_auth(self):
