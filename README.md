@@ -23,31 +23,26 @@ Drop-in authentication endpoints for Django REST Framework. Works seamlessly wit
 flowchart LR
     Client[Client<br/>React / Vue / Mobile]
     
-    subgraph dj-rest-auth
-        Auth[Login / Logout]
-        Reg[Registration]
-        PW[Password Management]
-        User[User Details]
-    end
-    
     subgraph Django
+        subgraph dj-rest-auth
+            Auth[Login / Logout]
+            Reg[Registration]
+            PW[Password Reset]
+        end
+        
         DRF[Django REST Framework]
-        DJ[django.contrib.auth]
+        DJAuth[django.contrib.auth]
         AA[django-allauth]
         JWT[simplejwt]
     end
     
-    Client <--> Auth
-    Client <--> Reg
-    Client <--> PW
-    Client <--> User
+    Client <--> dj-rest-auth
     
     Auth --> DRF
-    Auth --> DJ
-    Auth --> JWT
-    Reg --> AA
-    PW --> DJ
-    User --> DJ
+    Auth --> DJAuth
+    Auth -.-> JWT
+    Reg -.-> AA
+    PW --> DJAuth
 ```
 
 ## Quick Start
