@@ -301,6 +301,30 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         log_mock.assert_called_once()
         self.assertEqual(log_mock.call_args.args[2], 'activated')
 
+    def test_totp_activate_post_when_already_enabled(self):
+        """POST TOTP activate should not overwrite an existing MFA secret."""
+        initial_secret = generate_totp_secret()
+        TOTP.activate(self.user, initial_secret)
+        self._mfa_login_get_token(initial_secret)
+
+        replacement_secret = generate_totp_secret()
+        replacement_code = pyotp.TOTP(replacement_secret).now()
+
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(
+                self.totp_activate_url,
+                data={'secret': replacement_secret, 'code': replacement_code},
+                status_code=400,
+            )
+
+        self.assertEqual(
+            response.json['detail'],
+            'MFA is already enabled. Deactivate it before activating again.',
+        )
+        self.assertEqual(TOTP.get_secret(self.user), initial_secret)
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'activation_failed')
+
     def test_totp_deactivate(self):
         """Deactivating TOTP should remove MFA."""
         secret = generate_totp_secret()
