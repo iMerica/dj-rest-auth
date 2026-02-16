@@ -352,6 +352,27 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         response = self.get(self.mfa_status_url, status_code=200)
         self.assertTrue(response.json['mfa_enabled'])
 
+    def test_mfa_status_last_used_at_updated_by_recovery_code(self):
+        """MFA status should reflect recovery-code usage as last used."""
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        codes = RecoveryCodes.activate(self.user)
+
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+
+        response = self.post(
+            self.mfa_verify_url,
+            data={'ephemeral_token': ephemeral_token, 'code': codes[0]},
+            status_code=200,
+        )
+        self.token = response.json.get('key') or response.json.get('access')
+
+        response = self.get(self.mfa_status_url, status_code=200)
+        self.assertTrue(response.json['mfa_enabled'])
+        self.assertIsNotNone(response.json['last_used_at'])
+
     def test_totp_activate_get(self):
         """GET TOTP activate should return secret and totp_url."""
         self._login_get_token()
