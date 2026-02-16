@@ -482,6 +482,44 @@ POST /dj-rest-auth/{provider}/
 
 ---
 
+## MFA Endpoints
+
+See [MFA Guide](../guides/mfa.md) for setup, login flow, and endpoint contracts.
+
+### MFA Verify
+
+```
+POST /dj-rest-auth/mfa/verify/
+```
+
+### TOTP Activate
+
+```
+GET /dj-rest-auth/mfa/totp/activate/
+POST /dj-rest-auth/mfa/totp/activate/
+```
+
+### TOTP Deactivate
+
+```
+POST /dj-rest-auth/mfa/totp/deactivate/
+```
+
+### MFA Status
+
+```
+GET /dj-rest-auth/mfa/status/
+```
+
+### Recovery Codes
+
+```
+GET  /dj-rest-auth/mfa/recovery-codes/
+POST /dj-rest-auth/mfa/recovery-codes/regenerate/
+```
+
+---
+
 ## Response Status Codes
 
 | Code | Description |

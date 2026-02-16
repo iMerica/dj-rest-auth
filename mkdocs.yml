@@ -103,6 +103,7 @@ nav:
   - Guides:
     - JWT & Cookies: guides/jwt-cookies.md
     - Social Authentication: guides/social-auth.md
+    - MFA: guides/mfa.md
     - User Profiles: guides/user-profiles.md
   - Reference:
     - Changelog: reference/changelog.md
