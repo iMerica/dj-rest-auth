@@ -1,6 +1,7 @@
 import io
 import logging
 
+from django.db.models import Max
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.debug import sensitive_post_parameters
@@ -234,10 +235,17 @@ class MFAStatusView(GenericAPIView):
             auth = Authenticator.objects.get(
                 user=request.user, type=Authenticator.Type.TOTP,
             )
+            last_used_at = Authenticator.objects.filter(
+                user=request.user,
+                type__in=[
+                    Authenticator.Type.TOTP,
+                    Authenticator.Type.RECOVERY_CODES,
+                ],
+            ).aggregate(last_used_at=Max('last_used_at'))['last_used_at']
             data = {
                 'mfa_enabled': True,
                 'created_at': auth.created_at,
-                'last_used_at': auth.last_used_at,
+                'last_used_at': last_used_at,
             }
         except Authenticator.DoesNotExist:
             data = {
