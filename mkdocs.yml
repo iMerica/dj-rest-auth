@@ -1,0 +1,112 @@
+site_name: dj-rest-auth
+site_description: Authentication and Registration for Django REST Framework
+site_url: https://dj-rest-auth.readthedocs.io/
+repo_url: https://github.com/iMerica/dj-rest-auth
+repo_name: iMerica/dj-rest-auth
+edit_uri: edit/master/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Outfit
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+  logo: material/shield-key
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/iMerica/dj-rest-auth
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/dj-rest-auth/
+
+copyright: Copyright &copy; 2020-2026 iMerica
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+  - autorefs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quickstart: getting-started/quickstart.md
+  - API Reference:
+    - Endpoints: api/endpoints.md
+    - Authentication: api/authentication.md
+  - Configuration:
+    - Settings: configuration/settings.md
+    - Customization: configuration/customization.md
+  - Guides:
+    - JWT & Cookies: guides/jwt-cookies.md
+    - Social Authentication: guides/social-auth.md
+    - User Profiles: guides/user-profiles.md
+  - Reference:
+    - Changelog: reference/changelog.md
+    - Upgrading: reference/upgrade.md
+  - Security: security.md
+  - Contributing: contributing.md
