@@ -1,7 +1,10 @@
+import logging
+
 from django.core.signing import BadSignature, SignatureExpired
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from .audit import log_mfa_event
 from .recovery_codes import RecoveryCodes
 from .totp import TOTP, validate_totp_code
 from .utils import verify_ephemeral_token
@@ -12,9 +15,16 @@ class MFAVerifySerializer(serializers.Serializer):
     code = serializers.CharField(required=True)
 
     def validate(self, attrs):
+        request = self.context.get('request')
         try:
             user = verify_ephemeral_token(attrs['ephemeral_token'])
         except (BadSignature, SignatureExpired):
+            log_mfa_event(
+                'verify_failed',
+                request=request,
+                level=logging.WARNING,
+                reason='invalid_or_expired_token',
+            )
             raise serializers.ValidationError(
                 {'ephemeral_token': _('Invalid or expired token.')},
             )
@@ -25,9 +35,21 @@ class MFAVerifySerializer(serializers.Serializer):
             return attrs
 
         if RecoveryCodes.validate_code(user, code):
+            log_mfa_event(
+                'recovery_code_used',
+                user=user,
+                request=request,
+            )
             attrs['user'] = user
             return attrs
 
+        log_mfa_event(
+            'verify_failed',
+            user=user,
+            request=request,
+            level=logging.WARNING,
+            reason='invalid_code',
+        )
         raise serializers.ValidationError(
             {'code': _('Invalid code.')},
         )
@@ -45,6 +67,13 @@ class TOTPActivateConfirmSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if not validate_totp_code(attrs['secret'], attrs['code']):
+            log_mfa_event(
+                'activation_failed',
+                user=self.context['request'].user,
+                request=self.context.get('request'),
+                level=logging.WARNING,
+                reason='invalid_totp_code',
+            )
             raise serializers.ValidationError(
                 {'code': _('Invalid code. Please check your authenticator app and try again.')},
             )
@@ -57,6 +86,13 @@ class TOTPDeactivateSerializer(serializers.Serializer):
     def validate_code(self, code):
         user = self.context['request'].user
         if not TOTP.validate_code(user, code):
+            log_mfa_event(
+                'deactivation_failed',
+                user=user,
+                request=self.context.get('request'),
+                level=logging.WARNING,
+                reason='invalid_totp_code',
+            )
             raise serializers.ValidationError(
                 _('Invalid code.'),
             )

@@ -1,6 +1,7 @@
 import pyotp
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings, modify_settings
+from unittest.mock import patch
 
 from dj_rest_auth.mfa.totp import TOTP, generate_totp_secret, validate_totp_code
 from dj_rest_auth.mfa.recovery_codes import RecoveryCodes
@@ -205,6 +206,27 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         )
         self.assertIn('key', response.json)
 
+    def test_mfa_verify_with_recovery_code_logs_usage(self):
+        """Using a recovery code should emit an MFA audit event."""
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        codes = RecoveryCodes.activate(self.user)
+
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            self.post(
+                self.mfa_verify_url,
+                data={'ephemeral_token': ephemeral_token, 'code': codes[0]},
+                status_code=200,
+            )
+
+        log_mock.assert_called()
+        event_names = [call.args[2] for call in log_mock.call_args_list]
+        self.assertIn('recovery_code_used', event_names)
+
     def test_mfa_verify_invalid_code(self):
         """Verify MFA with invalid code should fail."""
         secret = generate_totp_secret()
@@ -214,19 +236,27 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         response = self.post(self.login_url, data=payload, status_code=200)
         ephemeral_token = response.json['ephemeral_token']
 
-        response = self.post(
-            self.mfa_verify_url,
-            data={'ephemeral_token': ephemeral_token, 'code': '000000'},
-            status_code=400,
-        )
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            self.post(
+                self.mfa_verify_url,
+                data={'ephemeral_token': ephemeral_token, 'code': '000000'},
+                status_code=400,
+            )
+
+        log_mock.assert_called()
+        self.assertTrue(any(call.args[2] == 'verify_failed' for call in log_mock.call_args_list))
 
     def test_mfa_verify_invalid_token(self):
         """Verify MFA with invalid ephemeral token should fail."""
-        self.post(
-            self.mfa_verify_url,
-            data={'ephemeral_token': 'invalid-token', 'code': '123456'},
-            status_code=400,
-        )
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            self.post(
+                self.mfa_verify_url,
+                data={'ephemeral_token': 'invalid-token', 'code': '123456'},
+                status_code=400,
+            )
+
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'verify_failed')
 
     def test_mfa_status_not_enabled(self):
         """MFA status should indicate not enabled."""
@@ -259,14 +289,17 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         totp = pyotp.TOTP(secret)
         code = totp.now()
 
-        response = self.post(
-            self.totp_activate_url,
-            data={'secret': secret, 'code': code},
-            status_code=200,
-        )
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(
+                self.totp_activate_url,
+                data={'secret': secret, 'code': code},
+                status_code=200,
+            )
         self.assertIn('recovery_codes', response.json)
         self.assertEqual(len(response.json['recovery_codes']), 10)
         self.assertTrue(is_mfa_enabled(self.user))
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'activated')
 
     def test_totp_deactivate(self):
         """Deactivating TOTP should remove MFA."""
@@ -276,12 +309,15 @@ class MFALoginFlowTests(TestsMixin, TestCase):
 
         totp = pyotp.TOTP(secret)
         code = totp.now()
-        self.post(
-            self.totp_deactivate_url,
-            data={'code': code},
-            status_code=200,
-        )
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            self.post(
+                self.totp_deactivate_url,
+                data={'code': code},
+                status_code=200,
+            )
         self.assertFalse(is_mfa_enabled(self.user))
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'deactivated')
 
     def test_totp_deactivate_invalid_code(self):
         """Deactivating TOTP with invalid code should fail."""
@@ -289,12 +325,15 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         TOTP.activate(self.user, secret)
         self._mfa_login_get_token(secret)
 
-        self.post(
-            self.totp_deactivate_url,
-            data={'code': '000000'},
-            status_code=400,
-        )
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            self.post(
+                self.totp_deactivate_url,
+                data={'code': '000000'},
+                status_code=400,
+            )
         self.assertTrue(is_mfa_enabled(self.user))
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'deactivation_failed')
 
     def test_recovery_codes_view(self):
         """Should list unused recovery codes."""

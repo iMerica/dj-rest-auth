@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from dj_rest_auth.app_settings import api_settings
 from dj_rest_auth.views import LoginView
 
+from .audit import log_mfa_event
 from .models import Authenticator
 from .recovery_codes import RecoveryCodes
 from .totp import TOTP, generate_totp_secret, build_totp_uri
@@ -119,6 +120,12 @@ class TOTPActivateView(GenericAPIView):
         secret = serializer.validated_data['secret']
         TOTP.activate(request.user, secret)
         codes = RecoveryCodes.activate(request.user)
+        log_mfa_event(
+            'activated',
+            user=request.user,
+            request=request,
+            recovery_codes_count=len(codes),
+        )
 
         return Response(
             {'recovery_codes': codes},
@@ -154,6 +161,11 @@ class TOTPDeactivateView(GenericAPIView):
 
         TOTP.deactivate(request.user)
         RecoveryCodes.deactivate(request.user)
+        log_mfa_event(
+            'deactivated',
+            user=request.user,
+            request=request,
+        )
 
         return Response(
             {'detail': _('TOTP has been deactivated.')},
