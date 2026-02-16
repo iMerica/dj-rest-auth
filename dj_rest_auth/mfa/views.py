@@ -1,4 +1,5 @@
 import io
+import logging
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
@@ -114,6 +115,23 @@ class TOTPActivateView(GenericAPIView):
         return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
+        if is_mfa_enabled(request.user):
+            log_mfa_event(
+                'activation_failed',
+                user=request.user,
+                request=request,
+                level=logging.WARNING,
+                reason='already_enabled',
+            )
+            return Response(
+                {
+                    'detail': _(
+                        'MFA is already enabled. Deactivate it before activating again.',
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
