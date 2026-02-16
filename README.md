@@ -1,84 +1,151 @@
-# Dj-Rest-Auth
-[![<iMerica>](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/)
+# dj-rest-auth
 
+[![CI](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml)
+[![PyPI](https://img.shields.io/pypi/v/dj-rest-auth)](https://pypi.org/project/dj-rest-auth/)
+[![Python](https://img.shields.io/badge/python-3.10%E2%80%933.14-blue)](https://pypi.org/project/dj-rest-auth/)
+[![Django](https://img.shields.io/badge/django-4.2%E2%80%936.0-green)](https://pypi.org/project/dj-rest-auth/)
 
-Drop-in API endpoints for handling authentication securely in Django Rest Framework. Works especially well 
-with SPAs (e.g., React, Vue, Angular), and Mobile applications. 
+Drop-in authentication endpoints for Django REST Framework. Works seamlessly with SPAs and mobile apps.
 
-## Requirements
-- Django >= 4.2 (See Unit Test Coverage in CI)
-- Python >= 3.10
+**[Documentation](https://dj-rest-auth.readthedocs.io/)** | **[PyPI](https://pypi.org/project/dj-rest-auth/)**
 
-## Quick Setup
+## Features
 
-Install package
+- Login, logout, password change, password reset
+- User registration with email verification
+- JWT authentication with HTTP-only cookies
+- Social auth (Google, GitHub, Facebook) via django-allauth
+- Fully customizable serializers
 
-    pip install dj-rest-auth
+## Architecture
+
+```mermaid
+flowchart LR
+    Client[Client<br/>React / Vue / Mobile]
     
-Add `dj_rest_auth` app to INSTALLED_APPS in your django settings.py:
+    subgraph Django
+        subgraph dj-rest-auth
+            Auth[Login / Logout]
+            Reg[Registration]
+            PW[Password Reset]
+        end
+        
+        DRF[Django REST Framework]
+        DJAuth[django.contrib.auth]
+        AA[django-allauth]
+        JWT[simplejwt]
+    end
+    
+    Client <--> dj-rest-auth
+    
+    Auth --> DRF
+    Auth --> DJAuth
+    Auth -.-> JWT
+    Reg -.-> AA
+    PW --> DJAuth
+```
+
+## Quick Start
+
+```bash
+pip install dj-rest-auth
+```
 
 ```python
-INSTALLED_APPS = (
-    ...,
+# settings.py
+INSTALLED_APPS = [
+    ...
     'rest_framework',
     'rest_framework.authtoken',
-    ...,
-    'dj_rest_auth'
-)
-```
-    
-Add URL patterns
-
-```python
-urlpatterns = [
-    path('dj-rest-auth/', include('dj_rest_auth.urls')),
+    'dj_rest_auth',
 ]
 ```
-    
-
-(Optional) Use Http-Only cookies
 
 ```python
+# urls.py
+urlpatterns = [
+    path('auth/', include('dj_rest_auth.urls')),
+]
+```
+
+You now have:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/login/` | POST | Obtain auth token |
+| `/auth/logout/` | POST | Revoke token |
+| `/auth/user/` | GET, PUT | User details |
+| `/auth/password/change/` | POST | Change password |
+| `/auth/password/reset/` | POST | Request reset email |
+| `/auth/password/reset/confirm/` | POST | Confirm reset |
+
+## JWT with HTTP-only Cookies
+
+```bash
+pip install dj-rest-auth djangorestframework-simplejwt
+```
+
+```python
+# settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ],
+}
+
 REST_AUTH = {
     'USE_JWT': True,
-    'JWT_AUTH_COOKIE': 'jwt-auth',
+    'JWT_AUTH_COOKIE': 'access',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh',
+    'JWT_AUTH_HTTPONLY': True,
 }
 ```
 
-### Testing
+## Registration
 
-Install required modules with `pip install -r  dj_rest_auth/tests/requirements.txt`
+```bash
+pip install 'dj-rest-auth[with-social]'
+```
 
-To run the tests within a virtualenv, run `python runtests.py` from the repository directory.
-The easiest way to run test coverage is with [`coverage`](https://pypi.org/project/coverage/),
-which runs the tests against all supported Django installs. To run the test coverage 
-within a virtualenv, run `coverage run ./runtests.py` from the repository directory then run `coverage report`.
+```python
+# settings.py
+INSTALLED_APPS = [
+    ...
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'dj_rest_auth.registration',
+]
 
-#### Tox
+SITE_ID = 1
+```
 
-Testing may also be done using [`tox`](https://pypi.org/project/tox/), which
-will run the tests against all supported combinations of Python and Django.
+```python
+# urls.py
+urlpatterns = [
+    path('auth/', include('dj_rest_auth.urls')),
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),
+]
+```
 
-Install tox, either globally or within a virtualenv, and then simply run `tox`
-from the repository directory. As there are many combinations, you may run them
-in [`parallel`](https://tox.readthedocs.io/en/latest/config.html#cmdoption-tox-p)
-using `tox --parallel`.
+## Documentation
 
-The `tox.ini` includes an environment for testing code [`coverage`](https://pypi.org/project/coverage/)
-and you can run it and view this report with `tox -e coverage`.
+Full documentation at **[dj-rest-auth.readthedocs.io](https://dj-rest-auth.readthedocs.io/)**
 
-Linting may also be performed via [`flake8`](https://pypi.org/project/flake8/)
-by running `tox -e flake8`.
+- [Installation & Configuration](https://dj-rest-auth.readthedocs.io/en/latest/getting-started/installation/)
+- [API Endpoints](https://dj-rest-auth.readthedocs.io/en/latest/api/endpoints/)
+- [JWT & Cookies Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/jwt-cookies/)
+- [Social Authentication](https://dj-rest-auth.readthedocs.io/en/latest/guides/social-auth/)
 
-### Documentation
+## Contributing
 
-View the full documentation here: https://dj-rest-auth.readthedocs.io/en/latest/index.html
+```bash
+pip install -r dj_rest_auth/tests/requirements.txt
+python runtests.py
+```
 
+See [Contributing Guide](https://dj-rest-auth.readthedocs.io/en/latest/contributing/) for details.
 
-### Acknowledgements
+## License
 
-This project began as a fork of `django-rest-auth`. Big thanks to everyone who contributed to that repo!
-
-#### A note on Django AllAuth from @iMerica
-
-This project has optional and very narrow support for Django-AllAuth. As the maintainer, I have no interest in making this package support all use cases in Django-AllAuth. I would rather focus on improving the quality of the base functionality or focus on OIDC support instead. Pull requests that extend or add more support for Django-AllAuth will most likely be declined. Do you disagree? Feel free to fork this repo!
+MIT
