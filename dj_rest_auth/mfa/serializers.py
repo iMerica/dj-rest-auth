@@ -31,6 +31,11 @@ class MFAVerifySerializer(serializers.Serializer):
 
         code = attrs['code']
         if TOTP.validate_code(user, code):
+            log_mfa_event(
+                'totp_verified',
+                user=user,
+                request=request,
+            )
             attrs['user'] = user
             return attrs
 
