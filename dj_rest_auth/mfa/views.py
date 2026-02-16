@@ -97,7 +97,7 @@ class MFAVerifyView(GenericAPIView):
 
 
 @method_decorator(
-    sensitive_post_parameters('code'),
+    sensitive_post_parameters('code', 'activation_token'),
     name='dispatch',
 )
 class TOTPActivateView(GenericAPIView):
