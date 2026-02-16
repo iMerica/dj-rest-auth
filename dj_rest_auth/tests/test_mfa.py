@@ -13,6 +13,7 @@ from dj_rest_auth.mfa.utils import (create_ephemeral_token,
                                     verify_totp_activation_token)
 
 from .mixins import APIClient, TestsMixin
+from .utils import override_api_settings
 
 try:
     from django.urls import reverse
@@ -200,6 +201,49 @@ class MFALoginFlowTests(TestsMixin, TestCase):
             status_code=200,
         )
         self.assertIn('key', response.json)
+
+    @override_api_settings(USE_JWT=True)
+    def test_mfa_verify_with_totp_jwt_response(self):
+        """Verify MFA with TOTP should return JWT response when enabled."""
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        RecoveryCodes.activate(self.user)
+
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+
+        code = pyotp.TOTP(secret).now()
+        response = self.post(
+            self.mfa_verify_url,
+            data={'ephemeral_token': ephemeral_token, 'code': code},
+            status_code=200,
+        )
+        self.assertIn('access', response.json)
+        self.assertIn('refresh', response.json)
+        self.assertNotIn('key', response.json)
+
+    @override_api_settings(USE_JWT=True)
+    @override_api_settings(JWT_AUTH_COOKIE='jwt-auth')
+    @override_api_settings(JWT_AUTH_REFRESH_COOKIE='jwt-auth-refresh')
+    def test_mfa_verify_with_totp_jwt_sets_cookies(self):
+        """Verify MFA with TOTP should set configured JWT cookies."""
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        RecoveryCodes.activate(self.user)
+
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+
+        code = pyotp.TOTP(secret).now()
+        response = self.post(
+            self.mfa_verify_url,
+            data={'ephemeral_token': ephemeral_token, 'code': code},
+            status_code=200,
+        )
+        self.assertIn('jwt-auth', response.cookies.keys())
+        self.assertIn('jwt-auth-refresh', response.cookies.keys())
 
     def test_mfa_verify_with_recovery_code(self):
         """Verify MFA with a valid recovery code should return auth token."""
