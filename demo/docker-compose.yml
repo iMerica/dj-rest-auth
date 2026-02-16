@@ -1,0 +1,27 @@
+
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: demo/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/db.sqlite3:/app/source/demo/backend/db.sqlite3
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build:
+      context: ./spa-client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./spa-client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
