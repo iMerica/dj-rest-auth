@@ -1,16 +1,18 @@
-import pyotp
-from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings, modify_settings
 from unittest.mock import patch
 
-from dj_rest_auth.mfa.totp import TOTP, generate_totp_secret, validate_totp_code
-from dj_rest_auth.mfa.recovery_codes import RecoveryCodes
-from dj_rest_auth.mfa.utils import (
-    create_ephemeral_token, create_totp_activation_token, verify_ephemeral_token,
-    verify_totp_activation_token, is_mfa_enabled,
-)
+import pyotp
+from django.contrib.auth import get_user_model
+from django.test import TestCase, modify_settings, override_settings
 
-from .mixins import TestsMixin, APIClient
+from dj_rest_auth.mfa.recovery_codes import RecoveryCodes
+from dj_rest_auth.mfa.totp import (TOTP, generate_totp_secret,
+                                   validate_totp_code)
+from dj_rest_auth.mfa.utils import (create_ephemeral_token,
+                                    create_totp_activation_token,
+                                    is_mfa_enabled, verify_ephemeral_token,
+                                    verify_totp_activation_token)
+
+from .mixins import APIClient, TestsMixin
 
 try:
     from django.urls import reverse

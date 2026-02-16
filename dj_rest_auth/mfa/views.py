@@ -2,8 +2,8 @@ import io
 import logging
 
 from django.utils.decorators import method_decorator
-from django.views.decorators.debug import sensitive_post_parameters
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.debug import sensitive_post_parameters
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -15,8 +15,9 @@ from dj_rest_auth.views import LoginView
 from .audit import log_mfa_event
 from .models import Authenticator
 from .recovery_codes import RecoveryCodes
-from .totp import TOTP, generate_totp_secret, build_totp_uri
-from .utils import create_ephemeral_token, create_totp_activation_token, is_mfa_enabled
+from .totp import TOTP, build_totp_uri, generate_totp_secret
+from .utils import (create_ephemeral_token, create_totp_activation_token,
+                    is_mfa_enabled)
 
 
 class MFALoginView(LoginView):
