@@ -8,11 +8,19 @@ Features
 
 - **TOTP Authentication**: Industry-standard Time-based One-Time Passwords (RFC 6238)
 - **Recovery Codes**: Backup codes for account recovery if the authenticator device is lost
-- **QR Code Generation**: Easy setup with authenticator apps via QR code scanning
+- **Optional QR Code Generation**: Server can return QR SVG data URI for convenience
 - **Customizable**: All serializers and settings are configurable
 
 Installation
 ------------
+
+Install MFA dependencies:
+
+.. code-block:: bash
+
+    pip install 'dj-rest-auth[with-mfa]'
+
+.. note:: ``with-mfa`` installs TOTP support (``pyotp``). QR rendering remains optional.
 
 1. Add ``dj_rest_auth.mfa`` to your ``INSTALLED_APPS``:
 
@@ -48,13 +56,14 @@ Installation
         path('dj-rest-auth/', include('dj_rest_auth.mfa.urls')),
     ]
 
-4. (Optional) Install ``qrcode`` for QR code generation during TOTP setup:
+4. (Optional) Install ``qrcode`` for server-side QR code generation during TOTP setup:
 
 .. code-block:: bash
 
-    pip install qrcode[pil]
+    pip install qrcode
 
-.. note:: Without the ``qrcode`` package, the TOTP activation endpoint will still work but will return an empty string for ``qr_code_data_uri``. Users can still manually enter the secret into their authenticator app.
+.. note:: Without ``qrcode``, the activation endpoint still works and returns ``totp_url`` + ``activation_token``.
+   In headless/API-first clients, generating a QR client-side from ``totp_url`` is typically preferred.
 
 
 Login Flow with MFA
@@ -115,9 +124,10 @@ TOTP Activate
 
     **Response:**
 
-    - ``secret`` - Base32-encoded TOTP secret
-    - ``totp_url`` - otpauth:// URI for authenticator apps
+    - ``secret`` - Base32-encoded TOTP secret (for manual app entry if needed)
+    - ``totp_url`` - otpauth:// URI for authenticator apps (can be used by clients to render QR)
     - ``qr_code_data_uri`` - SVG QR code as a data URI (requires ``qrcode`` package)
+    - ``activation_token`` - Signed token binding the secret to this user and request window
 
     .. note:: Requires authentication.
 
@@ -127,7 +137,7 @@ TOTP Activate
 
     **Request:**
 
-    - ``secret`` - The secret from the GET response
+    - ``activation_token`` - The signed activation token from the GET response
     - ``code`` - A valid TOTP code from the authenticator app
 
     **Response:**
@@ -276,12 +286,13 @@ Here's a complete example of setting up MFA for a user:
     response = requests.get(f'{BASE_URL}/mfa/totp/activate/', headers=headers)
     setup_data = response.json()
     print(f"Secret: {setup_data['secret']}")
+    activation_token = setup_data['activation_token']
     print(f"Scan QR or enter secret in authenticator app")
     
     # 3. Get TOTP code from authenticator app and confirm activation
     totp_code = input("Enter TOTP code from app: ")
     response = requests.post(f'{BASE_URL}/mfa/totp/activate/', headers=headers, json={
-        'secret': setup_data['secret'],
+        'activation_token': activation_token,
         'code': totp_code
     })
     recovery_codes = response.json()['recovery_codes']
