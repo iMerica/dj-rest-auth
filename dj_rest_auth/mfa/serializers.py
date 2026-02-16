@@ -29,6 +29,18 @@ class MFAVerifySerializer(serializers.Serializer):
                 {'ephemeral_token': _('Invalid or expired token.')},
             )
 
+        if not user.is_active:
+            log_mfa_event(
+                'verify_failed',
+                user=user,
+                request=request,
+                level=logging.WARNING,
+                reason='user_inactive',
+            )
+            raise serializers.ValidationError(
+                {'detail': _('User account is disabled.')},
+            )
+
         code = attrs['code']
         if TOTP.validate_code(user, code):
             log_mfa_event(

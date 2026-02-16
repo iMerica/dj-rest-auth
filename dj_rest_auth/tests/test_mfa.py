@@ -314,6 +314,29 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         log_mock.assert_called_once()
         self.assertEqual(log_mock.call_args.args[2], 'verify_failed')
 
+    def test_mfa_verify_inactive_user(self):
+        """Verify MFA should fail if user is deactivated after first step."""
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        RecoveryCodes.activate(self.user)
+
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+
+        self.user.is_active = False
+        self.user.save(update_fields=['is_active'])
+
+        code = pyotp.TOTP(secret).now()
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(
+                self.mfa_verify_url,
+                data={'ephemeral_token': ephemeral_token, 'code': code},
+                status_code=400,
+            )
+        self.assertEqual(response.json['detail'][0], 'User account is disabled.')
+        self.assertTrue(any(call.args[2] == 'verify_failed' for call in log_mock.call_args_list))
+
     def test_mfa_status_not_enabled(self):
         """MFA status should indicate not enabled."""
         self._login_get_token()
