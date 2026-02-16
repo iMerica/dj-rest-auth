@@ -176,6 +176,19 @@ class TOTPDeactivateView(GenericAPIView):
         return api_settings.MFA_TOTP_DEACTIVATE_SERIALIZER
 
     def post(self, request, *args, **kwargs):
+        if not is_mfa_enabled(request.user):
+            log_mfa_event(
+                'deactivation_failed',
+                user=request.user,
+                request=request,
+                level=logging.WARNING,
+                reason='not_enabled',
+            )
+            return Response(
+                {'detail': _('MFA is not enabled.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
