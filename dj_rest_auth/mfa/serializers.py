@@ -12,7 +12,7 @@ from .utils import verify_ephemeral_token, verify_totp_activation_token
 
 class MFAVerifySerializer(serializers.Serializer):
     ephemeral_token = serializers.CharField(required=True)
-    code = serializers.CharField(required=True)
+    code = serializers.CharField(required=True, max_length=9)
 
     def validate(self, attrs):
         request = self.context.get('request')
