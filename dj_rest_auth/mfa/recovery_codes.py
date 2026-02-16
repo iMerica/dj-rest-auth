@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 
+from django.db import transaction
 from django.utils import timezone
 
 from dj_rest_auth.app_settings import api_settings
@@ -52,26 +53,29 @@ class RecoveryCodes:
 
     @staticmethod
     def validate_code(user, code):
-        try:
-            auth = Authenticator.objects.get(
-                user=user, type=Authenticator.Type.RECOVERY_CODES,
-            )
-        except Authenticator.DoesNotExist:
+        with transaction.atomic():
+            try:
+                auth = Authenticator.objects.select_for_update().get(
+                    user=user, type=Authenticator.Type.RECOVERY_CODES,
+                )
+            except Authenticator.DoesNotExist:
+                return False
+
+            seed = auth.data['seed']
+            used_mask = auth.data.get('used_mask', 0)
+            count = api_settings.MFA_RECOVERY_CODE_COUNT
+            all_codes = RecoveryCodes._generate_codes(seed, count)
+            normalized = code.strip().lower()
+
+            for i, c in enumerate(all_codes):
+                if c == normalized and not (used_mask & (1 << i)):
+                    used_mask |= (1 << i)
+                    auth.data['used_mask'] = used_mask
+                    auth.last_used_at = timezone.now()
+                    auth.save(update_fields=['data', 'last_used_at'])
+                    return True
+
             return False
-        seed = auth.data['seed']
-        used_mask = auth.data.get('used_mask', 0)
-        count = api_settings.MFA_RECOVERY_CODE_COUNT
-        all_codes = RecoveryCodes._generate_codes(seed, count)
-        normalized = code.strip().lower()
-        for i, c in enumerate(all_codes):
-            if c == normalized and not (used_mask & (1 << i)):
-                used_mask |= (1 << i)
-                auth.data['used_mask'] = used_mask
-                auth.save(update_fields=['data', 'last_used_at'])
-                auth.last_used_at = timezone.now()
-                auth.save(update_fields=['last_used_at'])
-                return True
-        return False
 
     @staticmethod
     def deactivate(user):
