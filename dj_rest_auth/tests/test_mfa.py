@@ -336,12 +336,18 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         self._mfa_login_get_token(initial_secret)
 
         replacement_secret = generate_totp_secret()
+        replacement_activation_token = create_totp_activation_token(
+            self.user, replacement_secret,
+        )
         replacement_code = pyotp.TOTP(replacement_secret).now()
 
         with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
             response = self.post(
                 self.totp_activate_url,
-                data={'secret': replacement_secret, 'code': replacement_code},
+                data={
+                    'activation_token': replacement_activation_token,
+                    'code': replacement_code,
+                },
                 status_code=400,
             )
 
