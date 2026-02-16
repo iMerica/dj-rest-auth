@@ -387,6 +387,21 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         log_mock.assert_called_once()
         self.assertEqual(log_mock.call_args.args[2], 'deactivation_failed')
 
+    def test_totp_deactivate_when_not_enabled(self):
+        """Deactivating TOTP when disabled should return clear error."""
+        self._login_get_token()
+
+        with patch('dj_rest_auth.mfa.audit.logger.log') as log_mock:
+            response = self.post(
+                self.totp_deactivate_url,
+                data={'code': '000000'},
+                status_code=400,
+            )
+
+        self.assertEqual(response.json['detail'], 'MFA is not enabled.')
+        log_mock.assert_called_once()
+        self.assertEqual(log_mock.call_args.args[2], 'deactivation_failed')
+
     def test_recovery_codes_view(self):
         """Should list unused recovery codes."""
         self._login_get_token()
