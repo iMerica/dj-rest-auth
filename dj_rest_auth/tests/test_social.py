@@ -174,7 +174,7 @@ class TestSocialAuth(TestsMixin, TestCase):
     @_skip_twitter_oauth
     @responses.activate
     @override_settings(SOCIALACCOUNT_AUTO_SIGNUP=False)
-    def test_twitter_social_auth_without_auto_singup(self):
+    def test_twitter_social_auth_without_auto_signup(self):
         self._twitter_social_auth()
 
     @_skip_twitter_oauth
