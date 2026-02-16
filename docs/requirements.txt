@@ -1,0 +1,5 @@
+# Documentation build dependencies
+mkdocs>=1.6
+mkdocs-material>=9.5
+mkdocs-autorefs>=1.0
+pymdown-extensions>=10.7

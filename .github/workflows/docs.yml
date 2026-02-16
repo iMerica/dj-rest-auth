@@ -1,0 +1,43 @@
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.readthedocs.yaml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.readthedocs.yaml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Documentation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r docs/requirements.txt
+
+      - name: Build docs
+        run: mkdocs build --strict
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: docs-preview
+          path: site/
+          retention-days: 7
