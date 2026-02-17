@@ -8,7 +8,7 @@ from rest_framework import serializers
 if 'allauth.socialaccount' in settings.INSTALLED_APPS:
     from allauth.socialaccount.helpers import complete_social_login
     from allauth.socialaccount.models import SocialToken
-    from allauth.socialaccount.providers.oauth.client import OAuthError
+    from allauth.socialaccount.providers.oauth.client import OAuthError, get_token_prefix
 
     from dj_rest_auth.registration.serializers import SocialConnectMixin
 
@@ -60,7 +60,8 @@ class TwitterLoginSerializer(serializers.Serializer):
         access_token = attrs.get('access_token')
         token_secret = attrs.get('token_secret')
 
-        request.session['oauth_api.twitter.com_access_token'] = {
+        token_prefix = get_token_prefix(adapter.access_token_url)
+        request.session[f'oauth_{token_prefix}_access_token'] = {
             'oauth_token': access_token,
             'oauth_token_secret': token_secret,
         }

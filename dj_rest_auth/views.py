@@ -198,18 +198,12 @@ class LogoutView(APIView):
                             response.status_code = status.HTTP_401_UNAUTHORIZED
 
                     token.blacklist()
-                except (TokenError, AttributeError, TypeError) as error:
-                    if hasattr(error, 'args'):
-                        if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
-                            response.data = {'detail': _(error.args[0])}
-                            response.status_code = status.HTTP_401_UNAUTHORIZED
-                        else:
-                            response.data = {'detail': _('An error has occurred.')}
-                            response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-                    else:
-                        response.data = {'detail': _('An error has occurred.')}
-                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                except TokenError as error:
+                    response.data = {'detail': _(str(error))}
+                    response.status_code = status.HTTP_401_UNAUTHORIZED
+                except (AttributeError, TypeError):
+                    response.data = {'detail': _('An error has occurred.')}
+                    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             elif not cookie_name:
                 message = _(

@@ -58,18 +58,22 @@ class LoginSerializer(serializers.Serializer):
     def get_auth_user_using_allauth(self, username, email, password):
         from allauth.account import app_settings as allauth_account_settings
 
+        login_methods = getattr(allauth_account_settings, "LOGIN_METHODS", None)
+
         # Authentication through email
-        if (
-            getattr(allauth_account_settings, "LOGIN_METHODS", None) == {allauth_account_settings.AuthenticationMethod.EMAIL}
-            or allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.EMAIL   # noqa: W503
-        ):
+        if login_methods is not None:
+            is_email_only = login_methods == {allauth_account_settings.AuthenticationMethod.EMAIL}
+        else:
+            is_email_only = allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.EMAIL
+        if is_email_only:
             return self._validate_email(email, password)
 
         # Authentication through username
-        if (
-            getattr(allauth_account_settings, "LOGIN_METHODS", None) == {allauth_account_settings.AuthenticationMethod.USERNAME}
-            or allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.USERNAME   # noqa: W503
-        ):
+        if login_methods is not None:
+            is_username_only = login_methods == {allauth_account_settings.AuthenticationMethod.USERNAME}
+        else:
+            is_username_only = allauth_account_settings.AUTHENTICATION_METHOD == allauth_account_settings.AuthenticationMethod.USERNAME
+        if is_username_only:
             return self._validate_username(username, password)
 
         # Authentication through either username or email
