@@ -828,7 +828,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual('access' in self.response.json.keys(), True)
         self.token = self.response.json['access']
         claims = decode_jwt(self.token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEqual(claims['user_id'], 1)
+        self.assertEqual(str(claims['user_id']), '1')
         self.assertEqual(claims['name'], 'person')
         self.assertEqual(claims['email'], 'person1@world.com')
 
@@ -853,7 +853,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertEqual(['jwt-auth'], list(resp.cookies.keys()))
         token = resp.cookies.get('jwt-auth').value
         claims = decode_jwt(token, settings.SECRET_KEY, algorithms='HS256')
-        self.assertEqual(claims['user_id'], 1)
+        self.assertEqual(str(claims['user_id']), '1')
         self.assertEqual(claims['name'], 'person')
         self.assertEqual(claims['email'], 'person1@world.com')
         resp = self.get('/protected-view/')

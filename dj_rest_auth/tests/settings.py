@@ -10,9 +10,7 @@ logging.disable(logging.CRITICAL)
 ROOT_URLCONF = 'urls'
 STATIC_URL = '/static/'
 STATIC_ROOT = f'{PROJECT_ROOT}/staticserve'
-STATICFILES_DIRS = (
-    ('global', f'{PROJECT_ROOT}/static'),
-)
+STATICFILES_DIRS = ()
 UPLOADS_DIR_NAME = 'uploads'
 MEDIA_URL = f'/{UPLOADS_DIR_NAME}/'
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, f'{UPLOADS_DIR_NAME}')
@@ -44,6 +42,7 @@ MIDDLEWARE_CLASSES = MIDDLEWARE
 TEMPLATE_CONTEXT_PROCESSORS = [
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
+    'django.template.context_processors.request',
 ]
 
 # avoid deprecation warnings during tests
