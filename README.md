@@ -1,11 +1,12 @@
 # dj-rest-auth
 
 [![CI](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/main.yml)
+[![Security](https://github.com/iMerica/dj-rest-auth/actions/workflows/security.yaml/badge.svg)](https://github.com/iMerica/dj-rest-auth/actions/workflows/security.yaml)
 [![PyPI](https://img.shields.io/pypi/v/dj-rest-auth)](https://pypi.org/project/dj-rest-auth/)
 [![Python](https://img.shields.io/badge/python-3.10%E2%80%933.14-blue)](https://pypi.org/project/dj-rest-auth/)
 [![Django](https://img.shields.io/badge/django-4.2%E2%80%936.0-green)](https://pypi.org/project/dj-rest-auth/)
 
-Drop-in authentication endpoints for Django REST Framework. Works seamlessly with SPAs and mobile apps.
+Secure drop-in authentication endpoints for Django REST Framework. Works seamlessly with SPAs and mobile apps.
 
 **[Documentation](https://dj-rest-auth.readthedocs.io/)** | **[PyPI](https://pypi.org/project/dj-rest-auth/)**
 
