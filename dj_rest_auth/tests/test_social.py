@@ -25,7 +25,9 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse  # noqa
 
-TWITTER_VERIFY_CREDENTIALS_URL = TwitterAPI._base_url
+TWITTER_VERIFY_CREDENTIALS_URL = getattr(
+    TwitterAPI, 'base_url', getattr(TwitterAPI, '_base_url', None),
+) or 'https://api.x.com/1.1/account/verify_credentials.json'
 
 
 def _has_oauth_query_bug():
