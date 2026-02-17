@@ -39,6 +39,19 @@ DEFAULTS = {
     'JWT_AUTH_RETURN_EXPIRATION': False,
     'JWT_AUTH_COOKIE_USE_CSRF': False,
     'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
+
+    # MFA settings — only active when dj_rest_auth.mfa is in INSTALLED_APPS
+    'MFA_VERIFY_SERIALIZER': 'dj_rest_auth.mfa.serializers.MFAVerifySerializer',
+    'MFA_TOTP_ACTIVATE_INIT_SERIALIZER': 'dj_rest_auth.mfa.serializers.TOTPActivateInitSerializer',
+    'MFA_TOTP_ACTIVATE_CONFIRM_SERIALIZER': 'dj_rest_auth.mfa.serializers.TOTPActivateConfirmSerializer',
+    'MFA_TOTP_DEACTIVATE_SERIALIZER': 'dj_rest_auth.mfa.serializers.TOTPDeactivateSerializer',
+    'MFA_STATUS_SERIALIZER': 'dj_rest_auth.mfa.serializers.MFAStatusSerializer',
+    'MFA_RECOVERY_CODES_SERIALIZER': 'dj_rest_auth.mfa.serializers.RecoveryCodesSerializer',
+    'MFA_EPHEMERAL_TOKEN_TIMEOUT': 300,
+    'MFA_TOTP_DIGITS': 6,
+    'MFA_TOTP_PERIOD': 30,
+    'MFA_TOTP_ISSUER': '',
+    'MFA_RECOVERY_CODE_COUNT': 10,
 }
 
 # List of settings that may be in string import notation.
@@ -56,6 +69,12 @@ IMPORT_STRINGS = (
     'PASSWORD_CHANGE_SERIALIZER',
     'REGISTER_SERIALIZER',
     'REGISTER_PERMISSION_CLASSES',
+    'MFA_VERIFY_SERIALIZER',
+    'MFA_TOTP_ACTIVATE_INIT_SERIALIZER',
+    'MFA_TOTP_ACTIVATE_CONFIRM_SERIALIZER',
+    'MFA_TOTP_DEACTIVATE_SERIALIZER',
+    'MFA_STATUS_SERIALIZER',
+    'MFA_RECOVERY_CODES_SERIALIZER',
 )
 
 # List of settings that have been removed

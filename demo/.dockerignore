@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+backend/db.sqlite3
+
+# Virtual Environment
+venv/
+.venv/
+.env
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.next/
+
+# IDEs
+.idea/
+.vscode/
+
+# Project Specific
+spa-client/node_modules/
+spa-client/.next/

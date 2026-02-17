@@ -1,0 +1,11 @@
+django==5.2.10
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+django-allauth[socialaccount,mfa]==65.14.3
+drf-yasg==1.21.7
+django-cors-headers==4.4.0
+coreapi==2.3.3
+setuptools==78.1.1
+qrcode==8.2
+pyotp==2.9.0
+../../
