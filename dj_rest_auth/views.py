@@ -199,7 +199,7 @@ class LogoutView(APIView):
 
                     token.blacklist()
                 except TokenError as error:
-                    response.data = {'detail': _(error.args[0])}
+                    response.data = {'detail': _(str(error))}
                     response.status_code = status.HTTP_401_UNAUTHORIZED
                 except (AttributeError, TypeError):
                     response.data = {'detail': _('An error has occurred.')}
