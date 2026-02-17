@@ -1,0 +1,78 @@
+name: Security Checks
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  bandit:
+    runs-on: ubuntu-latest
+    name: Bandit SAST
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Bandit
+        run: pip install bandit[toml]
+      - name: Run Bandit
+        run: bandit -r dj_rest_auth/ --exclude dj_rest_auth/tests -s B105 -f json -o bandit-results.json
+      - name: Display results
+        if: always()
+        run: bandit -r dj_rest_auth/ --exclude dj_rest_auth/tests -s B105 -f screen
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-results
+          path: bandit-results.json
+
+  codeql:
+    runs-on: ubuntu-latest
+    name: CodeQL Analysis
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: python
+          queries: security-and-quality
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:python"
+
+  pip-audit:
+    runs-on: ubuntu-latest
+    name: pip-audit Dependency Scan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install pip-audit
+          pip install -r dj_rest_auth/tests/requirements.txt
+      - name: Run pip-audit
+        run: pip-audit --strict --desc
+
+  semgrep:
+    runs-on: ubuntu-latest
+    name: Semgrep SAST
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run Semgrep
+        run: semgrep scan --config auto --config p/django --error dj_rest_auth/
