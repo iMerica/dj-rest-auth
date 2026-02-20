@@ -36,6 +36,7 @@ class LoginView(GenericAPIView):
     Return the REST Framework Token Object's key.
     """
     permission_classes = (AllowAny,)
+    authentication_classes = ()
     serializer_class = api_settings.LOGIN_SERIALIZER
     throttle_scope = 'dj_rest_auth'
 
