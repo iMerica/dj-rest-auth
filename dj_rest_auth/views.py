@@ -74,7 +74,10 @@ class LoginView(GenericAPIView):
         if api_settings.SESSION_LOGIN:
             self.process_login()
 
-    def get_response(self):
+    def use_httponly_jwt_cookie(self, request):
+        return api_settings.JWT_AUTH_HTTPONLY
+
+    def get_response(self, request):
         serializer_class = self.get_response_serializer()
 
         if api_settings.USE_JWT:
@@ -84,7 +87,7 @@ class LoginView(GenericAPIView):
             access_token_expiration = (timezone.now() + jwt_settings.ACCESS_TOKEN_LIFETIME)
             refresh_token_expiration = (timezone.now() + jwt_settings.REFRESH_TOKEN_LIFETIME)
             return_expiration_times = api_settings.JWT_AUTH_RETURN_EXPIRATION
-            auth_httponly = api_settings.JWT_AUTH_HTTPONLY
+            auth_httponly = self.use_httponly_jwt_cookie(request)
 
             data = {
                 'user': self.user,
@@ -125,7 +128,7 @@ class LoginView(GenericAPIView):
         self.serializer.is_valid(raise_exception=True)
 
         self.login()
-        return self.get_response()
+        return self.get_response(request)
 
 
 class LogoutView(APIView):
