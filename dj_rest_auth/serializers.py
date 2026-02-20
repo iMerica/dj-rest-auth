@@ -6,6 +6,7 @@ from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .app_settings import api_settings
 
@@ -363,3 +364,14 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not self.logout_on_password_change:
             from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(self.request, self.user)
+
+
+class TokenWithCustomClaimsSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user, custom_claims={}):
+        token = super().get_token(user)
+        if custom_claims:
+            for key, value in custom_claims.items():
+                token[key] = value
+        return token
