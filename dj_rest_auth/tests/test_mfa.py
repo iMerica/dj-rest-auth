@@ -109,6 +109,23 @@ class MFAUnitTests(TestCase):
         self.assertEqual(payload['uid'], self.user.pk)
         self.assertEqual(payload['secret'], secret)
 
+    def test_totp_activate_signs_secret(self):
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        from dj_rest_auth.mfa.models import Authenticator
+        auth = Authenticator.objects.get(
+            user=self.user, type=Authenticator.Type.TOTP,
+        )
+        self.assertNotEqual(auth.data['secret'], secret)
+        self.assertIn(':', auth.data['secret'])
+
+    def test_totp_validate_code_rejects_replay(self):
+        secret = generate_totp_secret()
+        TOTP.activate(self.user, secret)
+        code = pyotp.TOTP(secret).now()
+        self.assertTrue(TOTP.validate_code(self.user, code))
+        self.assertFalse(TOTP.validate_code(self.user, code))
+
     def test_is_mfa_enabled(self):
         self.assertFalse(is_mfa_enabled(self.user))
         secret = generate_totp_secret()
