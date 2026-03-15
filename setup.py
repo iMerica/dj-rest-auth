@@ -34,6 +34,7 @@ setup(
     extras_require={
         'with-social': ['django-allauth[socialaccount]>=64.0.0'],
         'with-mfa': ['pyotp>=2.9.0'],
+        'with-passkeys': ['webauthn>=2.0.0'],
     },
     tests_require=[
         'coveralls>=1.11.1',

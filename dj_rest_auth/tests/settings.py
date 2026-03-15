@@ -91,6 +91,7 @@ INSTALLED_APPS = [
 
     'dj_rest_auth',
     'dj_rest_auth.registration',
+    'dj_rest_auth.passkeys',
 
     'rest_framework_simplejwt.token_blacklist',
 ]
@@ -110,4 +111,8 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-REST_AUTH = {}
+REST_AUTH = {
+    'PASSKEY_RP_ID': 'localhost',
+    'PASSKEY_RP_NAME': 'Test App',
+    'PASSKEY_RP_ORIGINS': ['http://localhost:8000'],
+}

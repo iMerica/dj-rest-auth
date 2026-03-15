@@ -119,6 +119,7 @@ urlpatterns += [
         r'^socialaccounts/(?P<pk>\d+)/disconnect/$', SocialAccountDisconnectView.as_view(),
         name='social_account_disconnect',
     ),
+    re_path(r'^passkeys/', include('dj_rest_auth.passkeys.urls')),
     re_path(r'^accounts/', include('allauth.urls')),
     re_path(r'^getcsrf/', get_csrf_cookie, name='getcsrf'),
     re_path('^token/verify/', TokenVerifyView.as_view(), name='token_verify'),

@@ -52,6 +52,12 @@ DEFAULTS = {
     'MFA_TOTP_PERIOD': 30,
     'MFA_TOTP_ISSUER': '',
     'MFA_RECOVERY_CODE_COUNT': 10,
+
+    # Passkey settings (serializers resolved lazily to avoid importing webauthn when not installed)
+    'PASSKEY_RP_ID': None,
+    'PASSKEY_RP_NAME': None,
+    'PASSKEY_RP_ORIGINS': None,
+    'PASSKEY_CHALLENGE_TIMEOUT': 300,
 }
 
 # List of settings that may be in string import notation.
@@ -81,6 +87,16 @@ IMPORT_STRINGS = (
 REMOVED_SETTINGS = []
 
 
+_PASSKEY_SERIALIZER_DEFAULTS = {
+    'PASSKEY_REGISTER_BEGIN_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyRegisterBeginSerializer',
+    'PASSKEY_REGISTER_COMPLETE_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyRegisterCompleteSerializer',
+    'PASSKEY_LOGIN_BEGIN_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyLoginBeginSerializer',
+    'PASSKEY_LOGIN_COMPLETE_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyLoginCompleteSerializer',
+    'PASSKEY_LIST_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyListSerializer',
+    'PASSKEY_UPDATE_SERIALIZER': 'dj_rest_auth.passkeys.serializers.PasskeyUpdateSerializer',
+}
+
+
 class APISettings(_APISettings):  # pragma: no cover
     def __check_user_settings(self, user_settings):
         from .utils import format_lazy
@@ -99,6 +115,15 @@ class APISettings(_APISettings):  # pragma: no cover
                 )
 
         return user_settings
+
+    def __getattr__(self, attr):
+        if attr in _PASSKEY_SERIALIZER_DEFAULTS:
+            from django.utils.module_loading import import_string
+            val = self.user_settings.get(attr, _PASSKEY_SERIALIZER_DEFAULTS[attr])
+            val = import_string(val)
+            self.__dict__[attr] = val
+            return val
+        return super().__getattr__(attr)
 
 
 api_settings = APISettings(USER_SETTINGS, DEFAULTS, IMPORT_STRINGS)
