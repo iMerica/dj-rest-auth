@@ -1,9 +1,12 @@
 import pyotp
+from django.core.signing import Signer
 from django.utils import timezone
 
 from dj_rest_auth.app_settings import api_settings
 
 from .models import Authenticator
+
+_signer = Signer(salt='dj-rest-auth-mfa-totp-secret')
 
 
 def generate_totp_secret():
@@ -32,7 +35,7 @@ class TOTP:
         authenticator, _ = Authenticator.objects.update_or_create(
             user=user,
             type=Authenticator.Type.TOTP,
-            defaults={'data': {'secret': secret}},
+            defaults={'data': {'secret': _signer.sign(secret)}},
         )
         return authenticator
 
@@ -48,7 +51,8 @@ class TOTP:
             auth = Authenticator.objects.get(
                 user=user, type=Authenticator.Type.TOTP,
             )
-            return auth.data.get('secret')
+            signed = auth.data.get('secret')
+            return _signer.unsign(signed) if signed else None
         except Authenticator.DoesNotExist:
             return None
 
@@ -57,9 +61,15 @@ class TOTP:
         secret = TOTP.get_secret(user)
         if not secret:
             return False
-        if validate_totp_code(secret, code):
-            Authenticator.objects.filter(
+        normalized = str(code).strip()
+        if validate_totp_code(secret, normalized):
+            auth = Authenticator.objects.get(
                 user=user, type=Authenticator.Type.TOTP,
-            ).update(last_used_at=timezone.now())
+            )
+            if auth.data.get('last_code') == normalized:
+                return False
+            auth.data['last_code'] = normalized
+            auth.last_used_at = timezone.now()
+            auth.save(update_fields=['data', 'last_used_at'])
             return True
         return False

@@ -453,7 +453,18 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         """Deactivating TOTP should remove MFA."""
         secret = generate_totp_secret()
         TOTP.activate(self.user, secret)
-        self._mfa_login_get_token(secret)
+        codes = RecoveryCodes.activate(self.user)
+
+        # Login with a recovery code so the TOTP code stays fresh for deactivation
+        payload = {'username': self.USERNAME, 'password': self.PASS}
+        response = self.post(self.login_url, data=payload, status_code=200)
+        ephemeral_token = response.json['ephemeral_token']
+        response = self.post(
+            self.mfa_verify_url,
+            data={'ephemeral_token': ephemeral_token, 'code': codes[0]},
+            status_code=200,
+        )
+        self.token = response.json.get('key')
 
         totp = pyotp.TOTP(secret)
         code = totp.now()
@@ -505,7 +516,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         TOTP.activate(self.user, secret)
         RecoveryCodes.activate(self.user)
 
-        response = self.get(self.recovery_codes_url, status_code=200)
+        response = self.post(self.recovery_codes_url, status_code=200)
         self.assertEqual(len(response.json['codes']), 10)
 
     def test_recovery_codes_regenerate(self):
@@ -561,7 +572,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         self.assertIsNotNone(response.json['created_at'])
 
         # 6. View recovery codes
-        response = self.get(self.recovery_codes_url, status_code=200)
+        response = self.post(self.recovery_codes_url, status_code=200)
         self.assertEqual(len(response.json['codes']), 10)
 
         # 7. Clear token, login again - should get ephemeral token
@@ -572,11 +583,10 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         self.assertNotIn('key', response.json)
         ephemeral_token = response.json['ephemeral_token']
 
-        # 8. Verify with TOTP code
-        code = totp.now()
+        # 8. Verify with a recovery code (reserve TOTP code for deactivation later)
         response = self.post(
             self.mfa_verify_url,
-            data={'ephemeral_token': ephemeral_token, 'code': code},
+            data={'ephemeral_token': ephemeral_token, 'code': recovery_codes[9]},
             status_code=200,
         )
         self.assertIn('key', response.json)
@@ -601,10 +611,11 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         self.assertIn('key', response.json)
         self.token = response.json['key']
 
-        # 11. Verify the used recovery code is consumed
-        response = self.get(self.recovery_codes_url, status_code=200)
-        self.assertEqual(len(response.json['codes']), 9)
+        # 11. Verify the used recovery codes are consumed
+        response = self.post(self.recovery_codes_url, status_code=200)
+        self.assertEqual(len(response.json['codes']), 8)
         self.assertNotIn(recovery_codes[0], response.json['codes'])
+        self.assertNotIn(recovery_codes[9], response.json['codes'])
 
         # 12. Regenerate recovery codes
         response = self.post(self.recovery_codes_regenerate_url, status_code=200)
@@ -644,16 +655,15 @@ class MFALoginFlowTests(TestsMixin, TestCase):
             status_code=400,
         )
 
-        # 16. Login with valid TOTP to get token for deactivation
-        code = totp.now()
+        # 16. Login with recovery code to get token for deactivation
         response = self.post(
             self.mfa_verify_url,
-            data={'ephemeral_token': ephemeral_token, 'code': code},
+            data={'ephemeral_token': ephemeral_token, 'code': new_codes[1]},
             status_code=200,
         )
         self.token = response.json['key']
 
-        # 17. Deactivate TOTP (requires valid code)
+        # 17. Deactivate TOTP (requires valid code — fresh since we used recovery above)
         code = totp.now()
         response = self.post(
             self.totp_deactivate_url,

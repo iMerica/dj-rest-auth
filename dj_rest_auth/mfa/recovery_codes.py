@@ -68,7 +68,7 @@ class RecoveryCodes:
             normalized = code.strip().lower()
 
             for i, c in enumerate(all_codes):
-                if c == normalized and not (used_mask & (1 << i)):
+                if hmac.compare_digest(c, normalized) and not (used_mask & (1 << i)):
                     used_mask |= (1 << i)
                     auth.data['used_mask'] = used_mask
                     auth.last_used_at = timezone.now()

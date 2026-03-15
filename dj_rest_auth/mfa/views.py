@@ -57,7 +57,7 @@ class MFAVerifyView(GenericAPIView):
     """Exchange ephemeral_token + TOTP/recovery code for a real auth token."""
     permission_classes = (AllowAny,)
     serializer_class = api_settings.MFA_VERIFY_SERIALIZER
-    throttle_scope = 'dj_rest_auth'
+    throttle_scope = 'dj_rest_auth_mfa_verify'
 
     def get_serializer_class(self):
         return api_settings.MFA_VERIFY_SERIALIZER
@@ -266,7 +266,7 @@ class RecoveryCodesView(GenericAPIView):
     def get_serializer_class(self):
         return api_settings.MFA_RECOVERY_CODES_SERIALIZER
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         codes = RecoveryCodes.get_unused_codes(request.user)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance={'codes': codes})
