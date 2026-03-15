@@ -1,5 +1,5 @@
 coveralls==1.11.1
-django-allauth[socialaccount]~=65.13.0
+django-allauth[socialaccount]~=65.14.1
 djangorestframework-simplejwt~=5.5.1
 flake8==7.1.1
 pyotp~=2.9.0

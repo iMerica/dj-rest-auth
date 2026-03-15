@@ -35,7 +35,7 @@ class MFAUnitTests(TestCase):
 
     def test_generate_totp_secret(self):
         secret = generate_totp_secret()
-        self.assertTrue(len(secret) > 0)
+        self.assertGreater(len(secret), 0)
 
     def test_validate_totp_code(self):
         secret = generate_totp_secret()
@@ -646,7 +646,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         response = self.post(self.login_url, data=payload, status_code=200)
         ephemeral_token = response.json['ephemeral_token']
 
-        response = self.post(
+        self.post(
             self.mfa_verify_url,
             data={'ephemeral_token': ephemeral_token, 'code': recovery_codes[1]},
             status_code=400,
@@ -666,7 +666,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
         response = self.post(self.login_url, data=payload, status_code=200)
         ephemeral_token = response.json['ephemeral_token']
 
-        response = self.post(
+        self.post(
             self.mfa_verify_url,
             data={'ephemeral_token': ephemeral_token, 'code': '000000'},
             status_code=400,
@@ -682,7 +682,7 @@ class MFALoginFlowTests(TestsMixin, TestCase):
 
         # 17. Deactivate TOTP (requires valid code — fresh since we used recovery above)
         code = totp.now()
-        response = self.post(
+        self.post(
             self.totp_deactivate_url,
             data={'code': code},
             status_code=200,

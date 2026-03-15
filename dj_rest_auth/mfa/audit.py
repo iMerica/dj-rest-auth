@@ -3,6 +3,12 @@ import logging
 logger = logging.getLogger('dj_rest_auth.mfa')
 
 
+def _sanitize(value):
+    if value is None:
+        return None
+    return str(value).replace('\n', '').replace('\r', '')
+
+
 def log_mfa_event(event, *, user=None, request=None, level=logging.INFO, **details):
     user_id = getattr(user, 'pk', None)
     username = getattr(user, 'get_username', lambda: None)()
@@ -10,8 +16,8 @@ def log_mfa_event(event, *, user=None, request=None, level=logging.INFO, **detai
     ip_address = None
     user_agent = None
     if request is not None:
-        ip_address = request.META.get('REMOTE_ADDR')
-        user_agent = request.META.get('HTTP_USER_AGENT')
+        ip_address = _sanitize(request.META.get('REMOTE_ADDR'))
+        user_agent = _sanitize(request.META.get('HTTP_USER_AGENT'))
 
     payload = {
         'event': event,
