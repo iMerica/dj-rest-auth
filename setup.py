@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 
 from setuptools import find_packages, setup
 
@@ -10,13 +11,19 @@ long_description = f.read().strip()
 f.close()
 
 
-about = {}
-with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
-    exec(f.read(), about)
+def get_version():
+    """Extract version from dj_rest_auth/__version__.py."""
+    with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
+        version_file = f.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 setup(
     name='dj-rest-auth',
-    version=about['__version__'],
+    version=get_version(),
     author='iMerica',
     author_email='imichael@pm.me',
     url='https://github.com/iMerica/dj-rest-auth',
@@ -25,32 +32,38 @@ setup(
     packages=find_packages(),
     long_description=long_description,
     long_description_content_type='text/markdown',
-    keywords='django rest auth registration rest-framework django-registration api',
-    zip_safe=False,
+    keywords=[
+        'django',
+        'rest',
+        'auth',
+        'registration',
+        'rest-framework',
+        'api',
+    ],
     install_requires=[
-        'Django>=4.2',
-        'djangorestframework>=3.13.0',
+        'Django>=2.2',
+        'djangorestframework>=3.11',
     ],
     extras_require={
-        'with-social': ['django-allauth[socialaccount]>=64.0.0'],
-        'with-mfa': ['pyotp>=2.9.0'],
+        'with_social': [
+            'django-allauth>=0.42.0',
+        ],
     },
-    tests_require=[
-        'coveralls>=1.11.1',
-        'django-allauth>=64.0.0',
-        'djangorestframework-simplejwt==5.5.1',
-        'responses==0.12.1',
-        'unittest-xml-reporting==3.2.0',
-        'flake8==7.1.1',
-    ],
-    test_suite='runtests.runtests',
-    include_package_data=True,
-    python_requires='>=3.10',
     classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Topic :: Software Development'
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Session',
     ],
 )
