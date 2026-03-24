@@ -455,6 +455,78 @@ When `True`, CSRF validation is required for all views (authenticated and unauth
 
 ---
 
+## Passkey Settings
+
+These settings only apply when `dj_rest_auth.passkeys` is in `INSTALLED_APPS`.
+
+### PASSKEY_RP_ID
+
+Relying Party identifier — typically the domain of your application.
+
+| | |
+|---|---|
+| **Default** | `None` |
+| **Type** | String |
+
+!!! danger "Required"
+    Must be configured when using passkeys. A `ValidationError` is raised otherwise.
+
+---
+
+### PASSKEY_RP_NAME
+
+Human-readable name of your application, shown to users during registration.
+
+| | |
+|---|---|
+| **Default** | `None` |
+| **Type** | String |
+
+---
+
+### PASSKEY_RP_ORIGINS
+
+List of origins allowed for WebAuthn ceremonies.
+
+| | |
+|---|---|
+| **Default** | `None` |
+| **Type** | List of strings |
+
+```python
+REST_AUTH = {
+    'PASSKEY_RP_ORIGINS': ['https://example.com', 'https://app.example.com'],
+}
+```
+
+---
+
+### PASSKEY_CHALLENGE_TIMEOUT
+
+How long (in seconds) a WebAuthn challenge remains valid.
+
+| | |
+|---|---|
+| **Default** | `300` |
+| **Type** | Integer |
+
+---
+
+### Passkey Serializer Settings
+
+All passkey serializers are overridable via dotted import paths. These are resolved lazily to avoid importing the `webauthn` library when passkeys are not in use.
+
+| Setting | Default |
+|---------|---------|
+| `PASSKEY_REGISTER_BEGIN_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyRegisterBeginSerializer'` |
+| `PASSKEY_REGISTER_COMPLETE_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyRegisterCompleteSerializer'` |
+| `PASSKEY_LOGIN_BEGIN_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyLoginBeginSerializer'` |
+| `PASSKEY_LOGIN_COMPLETE_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyLoginCompleteSerializer'` |
+| `PASSKEY_LIST_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyListSerializer'` |
+| `PASSKEY_UPDATE_SERIALIZER` | `'dj_rest_auth.passkeys.serializers.PasskeyUpdateSerializer'` |
+
+---
+
 ## Complete Default Configuration
 
 ```python title="settings.py"
@@ -496,5 +568,11 @@ REST_AUTH = {
     'JWT_AUTH_RETURN_EXPIRATION': False,
     'JWT_AUTH_COOKIE_USE_CSRF': False,
     'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
+
+    # Passkeys (requires dj_rest_auth.passkeys)
+    'PASSKEY_RP_ID': None,
+    'PASSKEY_RP_NAME': None,
+    'PASSKEY_RP_ORIGINS': None,
+    'PASSKEY_CHALLENGE_TIMEOUT': 300,
 }
 ```

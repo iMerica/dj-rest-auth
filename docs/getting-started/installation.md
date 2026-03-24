@@ -199,6 +199,71 @@ You now have JWT-specific endpoints:
 
 ---
 
+## Passkeys / WebAuthn (Optional)
+
+To enable passwordless authentication with passkeys (Touch ID, Windows Hello, hardware security keys):
+
+### 1. Install with passkey extras
+
+```bash
+pip install 'dj-rest-auth[with-passkeys]'
+```
+
+### 2. Configure installed apps
+
+```python title="settings.py"
+INSTALLED_APPS = [
+    # ...
+    'rest_framework',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.passkeys',
+]
+```
+
+### 3. Configure relying party settings
+
+```python title="settings.py"
+REST_AUTH = {
+    'PASSKEY_RP_ID': 'example.com',
+    'PASSKEY_RP_NAME': 'My Application',
+    'PASSKEY_RP_ORIGINS': ['https://example.com'],
+}
+```
+
+### 4. Add passkey URLs
+
+```python title="urls.py"
+from django.urls import path, include
+
+urlpatterns = [
+    # ...
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/passkeys/', include('dj_rest_auth.passkeys.urls')),
+]
+```
+
+### 5. Run migrations
+
+```bash
+python manage.py migrate
+```
+
+You now have additional endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/passkeys/register/begin/` | POST | Start passkey registration |
+| `/api/auth/passkeys/register/complete/` | POST | Complete passkey registration |
+| `/api/auth/passkeys/login/begin/` | POST | Start passkey login |
+| `/api/auth/passkeys/login/complete/` | POST | Complete passkey login |
+| `/api/auth/passkeys/` | GET | List registered passkeys |
+| `/api/auth/passkeys/{id}/` | GET, PATCH, DELETE | Manage individual passkey |
+
+[:octicons-arrow-right-24: Full passkeys guide](../guides/passkeys.md)
+
+---
+
 ## Complete Example
 
 Here's a complete configuration with all features enabled:

@@ -520,6 +520,62 @@ POST /dj-rest-auth/mfa/recovery-codes/regenerate/
 
 ---
 
+## Passkey Endpoints
+
+These endpoints require `dj_rest_auth.passkeys` in `INSTALLED_APPS`. See [Passkeys Guide](../guides/passkeys.md) for setup and flow details.
+
+### Passkey Register Begin
+
+```
+POST /dj-rest-auth/passkeys/register/begin/
+```
+
+Authentication required. Returns WebAuthn `PublicKeyCredentialCreationOptions`.
+
+### Passkey Register Complete
+
+```
+POST /dj-rest-auth/passkeys/register/complete/
+```
+
+Authentication required. Verifies and stores the credential (201 Created).
+
+### Passkey Login Begin
+
+```
+POST /dj-rest-auth/passkeys/login/begin/
+```
+
+No authentication required. Returns WebAuthn `PublicKeyCredentialRequestOptions` + `session_id`.
+
+### Passkey Login Complete
+
+```
+POST /dj-rest-auth/passkeys/login/complete/
+```
+
+No authentication required. Verifies the assertion and returns a standard auth response.
+
+### List Passkeys
+
+```
+GET /dj-rest-auth/passkeys/
+```
+
+Authentication required. Returns all passkeys for the authenticated user.
+
+### Passkey Detail
+
+```
+GET    /dj-rest-auth/passkeys/{id}/
+PATCH  /dj-rest-auth/passkeys/{id}/
+DELETE /dj-rest-auth/passkeys/{id}/
+```
+
+Authentication required. Retrieve, rename, or delete an individual passkey.
+
+---
+
 ## Response Status Codes
 
 | Code | Description |

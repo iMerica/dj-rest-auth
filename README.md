@@ -15,6 +15,7 @@ Secure drop-in authentication endpoints for Django REST Framework. Works seamles
 - Login, logout, password change, password reset
 - User registration with email verification
 - Built-in MFA/2FA support (TOTP + recovery codes)
+- Passkey / WebAuthn passwordless authentication
 - JWT authentication with HTTP-only cookies
 - Social auth (Google, GitHub, Facebook) via django-allauth
 - Fully customizable serializers
@@ -30,6 +31,7 @@ flowchart LR
             Auth[Login / Logout]
             Reg[Registration]
             PW[Password Reset]
+            PK[Passkeys]
         end
         
         DRF[Django REST Framework]
@@ -142,8 +144,23 @@ MFA ships as an opt-in sub-package (`dj_rest_auth.mfa`) with:
 - Recovery codes
 - Security-focused defaults (short-lived MFA tokens, activation confirmation)
 
-See the guide for setup and endpoint details:  
+See the guide for setup and endpoint details:
 [MFA Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/mfa/)
+
+## Passkeys (WebAuthn)
+
+```bash
+pip install 'dj-rest-auth[with-passkeys]'
+```
+
+Passkeys provide passwordless authentication using the FIDO2/WebAuthn standard:
+
+- Touch ID, Windows Hello, hardware security keys
+- Two-step challenge-response registration and login
+- Credential management (list, rename, delete)
+
+See the guide for setup and endpoint details:
+[Passkeys Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/passkeys/)
 
 ## Documentation
 
@@ -154,6 +171,7 @@ Full documentation at **[dj-rest-auth.readthedocs.io](https://dj-rest-auth.readt
 - [JWT & Cookies Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/jwt-cookies/)
 - [Social Authentication](https://dj-rest-auth.readthedocs.io/en/latest/guides/social-auth/)
 - [MFA Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/mfa/)
+- [Passkeys Guide](https://dj-rest-auth.readthedocs.io/en/latest/guides/passkeys/)
 
 ## Contributing
 

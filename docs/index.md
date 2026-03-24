@@ -49,6 +49,14 @@ Building authentication for your API shouldn't require reinventing the wheel. **
 
     [:octicons-arrow-right-24: Social auth](guides/social-auth.md)
 
+-   :material-fingerprint:{ .lg .middle } **Passkeys (WebAuthn)**
+
+    ---
+
+    Passwordless login with Touch ID, Windows Hello, and hardware security keys via FIDO2/WebAuthn.
+
+    [:octicons-arrow-right-24: Passkeys guide](guides/passkeys.md)
+
 </div>
 
 ## Features
@@ -61,6 +69,7 @@ Building authentication for your API shouldn't require reinventing the wheel. **
 | **User Details** | Retrieve and update user profile information |
 | **JWT Cookies** | Secure HTTP-only cookie transport for SPAs |
 | **Social Auth** | OAuth2 login with Google, GitHub, Facebook, and more |
+| **Passkeys** | Passwordless login via FIDO2/WebAuthn (Touch ID, security keys) |
 | **Token Refresh** | Automatic JWT refresh with sliding sessions |
 
 ## Requirements
