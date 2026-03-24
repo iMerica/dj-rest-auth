@@ -167,7 +167,7 @@ class PasskeyLoginBeginSerializer(serializers.Serializer):
 
 class PasskeyLoginCompleteSerializer(serializers.Serializer):
     credential = serializers.JSONField()
-    session_id = serializers.CharField()
+    session_id = serializers.RegexField(r'^[0-9a-f]{32}$')
 
     def validate(self, attrs):
         rp_id, rp_name, rp_origins = _get_rp_settings()
@@ -215,7 +215,9 @@ class PasskeyLoginCompleteSerializer(serializers.Serializer):
         if not user.is_active:
             raise exceptions.ValidationError(_('User account is disabled.'))
 
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        from django.conf import settings as django_settings
+        backends = django_settings.AUTHENTICATION_BACKENDS
+        user.backend = backends[0] if backends else 'django.contrib.auth.backends.ModelBackend'
         attrs['user'] = user
         return attrs
 

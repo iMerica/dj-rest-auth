@@ -408,6 +408,156 @@ class PasskeyManagementTests(TestsMixin, TestCase):
 
 
 @override_settings(ROOT_URLCONF='tests.urls')
+class PasskeyLoginEdgeCaseTests(TestsMixin, TestCase):
+    USERNAME = 'testuser'
+    PASS = 'testpassword123!'
+    EMAIL = 'test@example.com'
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
+        self.login_begin_url = reverse('passkey_login_begin')
+        self.login_complete_url = reverse('passkey_login_complete')
+        cache.clear()
+
+    def _create_credential(self):
+        from dj_rest_auth.passkeys.models import WebAuthnCredential
+        return WebAuthnCredential.objects.create(
+            user=self.user,
+            name='Test Key',
+            credential_id=FAKE_CREDENTIAL_ID,
+            public_key=FAKE_PUBLIC_KEY,
+            sign_count=0,
+            transports=['internal'],
+            discoverable=True,
+        )
+
+    @patch('dj_rest_auth.passkeys.serializers.generate_authentication_options')
+    def test_login_begin_with_email(self, mock_gen):
+        mock_gen.return_value = _make_fake_authentication_options()
+        self._create_credential()
+        self.post(self.login_begin_url, data={'email': self.EMAIL}, status_code=200)
+        self.assertIn('challenge', self.response.json)
+        self.assertIn('session_id', self.response.json)
+
+    @patch('dj_rest_auth.passkeys.serializers.generate_authentication_options')
+    def test_login_begin_nonexistent_user(self, mock_gen):
+        mock_gen.return_value = _make_fake_authentication_options()
+        self.post(self.login_begin_url, data={'username': 'noone'}, status_code=200)
+        self.assertIn('challenge', self.response.json)
+        self.assertIn('session_id', self.response.json)
+
+    def test_login_complete_invalid_session_id_format(self):
+        self.post(
+            self.login_complete_url,
+            data={
+                'credential': FAKE_ASSERTION_RESPONSE,
+                'session_id': 'not-a-valid-hex!!',
+            },
+            status_code=400,
+        )
+
+    def test_login_complete_invalid_session_id_too_short(self):
+        self.post(
+            self.login_complete_url,
+            data={
+                'credential': FAKE_ASSERTION_RESPONSE,
+                'session_id': 'abcd',
+            },
+            status_code=400,
+        )
+
+    @patch('dj_rest_auth.passkeys.serializers.verify_authentication_response')
+    @patch('dj_rest_auth.passkeys.serializers.generate_authentication_options')
+    def test_login_complete_challenge_single_use(self, mock_gen, mock_verify):
+        mock_gen.return_value = _make_fake_authentication_options()
+        mock_verify.return_value = MockVerifiedAuthentication()
+
+        self._create_credential()
+
+        self.post(self.login_begin_url, data={}, status_code=200)
+        session_id = self.response.json['session_id']
+
+        # First use succeeds
+        self.post(
+            self.login_complete_url,
+            data={'credential': FAKE_ASSERTION_RESPONSE, 'session_id': session_id},
+            status_code=200,
+        )
+
+        # Replay with same session_id fails
+        self.post(
+            self.login_complete_url,
+            data={'credential': FAKE_ASSERTION_RESPONSE, 'session_id': session_id},
+            status_code=400,
+        )
+        self.assertIn('expired', str(self.response.json).lower())
+
+    @patch('dj_rest_auth.passkeys.serializers.generate_authentication_options')
+    def test_login_complete_credential_not_found(self, mock_gen):
+        mock_gen.return_value = _make_fake_authentication_options()
+        # No credential created — lookup will fail
+
+        self.post(self.login_begin_url, data={}, status_code=200)
+        session_id = self.response.json['session_id']
+
+        self.post(
+            self.login_complete_url,
+            data={'credential': FAKE_ASSERTION_RESPONSE, 'session_id': session_id},
+            status_code=400,
+        )
+        self.assertIn('not found', str(self.response.json).lower())
+
+    @patch('dj_rest_auth.passkeys.serializers.generate_authentication_options')
+    def test_login_complete_invalid_credential_format(self, mock_gen):
+        mock_gen.return_value = _make_fake_authentication_options()
+
+        self.post(self.login_begin_url, data={}, status_code=200)
+        session_id = self.response.json['session_id']
+
+        self.post(
+            self.login_complete_url,
+            data={'credential': 'not-a-dict', 'session_id': session_id},
+            status_code=400,
+        )
+        self.assertIn('invalid', str(self.response.json).lower())
+
+
+@override_settings(ROOT_URLCONF='tests.urls')
+class PasskeyRegistrationEdgeCaseTests(TestsMixin, TestCase):
+    USERNAME = 'testuser'
+    PASS = 'testpassword123!'
+    EMAIL = 'test@example.com'
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
+        self.register_begin_url = reverse('passkey_register_begin')
+        self.register_complete_url = reverse('passkey_register_complete')
+        self.login_url = reverse('rest_login')
+        cache.clear()
+
+    def _authenticate(self):
+        self.post(self.login_url, data={'username': self.USERNAME, 'password': self.PASS}, status_code=200)
+        self.token = self.response.json.get('key')
+
+    @patch('dj_rest_auth.passkeys.serializers.verify_registration_response')
+    @patch('dj_rest_auth.passkeys.serializers.generate_registration_options')
+    def test_register_complete_default_name(self, mock_gen, mock_verify):
+        mock_gen.return_value = _make_fake_registration_options()
+        mock_verify.return_value = MockVerifiedRegistration()
+
+        self._authenticate()
+        self.post(self.register_begin_url, data={}, status_code=200)
+        self.post(
+            self.register_complete_url,
+            data={'credential': FAKE_ATTESTATION_RESPONSE},
+            status_code=201,
+        )
+        self.assertEqual(self.response.json['name'], 'Passkey')
+
+
+@override_settings(ROOT_URLCONF='tests.urls')
 class PasskeyConfigTests(TestsMixin, TestCase):
     USERNAME = 'testuser'
     PASS = 'testpassword123!'
