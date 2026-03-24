@@ -95,8 +95,8 @@ class PasskeyRegisterCompleteSerializer(serializers.Serializer):
                 expected_rp_id=rp_id,
                 expected_origin=rp_origins,
             )
-        except Exception as e:
-            raise exceptions.ValidationError(_('Registration verification failed: %(error)s') % {'error': str(e)})
+        except Exception:
+            raise exceptions.ValidationError(_('Registration verification failed.'))
 
         if WebAuthnCredential.objects.filter(credential_id=verification.credential_id).exists():
             raise exceptions.ValidationError(_('This credential is already registered.'))
@@ -148,7 +148,7 @@ class PasskeyLoginBeginSerializer(serializers.Serializer):
                     for cred in credentials
                 ]
             except UserModel.DoesNotExist:
-                pass
+                pass  # Intentional: fall through to discoverable credentials flow
 
         options = generate_authentication_options(
             rp_id=rp_id,
@@ -202,10 +202,8 @@ class PasskeyLoginCompleteSerializer(serializers.Serializer):
                 credential_public_key=bytes(stored_credential.public_key),
                 credential_current_sign_count=stored_credential.sign_count,
             )
-        except Exception as e:
-            raise exceptions.ValidationError(
-                _('Authentication verification failed: %(error)s') % {'error': str(e)}
-            )
+        except Exception:
+            raise exceptions.ValidationError(_('Authentication verification failed.'))
 
         stored_credential.sign_count = verification.new_sign_count
         stored_credential.last_used_at = timezone.now()
