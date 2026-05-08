@@ -1,4 +1,4 @@
-django==5.2.10
+django==5.2.14
 djangorestframework==3.16.1
 djangorestframework-simplejwt==5.5.1
 django-allauth[socialaccount,mfa]==65.14.3
