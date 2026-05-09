@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import re
 
 from setuptools import find_packages, setup
 
@@ -10,13 +11,19 @@ long_description = f.read().strip()
 f.close()
 
 
-about = {}
-with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
-    exec(f.read(), about)
+def get_version():
+    """Extract version from dj_rest_auth/__version__.py."""
+    with open('dj_rest_auth/__version__.py', 'r', encoding="utf8") as f:
+        version_file = f.read()
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 setup(
     name='dj-rest-auth',
-    version=about['__version__'],
+    version=get_version(),
     author='iMerica',
     author_email='imichael@pm.me',
     url='https://github.com/iMerica/dj-rest-auth',
