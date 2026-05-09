@@ -62,12 +62,12 @@ class LoginView(GenericAPIView):
             response_serializer = api_settings.TOKEN_SERIALIZER
         return response_serializer
 
-    def login(self):
+    def login(self, **kwargs):
         self.user = self.serializer.validated_data['user']
         token_model = get_token_model()
 
         if api_settings.USE_JWT:
-            self.access_token, self.refresh_token = jwt_encode(self.user)
+            self.access_token, self.refresh_token = jwt_encode(self.user, **kwargs)
         elif token_model:
             self.token = api_settings.TOKEN_CREATOR(token_model, self.user, self.serializer)
 
@@ -123,9 +123,12 @@ class LoginView(GenericAPIView):
         self.request = request
         self.serializer = self.get_serializer(data=self.request.data)
         self.serializer.is_valid(raise_exception=True)
-
-        self.login()
+        kwargs['custom_claims'] = self.get_non_user_custom_claims(request, *args, **kwargs)
+        self.login(**kwargs)
         return self.get_response()
+
+    def get_non_user_custom_claims(self, request, *args, **kwargs):
+        return {}
 
 
 class LogoutView(APIView):
