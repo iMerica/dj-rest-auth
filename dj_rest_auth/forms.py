@@ -72,12 +72,14 @@ class AllAuthPasswordResetForm(DefaultPasswordResetForm):
                 'token': temp_key,
                 'uid': uid,
             }
+            has_login_methods = bool(getattr(allauth_account_settings, "LOGIN_METHODS", None))
             if (
-                getattr(allauth_account_settings, "LOGIN_METHODS", None) and  # noqa: W504
+                has_login_methods and  # noqa: W504
                 allauth_account_settings.AuthenticationMethod.EMAIL not in allauth_account_settings.LOGIN_METHODS
             ):
                 context['username'] = user_username(user)
             elif (
+                not has_login_methods and  # noqa: W504
                 allauth_account_settings.AUTHENTICATION_METHOD != allauth_account_settings.AuthenticationMethod.EMAIL
             ):
                 # AUTHENTICATION_METHOD is deprecated
