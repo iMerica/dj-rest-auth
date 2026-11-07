@@ -399,6 +399,9 @@ class APIBasicTests(TestsMixin, TestCase):
         token_model = get_token_model()
         self.assertTrue(token_model.objects.filter(key=old_token_key, user=user).exists())
 
+        # Use old token for password change
+        self.token = old_token_key
+
         # Change password
         new_password_payload = {
             'old_password': self.PASS,
@@ -426,6 +429,11 @@ class APIBasicTests(TestsMixin, TestCase):
         # Verify only one token exists for user
         self.assertEqual(token_model.objects.filter(user=user).count(), 1)
 
+        # Verify new token works for authenticated requests
+        self.token = new_token_key
+        self.get(self.user_url, status_code=200)
+        self.assertEqual(self.response.json['username'], self.USERNAME)
+
     def test_password_change_preserves_token_when_revocation_disabled(self):
         """Test that tokens are not revoked when PASSWORD_CHANGE_REVOKE_TOKENS=False (default)."""
         from dj_rest_auth.models import get_token_model
@@ -437,6 +445,9 @@ class APIBasicTests(TestsMixin, TestCase):
         user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=login_payload, status_code=200)
         old_token = self.response.json['key']
+
+        # Use token for password change
+        self.token = old_token
 
         # Change password (default behavior - no revocation)
         new_password_payload = {
@@ -461,6 +472,35 @@ class APIBasicTests(TestsMixin, TestCase):
         token_model = get_token_model()
         self.assertTrue(token_model.objects.filter(user=user, key=old_token).exists())
 
+    def test_password_change_no_token_for_session_auth(self):
+        """Test that session-authenticated requests don't get unsolicited DRF tokens."""
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+
+        # Login with session (not token)
+        self.post(self.login_url, data=login_payload, status_code=200)
+        # Clear any token that might have been set
+        if hasattr(self, 'token'):
+            delattr(self, 'token')
+
+        # Change password while authenticated via session
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Response should NOT include a token (wasn't token-authenticated)
+        self.assertNotIn('token', self.response.json)
+
     @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True, OLD_PASSWORD_FIELD_ENABLED=False)
     def test_password_change_token_revocation_works_without_old_password(self):
         """Test that token revocation works even when old password is not required."""
@@ -473,6 +513,9 @@ class APIBasicTests(TestsMixin, TestCase):
         user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
         self.post(self.login_url, data=login_payload, status_code=200)
         old_token_key = self.response.json['key']
+
+        # Use token for authentication
+        self.token = old_token_key
 
         # Change password without old_password (allowed when OLD_PASSWORD_FIELD_ENABLED=False)
         new_password_payload = {
@@ -496,6 +539,141 @@ class APIBasicTests(TestsMixin, TestCase):
 
         # Verify new token exists
         self.assertTrue(token_model.objects.filter(key=new_token_key, user=user).exists())
+
+    @override_api_settings(USE_JWT=True, PASSWORD_CHANGE_REVOKE_TOKENS=True, JWT_AUTH_HTTPONLY=False)
+    def test_password_change_revokes_jwt_tokens_header_mode(self):
+        """Test JWT token revocation in header mode (non-HttpOnly)."""
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+
+        old_access = self.response.json['access']
+        old_refresh = self.response.json['refresh']
+
+        # Use access token for password change
+        self.token = old_access
+
+        # Change password
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Response should include fresh JWT tokens
+        self.assertIn('access', self.response.json)
+        self.assertIn('refresh', self.response.json)
+        new_access = self.response.json['access']
+        new_refresh = self.response.json['refresh']
+
+        # New tokens should be different
+        self.assertNotEqual(old_access, new_access)
+        self.assertNotEqual(old_refresh, new_refresh)
+
+        # Verify old refresh token was blacklisted
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+        old_outstanding = OutstandingToken.objects.filter(user=user, token=old_refresh).first()
+        if old_outstanding:
+            self.assertTrue(
+                BlacklistedToken.objects.filter(token=old_outstanding).exists(),
+                "Old refresh token should be blacklisted"
+            )
+
+        # New access token should work for authenticated requests
+        self.token = new_access
+        self.get(self.user_url, status_code=200)
+        self.assertEqual(self.response.json['username'], self.USERNAME)
+
+    @override_api_settings(
+        USE_JWT=True,
+        PASSWORD_CHANGE_REVOKE_TOKENS=True,
+        JWT_AUTH_COOKIE='jwt-auth',
+        JWT_AUTH_REFRESH_COOKIE='jwt-refresh',
+        JWT_AUTH_HTTPONLY=True
+    )
+    def test_password_change_revokes_jwt_tokens_cookie_mode(self):
+        """Test JWT token revocation in cookie mode (HttpOnly)."""
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+
+        # Cookies should be set
+        self.assertIn('jwt-auth', self.response.cookies)
+        self.assertIn('jwt-refresh', self.response.cookies)
+        old_access_cookie = self.response.cookies['jwt-auth'].value
+
+        # Change password
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        response = self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Fresh JWT cookies should be set
+        self.assertIn('jwt-auth', response.cookies)
+        self.assertIn('jwt-refresh', response.cookies)
+        new_access_cookie = response.cookies['jwt-auth'].value
+
+        # New cookies should be different
+        self.assertNotEqual(old_access_cookie, new_access_cookie)
+
+        # Tokens should NOT be in response body (HttpOnly mode)
+        self.assertNotIn('access', self.response.json)
+        self.assertNotIn('refresh', self.response.json)
+
+    @override_api_settings(USE_JWT=True, PASSWORD_CHANGE_REVOKE_TOKENS=True, JWT_AUTH_HTTPONLY=False)
+    @modify_settings(INSTALLED_APPS={'remove': ['rest_framework_simplejwt.token_blacklist']})
+    def test_password_change_jwt_without_blacklist_app(self):
+        """Test JWT handling when blacklist app is not installed."""
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+
+        old_access = self.response.json['access']
+        self.token = old_access
+
+        # Change password
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Should still get fresh tokens even without blacklist app
+        self.assertIn('access', self.response.json)
+        self.assertIn('refresh', self.response.json)
+        new_access = self.response.json['access']
+
+        # New token should be different
+        self.assertNotEqual(old_access, new_access)
+
+        # New token should work
+        self.token = new_access
+        self.get(self.user_url, status_code=200)
 
     def _password_reset(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)

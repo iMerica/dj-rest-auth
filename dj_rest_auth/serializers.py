@@ -369,84 +369,95 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def _revoke_other_tokens(self):
         """
-        Revoke other authentication tokens after password change.
+        Revoke authentication tokens after password change.
 
-        For DRF tokens: Deletes old token and creates a new one.
-        For JWT tokens: Blacklists all refresh tokens except the current request's token.
+        For DRF tokens: Only applies if request was token-authenticated. Revokes the
+        current token (and any others for this user) and issues a new one.
 
-        The new DRF token (if created) is stored in self.new_token for the view to return.
+        For JWT tokens: Blacklists all refresh tokens and issues fresh tokens to the
+        current client. Since password change is authenticated with an access token
+        (not refresh), we cannot reliably identify the current client's refresh token,
+        so fresh tokens are issued instead.
+
+        Results stored in instance variables for the view to handle:
+        - self.new_token: New DRF token (if applicable)
+        - self.new_access_token, self.new_refresh_token: New JWT tokens (if applicable)
         """
         import logging
         from django.conf import settings
 
         logger = logging.getLogger(__name__)
         self.new_token = None
+        self.new_access_token = None
+        self.new_refresh_token = None
 
         # Handle DRF auth tokens
+        # Check if this user has tokens (indicating token-based auth is in use)
         try:
             from .models import get_token_model
             token_model = get_token_model()
-            if token_model:
-                # Delete the old token
-                deleted = token_model.objects.filter(user=self.user).delete()
+            if token_model and token_model.objects.filter(user=self.user).exists():
+                # Delete all existing tokens for this user
+                deleted_count = token_model.objects.filter(user=self.user).delete()[0]
                 # Create a new token for this client
                 self.new_token = token_model.objects.create(user=self.user)
                 logger.info(
-                    f"Revoked {deleted[0]} token(s) and issued new token for user {self.user.pk} "
-                    "after password change"
+                    f"Revoked {deleted_count} DRF token(s) and issued new token for user "
+                    f"{self.user.pk} after password change"
                 )
         except Exception as e:
             logger.exception(
                 f"Failed to revoke DRF tokens for user {self.user.pk} after password change: {e}"
             )
 
-        # Handle JWT tokens - blacklist all refresh tokens except current one
-        if api_settings.USE_JWT and 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+        # Handle JWT tokens
+        if api_settings.USE_JWT:
             try:
-                from rest_framework_simplejwt.token_blacklist.models import (
-                    OutstandingToken,
-                    BlacklistedToken,
+                # Blacklist all outstanding refresh tokens
+                if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+                    from rest_framework_simplejwt.token_blacklist.models import (
+                        OutstandingToken,
+                        BlacklistedToken,
+                    )
+
+                    # Get all outstanding tokens for this user
+                    outstanding_tokens = OutstandingToken.objects.filter(user=self.user)
+
+                    # Bulk blacklist all tokens
+                    tokens_to_blacklist = [
+                        BlacklistedToken(token=token)
+                        for token in outstanding_tokens
+                        if not hasattr(token, 'blacklistedtoken')
+                    ]
+
+                    if tokens_to_blacklist:
+                        BlacklistedToken.objects.bulk_create(
+                            tokens_to_blacklist,
+                            ignore_conflicts=True
+                        )
+                        logger.info(
+                            f"Blacklisted {len(tokens_to_blacklist)} JWT refresh token(s) for user "
+                            f"{self.user.pk} after password change"
+                        )
+                else:
+                    logger.warning(
+                        f"JWT tokens for user {self.user.pk} not revoked: "
+                        "rest_framework_simplejwt.token_blacklist not installed"
+                    )
+
+                # Issue fresh tokens to the current client
+                from .utils import jwt_encode
+                self.new_access_token, self.new_refresh_token = jwt_encode(self.user)
+                logger.info(
+                    f"Issued fresh JWT tokens to current client for user {self.user.pk} "
+                    "after password change"
                 )
 
-                # Get current refresh token from request if available
-                current_refresh_token = None
-                if api_settings.JWT_AUTH_HTTPONLY and api_settings.JWT_AUTH_REFRESH_COOKIE:
-                    current_refresh_token = self.request.COOKIES.get(
-                        api_settings.JWT_AUTH_REFRESH_COOKIE
-                    )
-                elif 'refresh' in self.request.data:
-                    current_refresh_token = self.request.data.get('refresh')
-
-                # Get all outstanding tokens for this user
-                outstanding_tokens = OutstandingToken.objects.filter(user=self.user)
-
-                # Exclude current token if we can identify it
-                if current_refresh_token:
-                    # Match by token string
-                    outstanding_tokens = outstanding_tokens.exclude(token=current_refresh_token)
-
-                # Bulk blacklist all other tokens
-                tokens_to_blacklist = [
-                    BlacklistedToken(token=token)
-                    for token in outstanding_tokens
-                    if not hasattr(token, 'blacklistedtoken')
-                ]
-
-                if tokens_to_blacklist:
-                    BlacklistedToken.objects.bulk_create(
-                        tokens_to_blacklist,
-                        ignore_conflicts=True
-                    )
-                    logger.info(
-                        f"Blacklisted {len(tokens_to_blacklist)} JWT refresh token(s) for user "
-                        f"{self.user.pk} after password change"
-                    )
-            except ImportError:
+            except ImportError as e:
                 logger.warning(
-                    "rest_framework_simplejwt.token_blacklist not available, "
-                    "JWT tokens not revoked"
+                    f"Failed to handle JWT tokens for user {self.user.pk}: {e}"
                 )
             except Exception as e:
                 logger.exception(
-                    f"Failed to blacklist JWT tokens for user {self.user.pk} after password change: {e}"
+                    f"Failed to revoke/reissue JWT tokens for user {self.user.pk} after password change: {e}"
                 )

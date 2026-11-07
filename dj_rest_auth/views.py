@@ -312,8 +312,22 @@ class PasswordChangeView(GenericAPIView):
 
         response_data = {'detail': _('New password has been saved.')}
 
-        # If token revocation is enabled and a new token was created, return it
+        # If DRF token revocation is enabled and a new token was created, return it
         if hasattr(serializer, 'new_token') and serializer.new_token:
             response_data['token'] = serializer.new_token.key
 
-        return Response(response_data)
+        response = Response(response_data)
+
+        # If JWT tokens were reissued, set cookies or include in response
+        if hasattr(serializer, 'new_access_token') and serializer.new_access_token:
+            if api_settings.USE_JWT:
+                from .jwt_auth import set_jwt_cookies
+                # Set JWT cookies if cookie mode is enabled
+                set_jwt_cookies(response, serializer.new_access_token, serializer.new_refresh_token)
+
+                # Also include tokens in response body if not HttpOnly
+                if not api_settings.JWT_AUTH_HTTPONLY:
+                    response.data['access'] = str(serializer.new_access_token)
+                    response.data['refresh'] = str(serializer.new_refresh_token)
+
+        return response
