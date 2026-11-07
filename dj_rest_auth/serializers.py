@@ -363,3 +363,90 @@ class PasswordChangeSerializer(serializers.Serializer):
         if not self.logout_on_password_change:
             from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(self.request, self.user)
+
+        if api_settings.PASSWORD_CHANGE_REVOKE_TOKENS:
+            self._revoke_other_tokens()
+
+    def _revoke_other_tokens(self):
+        """
+        Revoke other authentication tokens after password change.
+
+        For DRF tokens: Deletes old token and creates a new one.
+        For JWT tokens: Blacklists all refresh tokens except the current request's token.
+
+        The new DRF token (if created) is stored in self.new_token for the view to return.
+        """
+        import logging
+        from django.conf import settings
+
+        logger = logging.getLogger(__name__)
+        self.new_token = None
+
+        # Handle DRF auth tokens
+        try:
+            from .models import get_token_model
+            token_model = get_token_model()
+            if token_model:
+                # Delete the old token
+                deleted = token_model.objects.filter(user=self.user).delete()
+                # Create a new token for this client
+                self.new_token = token_model.objects.create(user=self.user)
+                logger.info(
+                    f"Revoked {deleted[0]} token(s) and issued new token for user {self.user.pk} "
+                    "after password change"
+                )
+        except Exception as e:
+            logger.exception(
+                f"Failed to revoke DRF tokens for user {self.user.pk} after password change: {e}"
+            )
+
+        # Handle JWT tokens - blacklist all refresh tokens except current one
+        if api_settings.USE_JWT and 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+            try:
+                from rest_framework_simplejwt.token_blacklist.models import (
+                    OutstandingToken,
+                    BlacklistedToken,
+                )
+
+                # Get current refresh token from request if available
+                current_refresh_token = None
+                if api_settings.JWT_AUTH_HTTPONLY and api_settings.JWT_AUTH_REFRESH_COOKIE:
+                    current_refresh_token = self.request.COOKIES.get(
+                        api_settings.JWT_AUTH_REFRESH_COOKIE
+                    )
+                elif 'refresh' in self.request.data:
+                    current_refresh_token = self.request.data.get('refresh')
+
+                # Get all outstanding tokens for this user
+                outstanding_tokens = OutstandingToken.objects.filter(user=self.user)
+
+                # Exclude current token if we can identify it
+                if current_refresh_token:
+                    # Match by token string
+                    outstanding_tokens = outstanding_tokens.exclude(token=current_refresh_token)
+
+                # Bulk blacklist all other tokens
+                tokens_to_blacklist = [
+                    BlacklistedToken(token=token)
+                    for token in outstanding_tokens
+                    if not hasattr(token, 'blacklistedtoken')
+                ]
+
+                if tokens_to_blacklist:
+                    BlacklistedToken.objects.bulk_create(
+                        tokens_to_blacklist,
+                        ignore_conflicts=True
+                    )
+                    logger.info(
+                        f"Blacklisted {len(tokens_to_blacklist)} JWT refresh token(s) for user "
+                        f"{self.user.pk} after password change"
+                    )
+            except ImportError:
+                logger.warning(
+                    "rest_framework_simplejwt.token_blacklist not available, "
+                    "JWT tokens not revoked"
+                )
+            except Exception as e:
+                logger.exception(
+                    f"Failed to blacklist JWT tokens for user {self.user.pk} after password change: {e}"
+                )

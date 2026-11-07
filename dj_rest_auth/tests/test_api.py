@@ -382,6 +382,121 @@ class APIBasicTests(TestsMixin, TestCase):
         login_payload['password'] = new_password_payload['new_password1']
         self.post(self.login_url, data=login_payload, status_code=200)
 
+    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True)
+    def test_password_change_revokes_tokens_when_enabled(self):
+        """Test that PASSWORD_CHANGE_REVOKE_TOKENS revokes old tokens and issues new one."""
+        from dj_rest_auth.models import get_token_model
+
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+        old_token_key = self.response.json['key']
+
+        # Verify old token exists in database
+        token_model = get_token_model()
+        self.assertTrue(token_model.objects.filter(key=old_token_key, user=user).exists())
+
+        # Change password
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Response should include new token
+        self.assertIn('token', self.response.json)
+        new_token_key = self.response.json['token']
+        self.assertNotEqual(old_token_key, new_token_key)
+
+        # Verify old token was deleted from database
+        self.assertFalse(token_model.objects.filter(key=old_token_key).exists())
+
+        # Verify new token exists and belongs to user
+        new_token = token_model.objects.get(key=new_token_key)
+        self.assertEqual(new_token.user, user)
+
+        # Verify only one token exists for user
+        self.assertEqual(token_model.objects.filter(user=user).count(), 1)
+
+    def test_password_change_preserves_token_when_revocation_disabled(self):
+        """Test that tokens are not revoked when PASSWORD_CHANGE_REVOKE_TOKENS=False (default)."""
+        from dj_rest_auth.models import get_token_model
+
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+        old_token = self.response.json['key']
+
+        # Change password (default behavior - no revocation)
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Response should NOT include a new token
+        self.assertNotIn('token', self.response.json)
+
+        # Old token should still work
+        self.token = old_token
+        self.get(self.user_url, status_code=200)
+
+        # Verify token still exists in database
+        token_model = get_token_model()
+        self.assertTrue(token_model.objects.filter(user=user, key=old_token).exists())
+
+    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True, OLD_PASSWORD_FIELD_ENABLED=False)
+    def test_password_change_token_revocation_works_without_old_password(self):
+        """Test that token revocation works even when old password is not required."""
+        from dj_rest_auth.models import get_token_model
+
+        login_payload = {
+            'username': self.USERNAME,
+            'password': self.PASS,
+        }
+        user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.post(self.login_url, data=login_payload, status_code=200)
+        old_token_key = self.response.json['key']
+
+        # Change password without old_password (allowed when OLD_PASSWORD_FIELD_ENABLED=False)
+        new_password_payload = {
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Should get a new token
+        self.assertIn('token', self.response.json)
+        new_token_key = self.response.json['token']
+        self.assertNotEqual(old_token_key, new_token_key)
+
+        # Verify old token was deleted
+        token_model = get_token_model()
+        self.assertFalse(token_model.objects.filter(key=old_token_key).exists())
+
+        # Verify new token exists
+        self.assertTrue(token_model.objects.filter(key=new_token_key, user=user).exists())
+
     def _password_reset(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)
 

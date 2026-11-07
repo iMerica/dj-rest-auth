@@ -6,6 +6,17 @@ For the full release history, see [GitHub Releases](https://github.com/iMerica/d
 
 ## Version 7.x
 
+### 7.2.0 (Unreleased)
+
+**New Features:**
+
+- Added `PASSWORD_CHANGE_REVOKE_TOKENS` setting (default `False`)
+  - When enabled, password changes revoke the user's other authentication tokens
+  - For DRF token auth: old token is deleted and a new token is returned in the response
+  - For JWT auth: refresh tokens are blacklisted (requires `rest_framework_simplejwt.token_blacklist`)
+  - The current client's credentials are preserved or reissued to maintain authentication
+  - Token revocation failures are logged but do not prevent password change
+
 ### 7.1.0
 
 - Latest stable release

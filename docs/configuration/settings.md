@@ -273,6 +273,26 @@ When `True`, the user will be logged out after successfully changing their passw
 
 ---
 
+### PASSWORD_CHANGE_REVOKE_TOKENS
+
+Revoke authentication tokens when password changes.
+
+| | |
+|---|---|
+| **Default** | `False` |
+| **Type** | Boolean |
+
+When `True`, changing password revokes the user's other authentication tokens:
+
+- **DRF Token Auth**: Deletes the old token and returns a new token in the response under the `token` key. The client should update its stored token.
+- **JWT Auth**: Blacklists all refresh tokens except the current request's token (requires `rest_framework_simplejwt.token_blacklist` in `INSTALLED_APPS`).
+
+This improves security by terminating potentially compromised sessions when a user changes their password. The current client remains authenticated.
+
+**Note**: Token revocation failures are logged but do not prevent password change from succeeding.
+
+---
+
 ### SESSION_LOGIN
 
 Create Django session on login.

@@ -309,4 +309,11 @@ class PasswordChangeView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'detail': _('New password has been saved.')})
+
+        response_data = {'detail': _('New password has been saved.')}
+
+        # If token revocation is enabled and a new token was created, return it
+        if hasattr(serializer, 'new_token') and serializer.new_token:
+            response_data['token'] = serializer.new_token.key
+
+        return Response(response_data)
