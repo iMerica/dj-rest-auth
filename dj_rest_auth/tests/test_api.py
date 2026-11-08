@@ -382,7 +382,7 @@ class APIBasicTests(TestsMixin, TestCase):
         login_payload['password'] = new_password_payload['new_password1']
         self.post(self.login_url, data=login_payload, status_code=200)
 
-    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True)
+    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True, SESSION_LOGIN=False)
     def test_password_change_revokes_tokens_when_enabled(self):
         """Test that PASSWORD_CHANGE_REVOKE_TOKENS revokes old tokens and issues new one."""
         from dj_rest_auth.models import get_token_model
@@ -501,7 +501,7 @@ class APIBasicTests(TestsMixin, TestCase):
         # Response should NOT include a token (wasn't token-authenticated)
         self.assertNotIn('token', self.response.json)
 
-    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True, OLD_PASSWORD_FIELD_ENABLED=False)
+    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True, OLD_PASSWORD_FIELD_ENABLED=False, SESSION_LOGIN=False)
     def test_password_change_token_revocation_works_without_old_password(self):
         """Test that token revocation works even when old password is not required."""
         from dj_rest_auth.models import get_token_model
@@ -540,7 +540,12 @@ class APIBasicTests(TestsMixin, TestCase):
         # Verify new token exists
         self.assertTrue(token_model.objects.filter(key=new_token_key, user=user).exists())
 
-    @override_api_settings(USE_JWT=True, PASSWORD_CHANGE_REVOKE_TOKENS=True, JWT_AUTH_HTTPONLY=False)
+    @override_api_settings(
+        USE_JWT=True,
+        PASSWORD_CHANGE_REVOKE_TOKENS=True,
+        JWT_AUTH_HTTPONLY=False,
+        SESSION_LOGIN=False
+    )
     def test_password_change_revokes_jwt_tokens_header_mode(self):
         """Test JWT token revocation in header mode (non-HttpOnly)."""
         login_payload = {
@@ -597,7 +602,8 @@ class APIBasicTests(TestsMixin, TestCase):
         PASSWORD_CHANGE_REVOKE_TOKENS=True,
         JWT_AUTH_COOKIE='jwt-auth',
         JWT_AUTH_REFRESH_COOKIE='jwt-refresh',
-        JWT_AUTH_HTTPONLY=True
+        JWT_AUTH_HTTPONLY=True,
+        SESSION_LOGIN=False
     )
     def test_password_change_revokes_jwt_tokens_cookie_mode(self):
         """Test JWT token revocation in cookie mode (HttpOnly)."""
@@ -637,7 +643,12 @@ class APIBasicTests(TestsMixin, TestCase):
         self.assertNotIn('access', self.response.json)
         self.assertNotIn('refresh', self.response.json)
 
-    @override_api_settings(USE_JWT=True, PASSWORD_CHANGE_REVOKE_TOKENS=True, JWT_AUTH_HTTPONLY=False)
+    @override_api_settings(
+        USE_JWT=True,
+        PASSWORD_CHANGE_REVOKE_TOKENS=True,
+        JWT_AUTH_HTTPONLY=False,
+        SESSION_LOGIN=False
+    )
     @modify_settings(INSTALLED_APPS={'remove': ['rest_framework_simplejwt.token_blacklist']})
     def test_password_change_jwt_without_blacklist_app(self):
         """Test JWT handling when blacklist app is not installed."""

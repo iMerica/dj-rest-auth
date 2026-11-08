@@ -391,13 +391,27 @@ class PasswordChangeSerializer(serializers.Serializer):
         self.new_refresh_token = None
 
         # Determine how THIS request was authenticated
-        # Check the Authorization header since request.auth may be None if SessionAuthentication ran first
-        auth_header = self.request.META.get('HTTP_AUTHORIZATION', '')
-        is_token_auth = auth_header.startswith('Token ')
-        # JWT can be in Authorization header or in cookies
-        jwt_cookie_name = api_settings.JWT_AUTH_COOKIE
-        has_jwt_cookie = jwt_cookie_name and jwt_cookie_name in self.request.COOKIES
-        is_jwt_auth = auth_header.startswith('JWT ') or auth_header.startswith('Bearer ') or has_jwt_cookie
+        # Check successful_authenticator AND request.auth (which is set by the authenticator)
+        from rest_framework.authentication import TokenAuthentication
+        from .models import get_token_model
+
+        authenticator = getattr(self.request, 'successful_authenticator', None)
+        token_model = get_token_model()
+
+        # Token auth: authenticator is TokenAuthentication OR request.auth is a token instance
+        # (request.auth is the token object for token auth, None for session auth)
+        is_token_auth = isinstance(authenticator, TokenAuthentication)
+        if not is_token_auth and token_model:
+            is_token_auth = isinstance(self.request.auth, token_model)
+
+        # JWT check: authenticator is JWTAuthentication (covers JWTCookieAuthentication subclass)
+        is_jwt_auth = False
+        if api_settings.USE_JWT:
+            try:
+                from rest_framework_simplejwt.authentication import JWTAuthentication
+                is_jwt_auth = isinstance(authenticator, JWTAuthentication)
+            except ImportError:
+                pass
 
         # Handle DRF auth tokens - revoke all tokens regardless of auth method
         try:
