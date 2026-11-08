@@ -371,17 +371,16 @@ class PasswordChangeSerializer(serializers.Serializer):
         """
         Revoke authentication tokens after password change.
 
-        For DRF tokens: Only applies if request was token-authenticated. Revokes the
-        current token (and any others for this user) and issues a new one.
+        For DRF tokens: Revokes all tokens for the user. If THIS request was
+        token-authenticated, issues a new token and stores it for the view to return.
+        If THIS request was session-authenticated, revokes tokens but does not return one.
 
-        For JWT tokens: Blacklists all refresh tokens and issues fresh tokens to the
-        current client. Since password change is authenticated with an access token
-        (not refresh), we cannot reliably identify the current client's refresh token,
-        so fresh tokens are issued instead.
+        For JWT tokens: Blacklists all refresh tokens. If THIS request was
+        JWT-authenticated, issues fresh tokens for the current client.
 
         Results stored in instance variables for the view to handle:
-        - self.new_token: New DRF token (if applicable)
-        - self.new_access_token, self.new_refresh_token: New JWT tokens (if applicable)
+        - self.new_token: New DRF token (only if request was token-authenticated)
+        - self.new_access_token, self.new_refresh_token: New JWT tokens (only if JWT-authenticated)
         """
         import logging
         from django.conf import settings
@@ -391,39 +390,51 @@ class PasswordChangeSerializer(serializers.Serializer):
         self.new_access_token = None
         self.new_refresh_token = None
 
-        # Handle DRF auth tokens
-        # Check if this user has tokens (indicating token-based auth is in use)
+        # Determine how THIS request was authenticated
+        # Check the Authorization header since request.auth may be None if SessionAuthentication ran first
+        auth_header = self.request.META.get('HTTP_AUTHORIZATION', '')
+        is_token_auth = auth_header.startswith('Token ')
+        # JWT can be in Authorization header or in cookies
+        jwt_cookie_name = api_settings.JWT_AUTH_COOKIE
+        has_jwt_cookie = jwt_cookie_name and jwt_cookie_name in self.request.COOKIES
+        is_jwt_auth = auth_header.startswith('JWT ') or auth_header.startswith('Bearer ') or has_jwt_cookie
+
+        # Handle DRF auth tokens - revoke all tokens regardless of auth method
         try:
             from .models import get_token_model
             token_model = get_token_model()
-            if token_model and token_model.objects.filter(user=self.user).exists():
-                # Delete all existing tokens for this user
+            if token_model:
                 deleted_count = token_model.objects.filter(user=self.user).delete()[0]
-                # Create a new token for this client
-                self.new_token = token_model.objects.create(user=self.user)
-                logger.info(
-                    f"Revoked {deleted_count} DRF token(s) and issued new token for user "
-                    f"{self.user.pk} after password change"
-                )
+                if deleted_count > 0:
+                    # Only issue new token if THIS request was token-authenticated
+                    if is_token_auth:
+                        self.new_token = token_model.objects.create(user=self.user)
+                        logger.info(
+                            f"Revoked {deleted_count} DRF token(s) and issued new token for user "
+                            f"{self.user.pk} after password change"
+                        )
+                    else:
+                        logger.info(
+                            f"Revoked {deleted_count} DRF token(s) for user {self.user.pk} "
+                            "after password change (no new token issued)"
+                        )
         except Exception as e:
             logger.exception(
                 f"Failed to revoke DRF tokens for user {self.user.pk} after password change: {e}"
             )
 
-        # Handle JWT tokens
-        if api_settings.USE_JWT:
+        # Handle JWT tokens - only if THIS request was JWT-authenticated
+        if is_jwt_auth:
             try:
-                # Blacklist all outstanding refresh tokens
+                # Blacklist all outstanding refresh tokens if blacklist app is installed
                 if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
                     from rest_framework_simplejwt.token_blacklist.models import (
                         OutstandingToken,
                         BlacklistedToken,
                     )
 
-                    # Get all outstanding tokens for this user
                     outstanding_tokens = OutstandingToken.objects.filter(user=self.user)
 
-                    # Bulk blacklist all tokens
                     tokens_to_blacklist = [
                         BlacklistedToken(token=token)
                         for token in outstanding_tokens
@@ -441,16 +452,15 @@ class PasswordChangeSerializer(serializers.Serializer):
                         )
                 else:
                     logger.warning(
-                        f"JWT tokens for user {self.user.pk} not revoked: "
-                        "rest_framework_simplejwt.token_blacklist not installed"
+                        f"JWT blacklist app not installed - old refresh tokens remain valid for user "
+                        f"{self.user.pk}"
                     )
 
-                # Issue fresh tokens to the current client
+                # Issue fresh tokens to THIS client
                 from .utils import jwt_encode
                 self.new_access_token, self.new_refresh_token = jwt_encode(self.user)
                 logger.info(
-                    f"Issued fresh JWT tokens to current client for user {self.user.pk} "
-                    "after password change"
+                    f"Issued fresh JWT tokens for user {self.user.pk} after password change"
                 )
 
             except ImportError as e:

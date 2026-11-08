@@ -649,6 +649,7 @@ class APIBasicTests(TestsMixin, TestCase):
         self.post(self.login_url, data=login_payload, status_code=200)
 
         old_access = self.response.json['access']
+        old_refresh = self.response.json['refresh']
         self.token = old_access
 
         # Change password
@@ -674,6 +675,48 @@ class APIBasicTests(TestsMixin, TestCase):
         # New token should work
         self.token = new_access
         self.get(self.user_url, status_code=200)
+
+        # Without blacklist app, old refresh token should still be valid
+        # (can still be used to obtain new access tokens)
+        refresh_url = reverse('token_refresh')
+        refresh_payload = {'refresh': old_refresh}
+        self.post(refresh_url, data=refresh_payload, status_code=200)
+        # If the old refresh token was blacklisted, this would return 401
+        self.assertIn('access', self.response.json)
+
+    @override_api_settings(PASSWORD_CHANGE_REVOKE_TOKENS=True)
+    def test_password_change_session_auth_revokes_token_no_return(self):
+        """
+        Session-auth password change with PASSWORD_CHANGE_REVOKE_TOKENS=True
+        should revoke other tokens but not return a token to the session client.
+        """
+        from rest_framework.authtoken.models import Token
+
+        # Create user and login via session (not token)
+        user = get_user_model().objects.create_user(self.USERNAME, '', self.PASS)
+        self.client.force_login(user)
+
+        # Create a token for this user (simulating another device)
+        Token.objects.create(user=user)
+        self.assertEqual(Token.objects.filter(user=user).count(), 1)
+
+        # Change password via session auth
+        new_password_payload = {
+            'old_password': self.PASS,
+            'new_password1': 'new_password123',
+            'new_password2': 'new_password123',
+        }
+        self.post(
+            self.password_change_url,
+            data=new_password_payload,
+            status_code=200,
+        )
+
+        # Token from other device should be revoked
+        self.assertEqual(Token.objects.filter(user=user).count(), 0)
+
+        # Response should NOT contain a token (session auth)
+        self.assertNotIn('token', self.response.json)
 
     def _password_reset(self):
         user = get_user_model().objects.create_user(self.USERNAME, self.EMAIL, self.PASS)

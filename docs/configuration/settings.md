@@ -284,13 +284,13 @@ Revoke authentication tokens when password changes.
 
 When `True`, changing password revokes the user's authentication tokens:
 
-- **DRF Token Auth**: Only applies if the request was token-authenticated. Deletes all tokens for the user and returns a new token in the response under the `token` key. The client should update its stored token.
+- **DRF Token Auth**: Deletes all tokens for the user. If the request was token-authenticated, returns a new token in the response. If the request was session-authenticated, revokes tokens but returns nothing.
 
-- **JWT Auth**: Blacklists all refresh tokens and issues fresh tokens to the current client (requires `rest_framework_simplejwt.token_blacklist` in `INSTALLED_APPS`). The fresh tokens are set in cookies (if cookie mode) or returned in the response body as `access` and `refresh` (if not HttpOnly).
+- **JWT Auth**: If the request was JWT-authenticated, blacklists all refresh tokens (requires `rest_framework_simplejwt.token_blacklist`) and issues fresh tokens. Without the blacklist app, old refresh tokens remain valid. Fresh tokens are set in cookies (cookie mode) or returned as `access` and `refresh` (header mode).
 
-This improves security by terminating potentially compromised sessions when a user changes their password. The current client remains authenticated with fresh credentials.
+Improves security by terminating compromised sessions when password changes. Current client stays authenticated if it used token/JWT auth.
 
-**Note**: Token revocation failures are logged but do not prevent password change from succeeding.
+**Note:** Custom TOKEN_MODELs with multiple tokens per user are not supported.
 
 ---
 
